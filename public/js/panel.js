@@ -55,6 +55,16 @@ function getCleanEventName(eventId, fallbackName = '') {
   return name.replace(/(\d+)x\1x\1(\s*Cube)?/gi, '$1x$1');
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ── Inicialización ──
 document.addEventListener('DOMContentLoaded', () => {
   connectWebSocket();
