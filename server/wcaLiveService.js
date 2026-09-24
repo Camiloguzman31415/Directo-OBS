@@ -160,8 +160,9 @@ async function fetchLiveCompetitionRounds(compId) {
 
 /**
  * Calcula el detalle de cada intento incluyendo los tiempos recortados (mejor y peor con paréntesis)
+ * e indicando cuál intento específico obtuvo el récord single si aplica
  */
-function getAttemptsDetail(attempts, eventId, totalAttempts) {
+function getAttemptsDetail(attempts, eventId, totalAttempts, recordIndex = -1, singleRecordTag = null) {
   const count = totalAttempts || 5;
   const rawList = [];
   for (let i = 0; i < count; i++) {
@@ -211,11 +212,14 @@ function getAttemptsDetail(attempts, eventId, totalAttempts) {
     if (isTrimmed && formatted !== '—') {
       displayText = `(${formatted})`;
     }
+    const isRecord = (recordIndex >= 0 && idx === recordIndex);
     return {
       raw,
       formatted,
       isTrimmed,
-      displayText
+      displayText,
+      isRecord,
+      recordTag: isRecord ? singleRecordTag : null
     };
   });
 }
@@ -307,7 +311,13 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 16) {
       averageRecordTag: r.averageRecordTag || null,
       recordTag: r.averageRecordTag || r.singleRecordTag || null,
       attempts: attempts.map(a => formatWcaTime(a?.result, eventId)),
-      attemptsDetail: getAttemptsDetail(attempts, eventId, totalAttempts)
+      attemptsDetail: (() => {
+        let singleRecordIdx = -1;
+        if (r.singleRecordTag && typeof r.best === 'number' && r.best > 0) {
+          singleRecordIdx = attempts.findIndex(a => a && typeof a.result === 'number' && a.result === r.best);
+        }
+        return getAttemptsDetail(attempts, eventId, totalAttempts, singleRecordIdx, r.singleRecordTag);
+      })()
     };
   });
 
