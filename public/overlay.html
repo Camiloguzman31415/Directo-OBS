@@ -946,8 +946,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 75px;
-    padding: 60px 80px;
+    gap: 65px;
+    padding: 40px 65px;
     box-sizing: border-box;
   }
 
@@ -968,7 +968,7 @@
     line-height: 1.02;
     text-transform: uppercase;
     letter-spacing: -0.5px;
-    margin-bottom: 60px;
+    margin-bottom: 50px;
     text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85);
     white-space: pre-line;
     word-break: break-word;
@@ -1019,22 +1019,22 @@
     text-transform: capitalize;
   }
 
-  /* ━━━ Columna Derecha: Tabla Completa de Resultados ━━━ */
+  /* ━━━ Columna Derecha: Tabla Completa de Resultados (Escala BroadCast Ampliada) ━━━ */
   .fs-table-col {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: 924px;
+    width: 1245px;
     flex-shrink: 0;
   }
 
   /* Header de la Tabla */
   .fs-table-header {
     display: grid;
-    grid-template-columns: 44px 36px 275px 385px 92px 92px;
+    grid-template-columns: 48px 44px 363px 550px 120px 120px;
     align-items: flex-end;
-    margin-bottom: 4px;
-    height: 32px;
+    margin-bottom: 5px;
+    height: 34px;
     width: 100%;
     box-sizing: border-box;
   }
@@ -1048,7 +1048,7 @@
     grid-column: 4 / 5;
     background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
     border-radius: 4px;
-    height: 28px;
+    height: 30px;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     align-items: center;
@@ -1061,14 +1061,14 @@
 
   .fs-head-num {
     font-family: 'Inter', -apple-system, sans-serif;
-    font-size: 14.5px;
+    font-size: 15.5px;
     font-weight: 900;
     color: #FFFFFF;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
   }
 
   .fs-head-pill {
-    height: 28px;
+    height: 30px;
     width: calc(100% - 6px);
     margin: 0 auto;
     border-radius: 4px;
@@ -1076,7 +1076,7 @@
     align-items: center;
     justify-content: center;
     font-family: 'Inter', -apple-system, sans-serif;
-    font-size: 14.5px;
+    font-size: 15px;
     font-weight: 900;
     letter-spacing: 0.8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
@@ -1130,9 +1130,9 @@
 
   .fs-row {
     display: grid;
-    grid-template-columns: 44px 36px 275px 385px 92px 92px;
+    grid-template-columns: 48px 44px 363px 550px 120px 120px;
     align-items: center;
-    height: 44px;
+    height: 48px;
     background: rgba(5, 15, 32, 0.94);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     box-sizing: border-box;
@@ -1156,11 +1156,11 @@
   }
 
   .fs-pos-badge {
-    min-width: 28px;
-    height: 25px;
+    min-width: 30px;
+    height: 27px;
     border-radius: 3px;
     font-family: 'Inter', -apple-system, sans-serif;
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 900;
     display: inline-flex;
     align-items: center;
@@ -1198,8 +1198,8 @@
   }
 
   .fs-col-flag img {
-    width: 25px;
-    height: 16px;
+    width: 28px;
+    height: 18px;
     object-fit: cover;
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
@@ -1209,11 +1209,11 @@
   .fs-col-name {
     grid-column: 3 / 4;
     font-family: 'DM Sans', 'Inter', sans-serif;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 700;
     color: #FFFFFF;
-    padding-left: 8px;
-    padding-right: 12px;
+    padding-left: 10px;
+    padding-right: 14px;
     white-space: nowrap;
     overflow: hidden;
     letter-spacing: 0.15px;
@@ -1308,45 +1308,44 @@
   .fs-solve-val {
     display: inline-block;
     white-space: nowrap;
-    font-size: 15.5px;
+    font-size: 17.5px;
     font-weight: 700;
     line-height: 1;
-    letter-spacing: 0.1px;
+    letter-spacing: 0.15px;
     transition: font-size 0.15s ease;
   }
 
   /* Auto-ajuste para tiempos con minutos (ej. 4:26.99) o >= 6 caracteres */
   .fs-solve-val.long-time {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
-    letter-spacing: -0.2px;
+    letter-spacing: -0.1px;
   }
 
   /* Auto-ajuste para tiempos recortados largos (ej. (3:28.59)) */
   .fs-solve-val.xlong-time {
-    font-size: 11.5px;
+    font-size: 15px;
     font-weight: 700;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.15px;
   }
 
-  /* Separación para que el badge [PR] no colisione con el número en tiempos largos */
-  .fs-solve-item.is-record .fs-solve-val.long-time,
-  .fs-solve-item.is-record .fs-solve-val.xlong-time {
-    margin-top: 8px;
+  /* Separación para que el badge [PR] no colisione con el número en intento récord */
+  .fs-solve-item.is-record .fs-solve-val {
+    margin-top: 6px;
   }
 
   .fs-solve-badge {
     position: absolute;
-    top: 2px;
+    top: 3px;
     left: 50%;
     transform: translateX(-50%);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 8.5px;
+    font-size: 9px;
     font-weight: 900;
     letter-spacing: 0.5px;
     line-height: 1;
-    padding: 1px 4px;
-    border-radius: 2px;
+    padding: 1.5px 5px;
+    border-radius: 3px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
     user-select: none;
     text-transform: uppercase;
@@ -1404,8 +1403,8 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    gap: 4px;
-    padding: 0 4px;
+    gap: 6px;
+    padding: 0 6px;
     overflow: hidden;
   }
 
@@ -1427,8 +1426,8 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    gap: 4px;
-    padding: 0 4px;
+    gap: 6px;
+    padding: 0 6px;
     overflow: hidden;
   }
 
@@ -1436,27 +1435,27 @@
     background: rgba(74, 222, 128, 0.14);
   }
 
-  /* Estilos para el texto de tiempo en AVG y BEST */
+  /* Estilos para el texto de tiempo en AVG y BEST (Alta Legibilidad) */
   .fs-time-val {
     display: inline-block;
     white-space: nowrap;
-    font-size: 17px;
+    font-size: 18.5px;
     font-weight: 800;
     line-height: 1;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.25px;
     transition: font-size 0.15s ease;
   }
 
   .fs-time-val.minute-time {
-    font-size: 14.5px;
+    font-size: 17px;
     font-weight: 800;
     letter-spacing: -0.1px;
   }
 
   .fs-time-val.minute-with-badge {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 800;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.2px;
   }
 
   /* Badge para columnas AVG y BEST */
@@ -1465,11 +1464,11 @@
     align-items: center;
     justify-content: center;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 900;
     letter-spacing: 0.6px;
     line-height: 1;
-    padding: 2px 4.5px;
+    padding: 3px 6px;
     border-radius: 3px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
     flex-shrink: 0;
@@ -2209,12 +2208,14 @@
                   recordSolveClass = 'is-record';
                 }
 
-                // Auto-ajuste de tamaño para tiempos de más de 60s o cadenas largas
+                // Auto-ajuste de tamaño inteligente: solo tiempos con minutos (>60s) ajustan escala
                 let lengthClass = '';
-                if (solveText.length >= 8) {
-                  lengthClass = 'xlong-time';
-                } else if (solveText.includes(':') || solveText.length >= 6) {
-                  lengthClass = 'long-time';
+                if (solveText.includes(':')) {
+                  if (solveText.length >= 8 || solveText.startsWith('(')) {
+                    lengthClass = 'xlong-time'; // Ej. (3:28.59) -> 15px
+                  } else {
+                    lengthClass = 'long-time';  // Ej. 4:26.99 -> 16px
+                  }
                 }
 
                 solvesHtml.push(`
@@ -2226,10 +2227,12 @@
               } else {
                 const rawSolve = r.attempts && r.attempts[s] ? r.attempts[s] : '—';
                 let lengthClass = '';
-                if (rawSolve.length >= 8) {
-                  lengthClass = 'xlong-time';
-                } else if (rawSolve.includes(':') || rawSolve.length >= 6) {
-                  lengthClass = 'long-time';
+                if (rawSolve.includes(':')) {
+                  if (rawSolve.length >= 8 || rawSolve.startsWith('(')) {
+                    lengthClass = 'xlong-time';
+                  } else {
+                    lengthClass = 'long-time';
+                  }
                 }
                 solvesHtml.push(`<div class="fs-solve-item"><span class="fs-solve-val ${lengthClass}">${rawSolve}</span></div>`);
               }
@@ -2246,7 +2249,7 @@
               avgColClass = 'has-record';
             }
             let avgTimeClass = '';
-            if (displayAvg.includes(':') || displayAvg.length >= 7) {
+            if (displayAvg.includes(':')) {
               avgTimeClass = avgBadgeHtml ? 'minute-with-badge' : 'minute-time';
             }
 
@@ -2261,7 +2264,7 @@
               bestColClass = 'has-record';
             }
             let bestTimeClass = '';
-            if (displayBest.includes(':') || displayBest.length >= 7) {
+            if (displayBest.includes(':')) {
               bestTimeClass = bestBadgeHtml ? 'minute-with-badge' : 'minute-time';
             }
 
