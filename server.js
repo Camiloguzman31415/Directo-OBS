@@ -74,6 +74,54 @@ let liveRankingPageSize = 16;
 let liveRankingPageDuration = 10;
 let liveRankingPollTimer = null;
 let liveRankingPollInterval = 0; // segundos (0 = inactivo)
+let liveRankingRounds = [];
+
+const LIVE_STATE_FILE = path.join(__dirname, 'live_state.json');
+
+function saveLiveState() {
+  try {
+    const state = {
+      compId: liveRankingCompId,
+      roundId: liveRankingRoundId,
+      rounds: liveRankingRounds,
+      top: liveRankingTop,
+      cutoff: liveRankingCutoff,
+      dynamicPaging: liveRankingDynamicPaging,
+      autoBalance: liveRankingAutoBalance,
+      pageSize: liveRankingPageSize,
+      pageDuration: liveRankingPageDuration,
+      pollInterval: liveRankingPollInterval,
+      visible: liveRankingVisible
+    };
+    fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[LiveRanking] Error guardando live_state.json:', err.message);
+  }
+}
+
+function loadLiveState() {
+  try {
+    if (fs.existsSync(LIVE_STATE_FILE)) {
+      const state = JSON.parse(fs.readFileSync(LIVE_STATE_FILE, 'utf8'));
+      if (state.compId) liveRankingCompId = state.compId;
+      if (state.roundId) liveRankingRoundId = state.roundId;
+      if (state.rounds && Array.isArray(state.rounds)) liveRankingRounds = state.rounds;
+      if (state.top !== undefined) liveRankingTop = state.top;
+      if (state.cutoff !== undefined) liveRankingCutoff = state.cutoff;
+      if (state.dynamicPaging !== undefined) liveRankingDynamicPaging = state.dynamicPaging;
+      if (state.autoBalance !== undefined) liveRankingAutoBalance = state.autoBalance;
+      if (state.pageSize !== undefined) liveRankingPageSize = state.pageSize;
+      if (state.pageDuration !== undefined) liveRankingPageDuration = state.pageDuration;
+      if (state.pollInterval !== undefined) liveRankingPollInterval = state.pollInterval;
+      if (state.visible !== undefined) liveRankingVisible = state.visible;
+      console.log(`[LiveRanking] Estado restaurado: compId=${liveRankingCompId}, roundId=${liveRankingRoundId}`);
+    }
+  } catch (err) {
+    console.warn('[LiveRanking] Error cargando live_state.json:', err.message);
+  }
+}
+
+loadLiveState();
 
 const overlayClients = new Set();
 const panelClients = new Set();
@@ -113,6 +161,18 @@ if (specifiedDataFile) {
   if (!loadedFallback) {
     console.log('[Torneo] Servidor iniciado sin torneo por defecto. Carga uno desde el panel web o con --data <archivo.json>');
   }
+}
+
+// Si había una ronda de WCA Live guardada en estado previo, precargar su ranking
+if (liveRankingRoundId) {
+  fetchLiveRoundRanking(liveRankingRoundId, liveRankingDynamicPaging ? 0 : liveRankingTop, liveRankingCutoff)
+    .then(ranking => {
+      liveRankingData = ranking;
+      console.log(`[LiveRanking] Ranking precargado para ronda ${liveRankingRoundId} (${ranking?.ranking?.length || 0} competidores)`);
+    })
+    .catch(err => {
+      console.warn(`[LiveRanking] No se pudo precargar ranking para ${liveRankingRoundId}:`, err.message);
+    });
 }
 
 // ── Instancia OBS WebSocket ──
@@ -431,6 +491,11 @@ app.get('/api/live/competitions/:id', async (req, res) => {
   try {
     const compId = req.params.id;
     const comp = await fetchLiveCompetitionRounds(compId);
+    if (comp && comp.rounds) {
+      liveRankingCompId = compId;
+      liveRankingRounds = comp.rounds;
+      saveLiveState();
+    }
     res.json({ ok: true, competition: comp });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -444,6 +509,9 @@ app.get('/api/live/rounds/:roundId', async (req, res) => {
     const top = parseInt(req.query.top || '16', 10);
     const cutoff = parseInt(req.query.cutoff || '16', 10);
     const ranking = await fetchLiveRoundRanking(roundId, top, cutoff);
+    liveRankingRoundId = roundId;
+    liveRankingData = ranking;
+    saveLiveState();
     res.json({ ok: true, ranking });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -1435,6 +1503,7 @@ function handleSocketConnection(ws, req) {
       liveRankingVisible,
       liveRankingRoundId,
       liveRankingCompId,
+      liveRankingRounds,
       liveRankingTop,
       liveRankingCutoff,
       liveRankingPollInterval,
@@ -1611,6 +1680,8 @@ function handleSocketConnection(ws, req) {
         if (msg.pageDuration !== undefined) liveRankingPageDuration = parseInt(msg.pageDuration, 10) || 10;
 
         liveRankingVisible = true;
+        saveLiveState();
+
         if (msg.pollInterval !== undefined) {
           startLiveRankingPolling(msg.pollInterval);
         }
@@ -1641,6 +1712,7 @@ function handleSocketConnection(ws, req) {
       case 'live_ranking_hide':
         liveRankingVisible = false;
         stopLiveRankingPolling();
+        saveLiveState();
         broadcastToOverlays({
           type: 'live_ranking_hide'
         });
@@ -1656,9 +1728,34 @@ function handleSocketConnection(ws, req) {
         });
         break;
 
+      case 'live_ranking_comp_selected':
+        if (msg.compId) liveRankingCompId = msg.compId;
+        if (msg.roundId) liveRankingRoundId = msg.roundId;
+        if (msg.rounds && Array.isArray(msg.rounds)) liveRankingRounds = msg.rounds;
+        saveLiveState();
+        break;
+
+      case 'live_ranking_select_round':
+        if (msg.roundId) liveRankingRoundId = msg.roundId;
+        if (msg.compId) liveRankingCompId = msg.compId;
+        saveLiveState();
+        break;
+
+      case 'live_ranking_params':
+        if (msg.top !== undefined) liveRankingTop = parseInt(msg.top, 10) || 16;
+        if (msg.cutoff !== undefined) liveRankingCutoff = parseInt(msg.cutoff, 10) || 16;
+        if (msg.dynamicPaging !== undefined) liveRankingDynamicPaging = !!msg.dynamicPaging;
+        if (msg.autoBalance !== undefined) liveRankingAutoBalance = !!msg.autoBalance;
+        if (msg.pageDuration !== undefined) liveRankingPageDuration = parseInt(msg.pageDuration, 10) || 10;
+        if (msg.pageSize !== undefined) liveRankingPageSize = parseInt(msg.pageSize, 10) || 16;
+        saveLiveState();
+        break;
+
       case 'live_ranking_poll_config':
         if (msg.pollInterval !== undefined) {
-          startLiveRankingPolling(msg.pollInterval);
+          liveRankingPollInterval = parseInt(msg.pollInterval, 10) || 0;
+          startLiveRankingPolling(liveRankingPollInterval);
+          saveLiveState();
         }
         broadcastToPanels({
           type: 'sync_live_ranking',

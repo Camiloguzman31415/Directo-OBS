@@ -70,6 +70,12 @@ function escapeHtml(str) {
 
 // ── Inicialización ──
 document.addEventListener('DOMContentLoaded', () => {
+  const savedComp = localStorage.getItem('directoobs_live_comp_id');
+  if (savedComp) {
+    const input = document.getElementById('live-comp-id-input');
+    if (input) input.value = savedComp;
+    liveRankingCompId = savedComp;
+  }
   connectWebSocket();
   setupEventListeners();
   setupKeyboardShortcuts();
@@ -161,9 +167,34 @@ function handleServerMessage(msg) {
       if (msg.liveRankingDynamicPaging !== undefined) liveRankingDynamicPaging = !!msg.liveRankingDynamicPaging;
       if (msg.liveRankingAutoBalance !== undefined) liveRankingAutoBalance = !!msg.liveRankingAutoBalance;
       if (msg.liveRankingPageDuration) liveRankingPageDuration = msg.liveRankingPageDuration;
+
+      // Recuperar competencia y ronda seleccionada (prioridad: servidor -> localStorage)
+      const targetCompId = liveRankingCompId || localStorage.getItem('directoobs_live_comp_id');
+      const targetRoundId = liveRankingSelectedRoundId || localStorage.getItem('directoobs_live_round_id');
+
+      if (targetCompId) {
+        liveRankingCompId = targetCompId;
+        const compInput = document.getElementById('live-comp-id-input');
+        if (compInput) compInput.value = targetCompId;
+      }
+      if (targetRoundId) {
+        liveRankingSelectedRoundId = targetRoundId;
+      }
+
+      // Si el servidor nos envió las rondas pre-cargadas en init_state:
+      if (msg.liveRankingRounds && msg.liveRankingRounds.length > 0) {
+        liveRankingRounds = msg.liveRankingRounds;
+        populateLiveRoundSelect(targetRoundId);
+      } else if (targetCompId && (!liveRankingRounds || liveRankingRounds.length === 0)) {
+        // Si no vienen en el mensaje, cargarlas silenciosamente
+        loadLiveCompetitionRounds(targetRoundId, true);
+      }
+
       if (msg.liveRankingData) {
         liveRankingData = msg.liveRankingData;
         renderLiveRankingPreview(liveRankingData);
+      } else if (targetRoundId) {
+        fetchLiveRoundRanking(targetRoundId, false);
       }
       updateLiveRankingUI();
       break;
@@ -1040,7 +1071,7 @@ function loadTournament(data) {
   }
 
   const liveCompInput = document.getElementById('live-comp-id-input');
-  if (liveCompInput && !liveCompInput.value && data.id) {
+  if (liveCompInput && !liveCompInput.value && !liveRankingCompId && data.id) {
     liveCompInput.value = data.id;
   }
 }
@@ -1911,58 +1942,83 @@ function setupKeyboardShortcuts() {
 // ── FUNCIONES DE CONTROL DE RANKING EN VIVO (WCA LIVE) ──
 // ══════════════════════════════════════════════════════════════════
 
-async function loadLiveCompetitionRounds() {
+function populateLiveRoundSelect(targetRoundId = null) {
+  const select = document.getElementById('live-round-select');
+  if (!select) return;
+
+  if (!liveRankingRounds || liveRankingRounds.length === 0) {
+    select.innerHTML = '<option value="">No hay rondas disponibles</option>';
+    select.disabled = true;
+    return;
+  }
+
+  select.innerHTML = liveRankingRounds.map(r => {
+    const eName = EVENT_NAMES[r.eventId] || r.eventName || r.eventId;
+    return `<option value="${r.roundId}">${eName} - ${r.roundName} (Ronda ${r.roundNumber})</option>`;
+  }).join('');
+  select.disabled = false;
+
+  const toSelect = targetRoundId || liveRankingSelectedRoundId || localStorage.getItem('directoobs_live_round_id');
+  if (toSelect && liveRankingRounds.some(r => r.roundId === toSelect)) {
+    select.value = toSelect;
+    liveRankingSelectedRoundId = toSelect;
+  } else {
+    select.value = liveRankingRounds[0].roundId;
+    liveRankingSelectedRoundId = select.value;
+  }
+}
+
+async function loadLiveCompetitionRounds(targetRoundId = null, silent = false) {
   const input = document.getElementById('live-comp-id-input');
   let compId = input ? input.value.trim() : '';
+  if (!compId) {
+    compId = liveRankingCompId || localStorage.getItem('directoobs_live_comp_id') || '';
+    if (input && compId) input.value = compId;
+  }
   if (!compId && tournamentData && tournamentData.id) {
     compId = tournamentData.id;
     if (input) input.value = compId;
   }
   if (!compId) {
-    showToast('Ingresa un ID de competencia de WCA Live', 'warning');
+    if (!silent) showToast('Ingresa un ID de competencia de WCA Live', 'warning');
     return;
   }
 
-  showToast(`Buscando competencia ${compId} en WCA Live...`, 'info');
+  if (!silent) showToast(`Buscando competencia ${compId} en WCA Live...`, 'info');
   try {
     const res = await fetch(`/api/live/competitions/${encodeURIComponent(compId)}`);
     const data = await res.json();
     if (!data.ok || !data.competition) {
-      showToast(data.error || 'No se pudo cargar la competencia de WCA Live', 'error');
+      if (!silent) showToast(data.error || 'No se pudo cargar la competencia de WCA Live', 'error');
       return;
     }
 
     liveRankingCompId = compId;
     liveRankingRounds = data.competition.rounds || [];
-    showToast(`Cargada: ${data.competition.name} (${liveRankingRounds.length} rondas)`, 'success');
+    localStorage.setItem('directoobs_live_comp_id', compId);
 
-    const select = document.getElementById('live-round-select');
-    if (!select) return;
-
-    if (liveRankingRounds.length === 0) {
-      select.innerHTML = '<option value="">No hay rondas disponibles</option>';
-      select.disabled = true;
-      return;
+    if (!silent) {
+      showToast(`Cargada: ${data.competition.name} (${liveRankingRounds.length} rondas)`, 'success');
     }
 
-    select.innerHTML = liveRankingRounds.map(r => {
-      const eName = EVENT_NAMES[r.eventId] || r.eventName || r.eventId;
-      return `<option value="${r.roundId}">${eName} - ${r.roundName} (Ronda ${r.roundNumber})</option>`;
-    }).join('');
-    select.disabled = false;
+    const preferredRound = targetRoundId || liveRankingSelectedRoundId || localStorage.getItem('directoobs_live_round_id');
+    populateLiveRoundSelect(preferredRound);
 
-    // Si ya había una ronda seleccionada que siga en la lista, mantenerla; si no, seleccionar la primera
-    if (liveRankingSelectedRoundId && liveRankingRounds.some(r => r.roundId === liveRankingSelectedRoundId)) {
-      select.value = liveRankingSelectedRoundId;
-    } else {
-      select.value = liveRankingRounds[0].roundId;
-      liveRankingSelectedRoundId = select.value;
+    if (liveRankingSelectedRoundId) {
+      localStorage.setItem('directoobs_live_round_id', liveRankingSelectedRoundId);
+      sendWS({
+        type: 'live_ranking_comp_selected',
+        compId: liveRankingCompId,
+        roundId: liveRankingSelectedRoundId,
+        rounds: liveRankingRounds
+      });
+      // Cargar automáticamente los datos de la ronda seleccionada si no los tenemos
+      if (!liveRankingData || liveRankingData.roundId !== liveRankingSelectedRoundId) {
+        fetchLiveRoundRanking(liveRankingSelectedRoundId);
+      }
     }
-
-    // Cargar automáticamente los datos de la ronda seleccionada
-    fetchLiveRoundRanking(liveRankingSelectedRoundId);
   } catch (err) {
-    showToast(`Error al consultar WCA Live: ${err.message}`, 'error');
+    if (!silent) showToast(`Error al consultar WCA Live: ${err.message}`, 'error');
   }
 }
 
@@ -2006,6 +2062,12 @@ function onLiveRoundChanged() {
   const select = document.getElementById('live-round-select');
   if (!select) return;
   liveRankingSelectedRoundId = select.value;
+  localStorage.setItem('directoobs_live_round_id', liveRankingSelectedRoundId);
+  sendWS({
+    type: 'live_ranking_select_round',
+    roundId: liveRankingSelectedRoundId,
+    compId: liveRankingCompId
+  });
   fetchLiveRoundRanking(liveRankingSelectedRoundId, true);
 }
 
@@ -2024,6 +2086,22 @@ function onLiveParamsChanged() {
   if (modeSel) liveRankingDynamicPaging = modeSel.value === 'dynamic';
   if (balSel) liveRankingAutoBalance = balSel.value === 'balanced';
   if (durSel) liveRankingPageDuration = parseInt(durSel.value, 10) || 10;
+
+  localStorage.setItem('directoobs_live_top', liveRankingTop);
+  localStorage.setItem('directoobs_live_cutoff', liveRankingCutoff);
+  localStorage.setItem('directoobs_live_dynamic_paging', liveRankingDynamicPaging);
+  localStorage.setItem('directoobs_live_auto_balance', liveRankingAutoBalance);
+  localStorage.setItem('directoobs_live_page_duration', liveRankingPageDuration);
+
+  sendWS({
+    type: 'live_ranking_params',
+    top: liveRankingTop,
+    pageSize: liveRankingTop,
+    cutoff: liveRankingCutoff,
+    dynamicPaging: liveRankingDynamicPaging,
+    autoBalance: liveRankingAutoBalance,
+    pageDuration: liveRankingPageDuration
+  });
 
   updatePagingSummary();
 
@@ -2050,6 +2128,7 @@ function onLivePollingChanged() {
   const pollSel = document.getElementById('live-polling-select');
   if (!pollSel) return;
   liveRankingPollInterval = parseInt(pollSel.value, 10) || 0;
+  localStorage.setItem('directoobs_live_poll_interval', liveRankingPollInterval);
   sendWS({
     type: 'live_ranking_poll_config',
     pollInterval: liveRankingPollInterval
@@ -2256,6 +2335,13 @@ function updateLiveRankingUI() {
 
   const durSel = document.getElementById('live-page-duration-select');
   if (durSel && liveRankingPageDuration) durSel.value = String(liveRankingPageDuration);
+
+  const roundSel = document.getElementById('live-round-select');
+  if (roundSel && liveRankingSelectedRoundId && roundSel.value !== liveRankingSelectedRoundId) {
+    if (Array.from(roundSel.options).some(o => o.value === liveRankingSelectedRoundId)) {
+      roundSel.value = liveRankingSelectedRoundId;
+    }
+  }
 
   updatePagingSummary();
 }
