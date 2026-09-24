@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overlay – Competidor (Edición Broadcast)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap');
+
+  :root {
+    --banner-bg: rgba(9, 18, 32, 0.94);
+    --header-green: #0d8250;
+    --header-green-grad: linear-gradient(90deg, #0d8250 0%, #10a364 100%);
+    --header-blue-grad: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
+    --grid-border: rgba(255, 255, 255, 0.14);
+    --text-primary: #FFFFFF;
+    --text-muted: #94A3B8;
+    --accent-cyan: #38bdf8;
+    --accent-green: #4ade80;
+    --accent-orange: #fb923c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: transparent;
+    font-family: 'Barlow', sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #banner {
+    position: absolute;
+    width: 900px;
+    max-width: 92vw;
+    background: var(--banner-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 6px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10;
+  }
+
+  #banner.pos-top.align-left {
+    top: 36px;
+    left: 40px;
+    transform: translateY(-24px) scale(0.98);
+  }
+  #banner.pos-top.align-left.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  #banner.pos-top.align-center {
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-24px) scale(0.98);
+  }
+  #banner.pos-top.align-center.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  #banner.pos-bottom.align-left {
+    bottom: 40px;
+    left: 40px;
+    transform: translateY(24px) scale(0.98);
+  }
+  #banner.pos-bottom.align-left.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  #banner.pos-bottom.align-center {
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(24px) scale(0.98);
+  }
+  #banner.pos-bottom.align-center.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  .banner-header {
+    display: grid;
+    grid-template-columns: minmax(360px, 1fr) 140px 125px 125px;
+    height: 42px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.45);
+  }
+
+  .header-event-badge {
+    background: var(--header-green-grad);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    overflow: hidden;
+  }
+
+  .header-event-icon {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(1);
+    flex-shrink: 0;
+  }
+
+  .header-event-titles {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .header-event-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: #FFFFFF;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .header-event-round {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .col-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid var(--grid-border);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    user-select: none;
+  }
+
+  .col-head.col-wcaid {
+    background: rgba(13, 27, 44, 0.95);
+    color: #94A3B8;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .col-head.col-single {
+    background: rgba(13, 27, 44, 0.95);
+    color: #CBD5E1;
+    font-weight: 800;
+    font-size: 14px;
+  }
+
+  .col-head.col-avg {
+    background: var(--header-blue-grad);
+    color: #FFFFFF;
+    font-weight: 900;
+    font-size: 15px;
+  }
+
+  .competitor-row {
+    display: grid;
+    grid-template-columns: minmax(360px, 1fr) 140px 125px 125px;
+    height: 52px;
+    align-items: center;
+    background: rgba(10, 22, 38, 0.88);
+    position: relative;
+    transition: background 0.2s ease;
+  }
+
+  .competitor-row:nth-child(even) {
+    background: rgba(7, 16, 28, 0.94);
+  }
+
+  .competitor-row + .competitor-row {
+    border-top: 1px solid var(--grid-border);
+  }
+
+  .col-competitor-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    overflow: hidden;
+  }
+
+  .comp-marker {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .marker-blue {
+    background: var(--accent-cyan);
+    color: #06121e;
+  }
+
+  .marker-orange {
+    background: var(--accent-orange);
+    color: #06121e;
+  }
+
+  .comp-flag {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .comp-flag img {
+    width: 34px;
+    height: 23px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  }
+
+  .comp-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  }
+
+  .col-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    border-left: 1px solid var(--grid-border);
+  }
+
+  .comp-wcaid {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #CBD5E1;
+    letter-spacing: 1px;
+  }
+
+  .badge-new {
+    background: var(--accent-cyan);
+    color: #050d18;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .pr-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: 0.5px;
+    color: #FFFFFF;
+  }
+
+  .pr-num.no-data {
+    color: #64748B;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .col-avg-data .pr-num {
+    color: var(--accent-cyan);
+    font-weight: 900;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  }
+
+  .col-avg-data .pr-num.no-data {
+    color: #64748B;
+    text-shadow: none;
+  }
+
+  #banner.mode-single #row-comp-2 {
+    display: none !important;
+  }
+  #banner.mode-single .comp-marker {
+    display: none !important;
+  }
+
+  /* ━━━ BADGE DE EVENTO STANDALONE (ESTILO BROADCAST EURO 2026) ━━━ */
+  #event-badge {
+    position: absolute;
+    top: 36px;
+    right: 40px;
+    min-width: 360px;
+    max-width: 520px;
+    background: var(--banner-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 6px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px) scale(0.98);
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10;
+  }
+
+  #event-badge.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  .event-inner {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .event-icon-badge {
+    background: var(--header-green-grad);
+    width: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .event-icon-badge .cubing-icon {
+    width: 44px;
+    height: 44px;
+    filter: brightness(0) invert(1);
+  }
+
+  .event-text {
+    background: rgba(9, 18, 32, 0.94);
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .event-top-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 2px;
+  }
+
+  .event-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--accent-green);
+    text-transform: uppercase;
+  }
+
+  .event-round-pill {
+    background: rgba(2, 132, 199, 0.22);
+    border: 1px solid rgba(2, 132, 199, 0.45);
+    color: var(--accent-cyan);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .event-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+  }
+
+  .event-tourney-name {
+    font-family: 'Barlow', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div id="banner" class="pos-top align-left mode-dual">
+  <div class="banner-header">
+    <div class="header-event-badge">
+      <img id="banner-event-icon" class="header-event-icon" src="icons/333.svg" alt="Evento" onerror="this.style.display='none'">
+      <div class="header-event-titles">
+        <span id="banner-event-title" class="header-event-title">3x3x3 CUBE</span>
+        <span id="banner-event-round" class="header-event-round">FIRST ROUND</span>
+      </div>
+    </div>
+    <div class="col-head col-wcaid">WCA ID</div>
+    <div class="col-head col-single">PR SINGLE</div>
+    <div class="col-head col-avg">PR AVG</div>
+  </div>
+
+  <div class="competitor-row row-1" id="row-comp-1">
+    <div class="col-competitor-info">
+      <div class="comp-marker marker-blue">1</div>
+      <div class="comp-flag" id="flag-1"></div>
+      <span class="comp-name" id="name-1">—</span>
+    </div>
+    <div class="col-data col-wcaid-data">
+      <span class="comp-wcaid" id="wcaid-1">—</span>
+      <span class="badge-new" id="new-badge-1" style="display:none;">NUEVO</span>
+    </div>
+    <div class="col-data col-single-data">
+      <span class="pr-num" id="single-1">—</span>
+    </div>
+    <div class="col-data col-avg-data">
+      <span class="pr-num" id="avg-1">—</span>
+    </div>
+  </div>
+
+  <div class="competitor-row row-2" id="row-comp-2">
+    <div class="col-competitor-info">
+      <div class="comp-marker marker-orange">2</div>
+      <div class="comp-flag" id="flag-2"></div>
+      <span class="comp-name" id="name-2">—</span>
+    </div>
+    <div class="col-data col-wcaid-data">
+      <span class="comp-wcaid" id="wcaid-2">—</span>
+      <span class="badge-new" id="new-badge-2" style="display:none;">NUEVO</span>
+    </div>
+    <div class="col-data col-single-data">
+      <span class="pr-num" id="single-2">—</span>
+    </div>
+    <div class="col-data col-avg-data">
+      <span class="pr-num" id="avg-2">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- Standalone Event Badge (Broadcast Euro 2026 Style) -->
+<div id="event-badge">
+  <div class="event-inner">
+    <div class="event-icon-badge">
+      <img class="cubing-icon" id="event-icon-badge" src="icons/333.svg" alt="Icono Evento">
+    </div>
+    <div class="event-text">
+      <div class="event-top-meta">
+        <span class="event-label">CATEGORÍA OFICIAL</span>
+        <span class="event-round-pill" id="round-info">PRIMERA RONDA</span>
+      </div>
+      <div class="event-name" id="event-name">3x3</div>
+      <div class="event-tourney-name" id="event-tournament-name">World Cube Association</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let ws = null;
+  let reconnectTimer = null;
+  let currentEventData = {
+    event_id: '333',
+    event_name: '3x3',
+    round_number: 1,
+    total_rounds: 3
+  };
+
+  const banner = document.getElementById('banner');
+  const bannerEventIcon = document.getElementById('banner-event-icon');
+  const bannerEventTitle = document.getElementById('banner-event-title');
+  const bannerEventRound = document.getElementById('banner-event-round');
+
+  const eventBadge = document.getElementById('event-badge');
+  const elEventName = document.getElementById('event-name');
+  const elRoundInfo = document.getElementById('round-info');
+  const elIconBadge = document.getElementById('event-icon-badge');
+
+  function renderFlag(containerId, iso2) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!iso2) {
+      container.innerHTML = '';
+      return;
+    }
+    const clean = iso2.trim().toLowerCase();
+    container.innerHTML = `<img src="https://flagcdn.com/w80/${clean}.png" alt="${iso2}" onerror="this.style.display='none'">`;
+  }
+
+  function formatRound(rNum, total) {
+    if (!rNum) return '';
+    if (rNum === 1) return total === 1 ? 'FINAL' : 'FIRST ROUND';
+    if (rNum === total) return 'FINAL';
+    if (rNum === total - 1) return 'SEMI FINAL';
+    return `ROUND ${rNum}`;
+  }
+
+  function setEvent(eventData) {
+    if (!eventData) return;
+    currentEventData = eventData;
+    const eid = eventData.event_id || '333';
+    const ename = eventData.event_name || eid.toUpperCase();
+    const rnum = eventData.round_number || 1;
+    const total = eventData.total_rounds || 3;
+    const tourney = eventData.tournament_name || 'World Cube Association';
+
+    bannerEventTitle.textContent = ename;
+    bannerEventRound.textContent = formatRound(rnum, total);
+    bannerEventIcon.src = `icons/${eid}.svg`;
+    bannerEventIcon.style.display = 'block';
+
+    elEventName.textContent = ename;
+    elRoundInfo.textContent = formatRound(rnum, total);
+    const tourneyEl = document.getElementById('event-tournament-name');
+    if (tourneyEl) tourneyEl.textContent = tourney;
+    elIconBadge.src = `icons/${eid}.svg`;
+  }
+
+  function updateCompetitorRow(slotIndex, comp, activeEventId) {
+    const elName = document.getElementById(`name-${slotIndex}`);
+    const elWcaid = document.getElementById(`wcaid-${slotIndex}`);
+    const elNew = document.getElementById(`new-badge-${slotIndex}`);
+    const elSingle = document.getElementById(`single-${slotIndex}`);
+    const elAvg = document.getElementById(`avg-${slotIndex}`);
+
+    if (!comp) {
+      elName.textContent = slotIndex === 1 ? 'MESA 1' : 'MESA 2';
+      renderFlag(`flag-${slotIndex}`, '');
+      elWcaid.textContent = '—';
+      elWcaid.style.display = 'inline';
+      elNew.style.display = 'none';
+      elSingle.textContent = '—';
+      elSingle.classList.add('no-data');
+      elAvg.textContent = '—';
+      elAvg.classList.add('no-data');
+      return;
+    }
+
+    elName.textContent = comp.name || '—';
+    renderFlag(`flag-${slotIndex}`, comp.country);
+
+    if (comp.is_new) {
+      elWcaid.style.display = 'none';
+      elNew.style.display = 'inline-block';
+    } else {
+      elWcaid.textContent = comp.wca_id || '—';
+      elWcaid.style.display = 'inline';
+      elNew.style.display = 'none';
+    }
+
+    const eid = activeEventId || (comp.current_event) || (currentEventData && currentEventData.event_id) || '333';
+    const pr = (comp.prs && comp.prs[eid]) || null;
+
+    if (pr) {
+      elSingle.textContent = pr.single_fmt || '—';
+      elAvg.textContent = pr.average_fmt || '—';
+      elSingle.classList.toggle('no-data', !pr.single_cs);
+      elAvg.classList.toggle('no-data', !pr.average_cs);
+    } else {
+      elSingle.textContent = '—';
+      elAvg.textContent = '—';
+      elSingle.classList.add('no-data');
+      elAvg.classList.add('no-data');
+    }
+  }
+
+  function applyBannerConfig(config) {
+    if (!config) return;
+    const mode = config.mode || 'dual';
+    const pos = config.position || 'top';
+    const align = config.align || 'left';
+
+    banner.className = `banner pos-${pos} align-${align} mode-${mode}`;
+  }
+
+  function updateBanner(payload) {
+    if (!payload) return;
+
+    applyBannerConfig(payload);
+
+    if (payload.event) {
+      setEvent(payload.event);
+    }
+
+    const eid = (payload.event && payload.event.event_id) || currentEventData.event_id;
+
+    updateCompetitorRow(1, payload.competitor1 || payload.competitor || null, eid);
+    updateCompetitorRow(2, payload.competitor2 || null, eid);
+
+    if (payload.visible !== false) {
+      banner.classList.add('visible');
+    } else {
+      banner.classList.remove('visible');
+    }
+  }
+
+  function connect() {
+    let wsUrl = 'ws://localhost:8765';
+    if (window.location.protocol.startsWith('http')) {
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${proto}//${window.location.host}/ws?role=overlay`;
+    }
+
+    try {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        clearTimeout(reconnectTimer);
+        console.log('[DirectoOBS Overlay Legacy] Conectado a:', wsUrl);
+      };
+
+      ws.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+
+          if (msg.type === 'banner_data') {
+            updateBanner(msg);
+          } else if (msg.type === 'banner_config') {
+            applyBannerConfig(msg);
+          } else if (msg.type === 'banner_event') {
+            setEvent(msg.event);
+          } else if (msg.type === 'competitor') {
+            updateBanner({
+              mode: 'single',
+              competitor1: msg.data,
+              visible: true
+            });
+          } else if (msg.type === 'event') {
+            setEvent(msg.data);
+            eventBadge.classList.add('visible');
+          } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {
+            banner.classList.remove('visible');
+          } else if (msg.type === 'hide_event') {
+            eventBadge.classList.remove('visible');
+          }
+        } catch (e) {
+          console.error('[DirectoOBS Overlay Legacy] Error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        reconnectTimer = setTimeout(connect, 2000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    } catch {
+      reconnectTimer = setTimeout(connect, 2000);
+    }
+  }
+
+  connect();
+</script>
+</body>
+</html>

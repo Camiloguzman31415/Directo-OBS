@@ -1,0 +1,31 @@
+# Dependencias
+node_modules/
+
+# Entorno y credenciales
+.env
+.env.local
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos temporales y capturas de prueba
+check_obs_temp.mjs
+navegador_screenshot.png
+navegador_test.png
+prueba_with_overlay.jpg
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores y IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

@@ -1,0 +1,2201 @@
+{
+  "competition_id": "RegionalesSantander2026",
+  "name": "Regionales Santander 2026",
+  "start_date": "2026-10-10",
+  "end_date": "2026-10-11",
+  "city": "Floridablanca, Santander",
+  "events": [
+    {
+      "event_id": "333",
+      "name": "3x3",
+      "rounds": 3
+    },
+    {
+      "event_id": "222",
+      "name": "2x2",
+      "rounds": 3
+    },
+    {
+      "event_id": "444",
+      "name": "4x4",
+      "rounds": 2
+    },
+    {
+      "event_id": "555",
+      "name": "5x5",
+      "rounds": 1
+    },
+    {
+      "event_id": "666",
+      "name": "6x6",
+      "rounds": 1
+    },
+    {
+      "event_id": "777",
+      "name": "7x7",
+      "rounds": 1
+    },
+    {
+      "event_id": "333bf",
+      "name": "3x3 Blindfolded",
+      "rounds": 1
+    },
+    {
+      "event_id": "333oh",
+      "name": "3x3 One-Handed",
+      "rounds": 2
+    },
+    {
+      "event_id": "clock",
+      "name": "Clock",
+      "rounds": 2
+    },
+    {
+      "event_id": "minx",
+      "name": "Megaminx",
+      "rounds": 2
+    },
+    {
+      "event_id": "pyram",
+      "name": "Pyraminx",
+      "rounds": 3
+    },
+    {
+      "event_id": "skewb",
+      "name": "Skewb",
+      "rounds": 2
+    },
+    {
+      "event_id": "sq1",
+      "name": "Square-1",
+      "rounds": 1
+    },
+    {
+      "event_id": "444bf",
+      "name": "4x4 Blindfolded",
+      "rounds": 1
+    },
+    {
+      "event_id": "555bf",
+      "name": "5x5 Blindfolded",
+      "rounds": 1
+    },
+    {
+      "event_id": "333mbf",
+      "name": "Multi-Blind",
+      "rounds": 1
+    }
+  ],
+  "competitors": [
+    {
+      "name": "Aider Santiago Lizarazo Calderon",
+      "wca_id": "2018CALD07",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333bf",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "777",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 320,
+          "average_cs": 441,
+          "single_fmt": "3.20",
+          "average_fmt": "4.41"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 992,
+          "average_cs": 1239,
+          "single_fmt": "9.92",
+          "average_fmt": "12.39"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 4481,
+          "average_cs": 5095,
+          "single_fmt": "44.81",
+          "average_fmt": "50.95"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 8713,
+          "average_cs": 9365,
+          "single_fmt": "1:27.13",
+          "average_fmt": "1:33.65"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 18955,
+          "average_cs": 20680,
+          "single_fmt": "3:09.55",
+          "average_fmt": "3:26.80"
+        },
+        "777": {
+          "event_name": "7x7",
+          "single_cs": 30806,
+          "average_cs": null,
+          "single_fmt": "5:08.06",
+          "average_fmt": "—"
+        },
+        "333bf": {
+          "event_name": "3x3 Blindfolded",
+          "single_cs": 26239,
+          "average_cs": null,
+          "single_fmt": "4:22.39",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1715,
+          "average_cs": 2116,
+          "single_fmt": "17.15",
+          "average_fmt": "21.16"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 2826,
+          "average_cs": 3203,
+          "single_fmt": "28.26",
+          "average_fmt": "32.03"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 11540,
+          "average_cs": 12402,
+          "single_fmt": "1:55.40",
+          "average_fmt": "2:04.02"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 458,
+          "average_cs": 639,
+          "single_fmt": "4.58",
+          "average_fmt": "6.39"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 609,
+          "average_cs": 890,
+          "single_fmt": "6.09",
+          "average_fmt": "8.90"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 1404,
+          "average_cs": 1694,
+          "single_fmt": "14.04",
+          "average_fmt": "16.94"
+        }
+      }
+    },
+    {
+      "name": "Andres Felipe Mejia Perez",
+      "wca_id": "2017PERE59",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "777",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 535,
+          "average_cs": 726,
+          "single_fmt": "5.35",
+          "average_fmt": "7.26"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 1431,
+          "average_cs": 1572,
+          "single_fmt": "14.31",
+          "average_fmt": "15.72"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 5076,
+          "average_cs": 5905,
+          "single_fmt": "50.76",
+          "average_fmt": "59.05"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 15923,
+          "average_cs": null,
+          "single_fmt": "2:39.23",
+          "average_fmt": "—"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "777": {
+          "event_name": "7x7",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 744,
+          "average_cs": 985,
+          "single_fmt": "7.44",
+          "average_fmt": "9.85"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 657,
+          "average_cs": 883,
+          "single_fmt": "6.57",
+          "average_fmt": "8.83"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Axel Matias López Gutiérrez",
+      "wca_id": "2019GUTI14",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333bf",
+        "333oh",
+        "444",
+        "555",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 228,
+          "average_cs": 455,
+          "single_fmt": "2.28",
+          "average_fmt": "4.55"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 946,
+          "average_cs": 1102,
+          "single_fmt": "9.46",
+          "average_fmt": "11.02"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 4276,
+          "average_cs": 5310,
+          "single_fmt": "42.76",
+          "average_fmt": "53.10"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 10840,
+          "average_cs": 12506,
+          "single_fmt": "1:48.40",
+          "average_fmt": "2:05.06"
+        },
+        "333bf": {
+          "event_name": "3x3 Blindfolded",
+          "single_cs": 38444,
+          "average_cs": null,
+          "single_fmt": "6:24.44",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1567,
+          "average_cs": 1796,
+          "single_fmt": "15.67",
+          "average_fmt": "17.96"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 1010,
+          "average_cs": 1364,
+          "single_fmt": "10.10",
+          "average_fmt": "13.64"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 5741,
+          "average_cs": 6854,
+          "single_fmt": "57.41",
+          "average_fmt": "1:08.54"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 592,
+          "average_cs": 774,
+          "single_fmt": "5.92",
+          "average_fmt": "7.74"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 603,
+          "average_cs": 892,
+          "single_fmt": "6.03",
+          "average_fmt": "8.92"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 759,
+          "average_cs": 1023,
+          "single_fmt": "7.59",
+          "average_fmt": "10.23"
+        }
+      }
+    },
+    {
+      "name": "Brayan Alexander Sandoval Camacho",
+      "wca_id": "2022CAMA04",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333bf",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "777",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 210,
+          "average_cs": 261,
+          "single_fmt": "2.10",
+          "average_fmt": "2.61"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 743,
+          "average_cs": 909,
+          "single_fmt": "7.43",
+          "average_fmt": "9.09"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 3597,
+          "average_cs": 4194,
+          "single_fmt": "35.97",
+          "average_fmt": "41.94"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 7031,
+          "average_cs": 7720,
+          "single_fmt": "1:10.31",
+          "average_fmt": "1:17.20"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 16745,
+          "average_cs": 18524,
+          "single_fmt": "2:47.45",
+          "average_fmt": "3:05.24"
+        },
+        "777": {
+          "event_name": "7x7",
+          "single_cs": 25142,
+          "average_cs": 32498,
+          "single_fmt": "4:11.42",
+          "average_fmt": "5:24.98"
+        },
+        "333bf": {
+          "event_name": "3x3 Blindfolded",
+          "single_cs": 4208,
+          "average_cs": 5320,
+          "single_fmt": "42.08",
+          "average_fmt": "53.20"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1295,
+          "average_cs": 1618,
+          "single_fmt": "12.95",
+          "average_fmt": "16.18"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 883,
+          "average_cs": 1150,
+          "single_fmt": "8.83",
+          "average_fmt": "11.50"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 5740,
+          "average_cs": 6257,
+          "single_fmt": "57.40",
+          "average_fmt": "1:02.57"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 295,
+          "average_cs": 597,
+          "single_fmt": "2.95",
+          "average_fmt": "5.97"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 1974,
+          "average_cs": 2476,
+          "single_fmt": "19.74",
+          "average_fmt": "24.76"
+        }
+      }
+    },
+    {
+      "name": "Camilo Guzmán",
+      "wca_id": "2017GUZM05",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333bf",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "777",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 262,
+          "average_cs": 388,
+          "single_fmt": "2.62",
+          "average_fmt": "3.88"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 962,
+          "average_cs": 1167,
+          "single_fmt": "9.62",
+          "average_fmt": "11.67"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 4100,
+          "average_cs": 4728,
+          "single_fmt": "41.00",
+          "average_fmt": "47.28"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 9047,
+          "average_cs": 9792,
+          "single_fmt": "1:30.47",
+          "average_fmt": "1:37.92"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 19183,
+          "average_cs": 21522,
+          "single_fmt": "3:11.83",
+          "average_fmt": "3:35.22"
+        },
+        "777": {
+          "event_name": "7x7",
+          "single_cs": 32371,
+          "average_cs": 34328,
+          "single_fmt": "5:23.71",
+          "average_fmt": "5:43.28"
+        },
+        "333bf": {
+          "event_name": "3x3 Blindfolded",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1773,
+          "average_cs": 2202,
+          "single_fmt": "17.73",
+          "average_fmt": "22.02"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 1004,
+          "average_cs": 1280,
+          "single_fmt": "10.04",
+          "average_fmt": "12.80"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 11170,
+          "average_cs": 12730,
+          "single_fmt": "1:51.70",
+          "average_fmt": "2:07.30"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 273,
+          "average_cs": 426,
+          "single_fmt": "2.73",
+          "average_fmt": "4.26"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 328,
+          "average_cs": 772,
+          "single_fmt": "3.28",
+          "average_fmt": "7.72"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 1957,
+          "average_cs": 3260,
+          "single_fmt": "19.57",
+          "average_fmt": "32.60"
+        }
+      }
+    },
+    {
+      "name": "Cristian Castellanos Guevara",
+      "wca_id": "2024GUEV01",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333bf",
+        "333mbf",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "777",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 98,
+          "average_cs": 274,
+          "single_fmt": "0.98",
+          "average_fmt": "2.74"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 687,
+          "average_cs": 802,
+          "single_fmt": "6.87",
+          "average_fmt": "8.02"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 3002,
+          "average_cs": 3538,
+          "single_fmt": "30.02",
+          "average_fmt": "35.38"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 5566,
+          "average_cs": 6047,
+          "single_fmt": "55.66",
+          "average_fmt": "1:00.47"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 10561,
+          "average_cs": 11225,
+          "single_fmt": "1:45.61",
+          "average_fmt": "1:52.25"
+        },
+        "777": {
+          "event_name": "7x7",
+          "single_cs": 17684,
+          "average_cs": 18469,
+          "single_fmt": "2:56.84",
+          "average_fmt": "3:04.69"
+        },
+        "333bf": {
+          "event_name": "3x3 Blindfolded",
+          "single_cs": 21471,
+          "average_cs": null,
+          "single_fmt": "3:34.71",
+          "average_fmt": "—"
+        },
+        "333mbf": {
+          "event_name": "Multi-Blind",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1017,
+          "average_cs": 1174,
+          "single_fmt": "10.17",
+          "average_fmt": "11.74"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 417,
+          "average_cs": 536,
+          "single_fmt": "4.17",
+          "average_fmt": "5.36"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 5056,
+          "average_cs": 5704,
+          "single_fmt": "50.56",
+          "average_fmt": "57.04"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 216,
+          "average_cs": 368,
+          "single_fmt": "2.16",
+          "average_fmt": "3.68"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 182,
+          "average_cs": 407,
+          "single_fmt": "1.82",
+          "average_fmt": "4.07"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 790,
+          "average_cs": 1160,
+          "single_fmt": "7.90",
+          "average_fmt": "11.60"
+        }
+      }
+    },
+    {
+      "name": "Cristian David Porras Robles",
+      "wca_id": null,
+      "is_new": true,
+      "country": "CO",
+      "events": [
+        "333"
+      ],
+      "prs": {
+        "333": {
+          "event_name": "3x3",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Daniel Hernando García Osorio",
+      "wca_id": "2022OSOR03",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "minx",
+        "pyram",
+        "skewb"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 288,
+          "average_cs": 418,
+          "single_fmt": "2.88",
+          "average_fmt": "4.18"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 1058,
+          "average_cs": 1514,
+          "single_fmt": "10.58",
+          "average_fmt": "15.14"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 4446,
+          "average_cs": 5442,
+          "single_fmt": "44.46",
+          "average_fmt": "54.42"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 9693,
+          "average_cs": 11093,
+          "single_fmt": "1:36.93",
+          "average_fmt": "1:50.93"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 22674,
+          "average_cs": null,
+          "single_fmt": "3:46.74",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 2252,
+          "average_cs": 3752,
+          "single_fmt": "22.52",
+          "average_fmt": "37.52"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 10532,
+          "average_cs": 11421,
+          "single_fmt": "1:45.32",
+          "average_fmt": "1:54.21"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 686,
+          "average_cs": 998,
+          "single_fmt": "6.86",
+          "average_fmt": "9.98"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 381,
+          "average_cs": 1016,
+          "single_fmt": "3.81",
+          "average_fmt": "10.16"
+        }
+      }
+    },
+    {
+      "name": "Evan Samuel Rodríguez Barrera",
+      "wca_id": "2026BARR14",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "333",
+        "333oh"
+      ],
+      "prs": {
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 2167,
+          "average_cs": 3535,
+          "single_fmt": "21.67",
+          "average_fmt": "35.35"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Fredy Antonio Estupiñán Mongui",
+      "wca_id": "2025MONG07",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "clock",
+        "pyram"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 468,
+          "average_cs": 1322,
+          "single_fmt": "4.68",
+          "average_fmt": "13.22"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 4711,
+          "average_cs": 6073,
+          "single_fmt": "47.11",
+          "average_fmt": "1:00.73"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 1709,
+          "average_cs": 1854,
+          "single_fmt": "17.09",
+          "average_fmt": "18.54"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 1495,
+          "average_cs": 2085,
+          "single_fmt": "14.95",
+          "average_fmt": "20.85"
+        }
+      }
+    },
+    {
+      "name": "Gabriel Enrique Amaya Puello",
+      "wca_id": "2023PUEL01",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "777",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 88,
+          "average_cs": 412,
+          "single_fmt": "0.88",
+          "average_fmt": "4.12"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 1152,
+          "average_cs": 1350,
+          "single_fmt": "11.52",
+          "average_fmt": "13.50"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 5040,
+          "average_cs": 5652,
+          "single_fmt": "50.40",
+          "average_fmt": "56.52"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 11300,
+          "average_cs": 12470,
+          "single_fmt": "1:53.00",
+          "average_fmt": "2:04.70"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 24222,
+          "average_cs": 25158,
+          "single_fmt": "4:02.22",
+          "average_fmt": "4:11.58"
+        },
+        "777": {
+          "event_name": "7x7",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 2034,
+          "average_cs": 2452,
+          "single_fmt": "20.34",
+          "average_fmt": "24.52"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 635,
+          "average_cs": 743,
+          "single_fmt": "6.35",
+          "average_fmt": "7.43"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 5248,
+          "average_cs": 6022,
+          "single_fmt": "52.48",
+          "average_fmt": "1:00.22"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 300,
+          "average_cs": 487,
+          "single_fmt": "3.00",
+          "average_fmt": "4.87"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 453,
+          "average_cs": 749,
+          "single_fmt": "4.53",
+          "average_fmt": "7.49"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 1636,
+          "average_cs": 2260,
+          "single_fmt": "16.36",
+          "average_fmt": "22.60"
+        }
+      }
+    },
+    {
+      "name": "Génesis Castillo Caprazo",
+      "wca_id": "2025CAPR02",
+      "is_new": false,
+      "country": "VE",
+      "events": [
+        "333",
+        "pyram"
+      ],
+      "prs": {
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 3500,
+          "average_cs": 4311,
+          "single_fmt": "35.00",
+          "average_fmt": "43.11"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 1224,
+          "average_cs": 1949,
+          "single_fmt": "12.24",
+          "average_fmt": "19.49"
+        }
+      }
+    },
+    {
+      "name": "Haiver Lenin Reyes Garcia",
+      "wca_id": "2017GARC48",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "clock",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 144,
+          "average_cs": 424,
+          "single_fmt": "1.44",
+          "average_fmt": "4.24"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 1102,
+          "average_cs": 1427,
+          "single_fmt": "11.02",
+          "average_fmt": "14.27"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 7491,
+          "average_cs": 8288,
+          "single_fmt": "1:14.91",
+          "average_fmt": "1:22.88"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1987,
+          "average_cs": 2762,
+          "single_fmt": "19.87",
+          "average_fmt": "27.62"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 656,
+          "average_cs": 778,
+          "single_fmt": "6.56",
+          "average_fmt": "7.78"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 327,
+          "average_cs": 542,
+          "single_fmt": "3.27",
+          "average_fmt": "5.42"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 303,
+          "average_cs": 583,
+          "single_fmt": "3.03",
+          "average_fmt": "5.83"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 3987,
+          "average_cs": 5735,
+          "single_fmt": "39.87",
+          "average_fmt": "57.35"
+        }
+      }
+    },
+    {
+      "name": "Jeremy Alexander Terán Castañeda",
+      "wca_id": "2025CAST53",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "333",
+        "minx"
+      ],
+      "prs": {
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 2038,
+          "average_cs": 2175,
+          "single_fmt": "20.38",
+          "average_fmt": "21.75"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Jerónimo Espinosa",
+      "wca_id": "2023ESPI07",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333bf",
+        "333mbf",
+        "333oh",
+        "444",
+        "444bf",
+        "555",
+        "555bf",
+        "666",
+        "777",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 111,
+          "average_cs": 366,
+          "single_fmt": "1.11",
+          "average_fmt": "3.66"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 808,
+          "average_cs": 1103,
+          "single_fmt": "8.08",
+          "average_fmt": "11.03"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 3666,
+          "average_cs": 4128,
+          "single_fmt": "36.66",
+          "average_fmt": "41.28"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 7220,
+          "average_cs": 8378,
+          "single_fmt": "1:12.20",
+          "average_fmt": "1:23.78"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 15360,
+          "average_cs": 16159,
+          "single_fmt": "2:33.60",
+          "average_fmt": "2:41.59"
+        },
+        "777": {
+          "event_name": "7x7",
+          "single_cs": 25198,
+          "average_cs": 26637,
+          "single_fmt": "4:11.98",
+          "average_fmt": "4:26.37"
+        },
+        "333bf": {
+          "event_name": "3x3 Blindfolded",
+          "single_cs": 4042,
+          "average_cs": 5290,
+          "single_fmt": "40.42",
+          "average_fmt": "52.90"
+        },
+        "333mbf": {
+          "event_name": "Multi-Blind",
+          "single_cs": 920319103,
+          "average_cs": null,
+          "single_fmt": "MBLD:920319103",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1516,
+          "average_cs": 2002,
+          "single_fmt": "15.16",
+          "average_fmt": "20.02"
+        },
+        "444bf": {
+          "event_name": "4x4 Blindfolded",
+          "single_cs": 22451,
+          "average_cs": null,
+          "single_fmt": "3:44.51",
+          "average_fmt": "—"
+        },
+        "555bf": {
+          "event_name": "5x5 Blindfolded",
+          "single_cs": 86600,
+          "average_cs": null,
+          "single_fmt": "14:26.00",
+          "average_fmt": "—"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 401,
+          "average_cs": 589,
+          "single_fmt": "4.01",
+          "average_fmt": "5.89"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 4673,
+          "average_cs": 6304,
+          "single_fmt": "46.73",
+          "average_fmt": "1:03.04"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 220,
+          "average_cs": 331,
+          "single_fmt": "2.20",
+          "average_fmt": "3.31"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 383,
+          "average_cs": 553,
+          "single_fmt": "3.83",
+          "average_fmt": "5.53"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 1247,
+          "average_cs": 1866,
+          "single_fmt": "12.47",
+          "average_fmt": "18.66"
+        }
+      }
+    },
+    {
+      "name": "Juan Diego Rangel Rodriguez",
+      "wca_id": "2023RODR39",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "pyram",
+        "skewb"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 122,
+          "average_cs": 336,
+          "single_fmt": "1.22",
+          "average_fmt": "3.36"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 1001,
+          "average_cs": 1304,
+          "single_fmt": "10.01",
+          "average_fmt": "13.04"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 10385,
+          "average_cs": null,
+          "single_fmt": "1:43.85",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 2614,
+          "average_cs": 3088,
+          "single_fmt": "26.14",
+          "average_fmt": "30.88"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 774,
+          "average_cs": 1179,
+          "single_fmt": "7.74",
+          "average_fmt": "11.79"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Juan José Ramírez Beyaert",
+      "wca_id": "2023BEYA01",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "777",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 123,
+          "average_cs": 270,
+          "single_fmt": "1.23",
+          "average_fmt": "2.70"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 771,
+          "average_cs": 918,
+          "single_fmt": "7.71",
+          "average_fmt": "9.18"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 3142,
+          "average_cs": 3588,
+          "single_fmt": "31.42",
+          "average_fmt": "35.88"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 7377,
+          "average_cs": 7962,
+          "single_fmt": "1:13.77",
+          "average_fmt": "1:19.62"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 19004,
+          "average_cs": 20056,
+          "single_fmt": "3:10.04",
+          "average_fmt": "3:20.56"
+        },
+        "777": {
+          "event_name": "7x7",
+          "single_cs": 24534,
+          "average_cs": 27327,
+          "single_fmt": "4:05.34",
+          "average_fmt": "4:33.27"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1473,
+          "average_cs": 1720,
+          "single_fmt": "14.73",
+          "average_fmt": "17.20"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 479,
+          "average_cs": 721,
+          "single_fmt": "4.79",
+          "average_fmt": "7.21"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 6163,
+          "average_cs": 6780,
+          "single_fmt": "1:01.63",
+          "average_fmt": "1:07.80"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 140,
+          "average_cs": 288,
+          "single_fmt": "1.40",
+          "average_fmt": "2.88"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 297,
+          "average_cs": 474,
+          "single_fmt": "2.97",
+          "average_fmt": "4.74"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 1535,
+          "average_cs": 1801,
+          "single_fmt": "15.35",
+          "average_fmt": "18.01"
+        }
+      }
+    },
+    {
+      "name": "Juan Sebastián Lozada Rodríguez",
+      "wca_id": "2022RODR18",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "clock",
+        "minx"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 85,
+          "average_cs": 299,
+          "single_fmt": "0.85",
+          "average_fmt": "2.99"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 685,
+          "average_cs": 871,
+          "single_fmt": "6.85",
+          "average_fmt": "8.71"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 3222,
+          "average_cs": 3927,
+          "single_fmt": "32.22",
+          "average_fmt": "39.27"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 8144,
+          "average_cs": 10022,
+          "single_fmt": "1:21.44",
+          "average_fmt": "1:40.22"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 22897,
+          "average_cs": null,
+          "single_fmt": "3:48.97",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1511,
+          "average_cs": 1979,
+          "single_fmt": "15.11",
+          "average_fmt": "19.79"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 717,
+          "average_cs": 1453,
+          "single_fmt": "7.17",
+          "average_fmt": "14.53"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 9653,
+          "average_cs": 10748,
+          "single_fmt": "1:36.53",
+          "average_fmt": "1:47.48"
+        }
+      }
+    },
+    {
+      "name": "Juan Sebastian Oyola Naranjo",
+      "wca_id": "2023NARA13",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "pyram"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 2249,
+          "average_cs": 4837,
+          "single_fmt": "22.49",
+          "average_fmt": "48.37"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 1283,
+          "average_cs": 1592,
+          "single_fmt": "12.83",
+          "average_fmt": "15.92"
+        }
+      }
+    },
+    {
+      "name": "Juan Sebastian Sierra Suarez",
+      "wca_id": "2023SUAR05",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "clock",
+        "pyram",
+        "skewb"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 224,
+          "average_cs": 358,
+          "single_fmt": "2.24",
+          "average_fmt": "3.58"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 1258,
+          "average_cs": 1647,
+          "single_fmt": "12.58",
+          "average_fmt": "16.47"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 9941,
+          "average_cs": null,
+          "single_fmt": "1:39.41",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 2865,
+          "average_cs": 3641,
+          "single_fmt": "28.65",
+          "average_fmt": "36.41"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 1310,
+          "average_cs": 1607,
+          "single_fmt": "13.10",
+          "average_fmt": "16.07"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 360,
+          "average_cs": 669,
+          "single_fmt": "3.60",
+          "average_fmt": "6.69"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 556,
+          "average_cs": 839,
+          "single_fmt": "5.56",
+          "average_fmt": "8.39"
+        }
+      }
+    },
+    {
+      "name": "Lenin Reyes",
+      "wca_id": null,
+      "is_new": true,
+      "country": "CO",
+      "events": [
+        "333"
+      ],
+      "prs": {
+        "333": {
+          "event_name": "3x3",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Lina María Rodríguez Barrera",
+      "wca_id": null,
+      "is_new": true,
+      "country": "CO",
+      "events": [
+        "333"
+      ],
+      "prs": {
+        "333": {
+          "event_name": "3x3",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Luis Felipe Pradilla Ruiz",
+      "wca_id": "2025RUIZ12",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "333"
+      ],
+      "prs": {
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 3906,
+          "average_cs": 4283,
+          "single_fmt": "39.06",
+          "average_fmt": "42.83"
+        }
+      }
+    },
+    {
+      "name": "Nick Chávez Mendoza",
+      "wca_id": null,
+      "is_new": true,
+      "country": "CO",
+      "events": [
+        "333"
+      ],
+      "prs": {
+        "333": {
+          "event_name": "3x3",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Nicolás David Lozada Rodríguez",
+      "wca_id": "2022RODR19",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 213,
+          "average_cs": 327,
+          "single_fmt": "2.13",
+          "average_fmt": "3.27"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 888,
+          "average_cs": 1172,
+          "single_fmt": "8.88",
+          "average_fmt": "11.72"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 5745,
+          "average_cs": 7453,
+          "single_fmt": "57.45",
+          "average_fmt": "1:14.53"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 2623,
+          "average_cs": 3164,
+          "single_fmt": "26.23",
+          "average_fmt": "31.64"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 707,
+          "average_cs": 840,
+          "single_fmt": "7.07",
+          "average_fmt": "8.40"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 12714,
+          "average_cs": 13868,
+          "single_fmt": "2:07.14",
+          "average_fmt": "2:18.68"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 354,
+          "average_cs": 587,
+          "single_fmt": "3.54",
+          "average_fmt": "5.87"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 273,
+          "average_cs": 483,
+          "single_fmt": "2.73",
+          "average_fmt": "4.83"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 4046,
+          "average_cs": 6511,
+          "single_fmt": "40.46",
+          "average_fmt": "1:05.11"
+        }
+      }
+    },
+    {
+      "name": "Nicolas Romero",
+      "wca_id": "2023ROME09",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "minx",
+        "pyram",
+        "skewb"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 149,
+          "average_cs": 371,
+          "single_fmt": "1.49",
+          "average_fmt": "3.71"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 945,
+          "average_cs": 1304,
+          "single_fmt": "9.45",
+          "average_fmt": "13.04"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 5859,
+          "average_cs": 6594,
+          "single_fmt": "58.59",
+          "average_fmt": "1:05.94"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 2492,
+          "average_cs": 3121,
+          "single_fmt": "24.92",
+          "average_fmt": "31.21"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 11343,
+          "average_cs": 12188,
+          "single_fmt": "1:53.43",
+          "average_fmt": "2:01.88"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 303,
+          "average_cs": 389,
+          "single_fmt": "3.03",
+          "average_fmt": "3.89"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Nicolas Ruales",
+      "wca_id": "2022RUAL01",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "minx",
+        "pyram",
+        "skewb"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 163,
+          "average_cs": 408,
+          "single_fmt": "1.63",
+          "average_fmt": "4.08"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 988,
+          "average_cs": 1201,
+          "single_fmt": "9.88",
+          "average_fmt": "12.01"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 5501,
+          "average_cs": 6103,
+          "single_fmt": "55.01",
+          "average_fmt": "1:01.03"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 3072,
+          "average_cs": 3894,
+          "single_fmt": "30.72",
+          "average_fmt": "38.94"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 376,
+          "average_cs": 493,
+          "single_fmt": "3.76",
+          "average_fmt": "4.93"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 855,
+          "average_cs": 953,
+          "single_fmt": "8.55",
+          "average_fmt": "9.53"
+        }
+      }
+    },
+    {
+      "name": "Omar Nehimar Villarreal Mendoza",
+      "wca_id": "2023MEND66",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 77,
+          "average_cs": 348,
+          "single_fmt": "0.77",
+          "average_fmt": "3.48"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 695,
+          "average_cs": 844,
+          "single_fmt": "6.95",
+          "average_fmt": "8.44"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 3668,
+          "average_cs": 4062,
+          "single_fmt": "36.68",
+          "average_fmt": "40.62"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 11387,
+          "average_cs": 12041,
+          "single_fmt": "1:53.87",
+          "average_fmt": "2:00.41"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 33721,
+          "average_cs": null,
+          "single_fmt": "5:37.21",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 1709,
+          "average_cs": 2428,
+          "single_fmt": "17.09",
+          "average_fmt": "24.28"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 1107,
+          "average_cs": 1475,
+          "single_fmt": "11.07",
+          "average_fmt": "14.75"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 8314,
+          "average_cs": 9773,
+          "single_fmt": "1:23.14",
+          "average_fmt": "1:37.73"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 292,
+          "average_cs": 546,
+          "single_fmt": "2.92",
+          "average_fmt": "5.46"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 497,
+          "average_cs": 895,
+          "single_fmt": "4.97",
+          "average_fmt": "8.95"
+        }
+      }
+    },
+    {
+      "name": "Rafael Enrique Amaya Sarmiento",
+      "wca_id": null,
+      "is_new": true,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "clock",
+        "pyram"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Samuel Poveda Rodriguez",
+      "wca_id": "2026RODR25",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333oh",
+        "444",
+        "pyram"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 495,
+          "average_cs": 755,
+          "single_fmt": "4.95",
+          "average_fmt": "7.55"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 1658,
+          "average_cs": 1986,
+          "single_fmt": "16.58",
+          "average_fmt": "19.86"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        }
+      }
+    },
+    {
+      "name": "Sergio Camilo Estupiñán Gutiérrez",
+      "wca_id": "2024GUTI02",
+      "is_new": false,
+      "country": "CO",
+      "events": [
+        "222",
+        "333",
+        "333bf",
+        "333oh",
+        "444",
+        "555",
+        "666",
+        "clock",
+        "minx",
+        "pyram",
+        "skewb",
+        "sq1"
+      ],
+      "prs": {
+        "222": {
+          "event_name": "2x2",
+          "single_cs": 185,
+          "average_cs": 439,
+          "single_fmt": "1.85",
+          "average_fmt": "4.39"
+        },
+        "333": {
+          "event_name": "3x3",
+          "single_cs": 1161,
+          "average_cs": 1789,
+          "single_fmt": "11.61",
+          "average_fmt": "17.89"
+        },
+        "444": {
+          "event_name": "4x4",
+          "single_cs": 6743,
+          "average_cs": 9374,
+          "single_fmt": "1:07.43",
+          "average_fmt": "1:33.74"
+        },
+        "555": {
+          "event_name": "5x5",
+          "single_cs": 14685,
+          "average_cs": 19998,
+          "single_fmt": "2:26.85",
+          "average_fmt": "3:19.98"
+        },
+        "666": {
+          "event_name": "6x6",
+          "single_cs": 71500,
+          "average_cs": null,
+          "single_fmt": "11:55.00",
+          "average_fmt": "—"
+        },
+        "333bf": {
+          "event_name": "3x3 Blindfolded",
+          "single_cs": null,
+          "average_cs": null,
+          "single_fmt": "—",
+          "average_fmt": "—"
+        },
+        "333oh": {
+          "event_name": "3x3 One-Handed",
+          "single_cs": 4370,
+          "average_cs": 4759,
+          "single_fmt": "43.70",
+          "average_fmt": "47.59"
+        },
+        "clock": {
+          "event_name": "Clock",
+          "single_cs": 909,
+          "average_cs": 1183,
+          "single_fmt": "9.09",
+          "average_fmt": "11.83"
+        },
+        "minx": {
+          "event_name": "Megaminx",
+          "single_cs": 13875,
+          "average_cs": 18288,
+          "single_fmt": "2:18.75",
+          "average_fmt": "3:02.88"
+        },
+        "pyram": {
+          "event_name": "Pyraminx",
+          "single_cs": 336,
+          "average_cs": 757,
+          "single_fmt": "3.36",
+          "average_fmt": "7.57"
+        },
+        "skewb": {
+          "event_name": "Skewb",
+          "single_cs": 529,
+          "average_cs": 976,
+          "single_fmt": "5.29",
+          "average_fmt": "9.76"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 3395,
+          "average_cs": 4183,
+          "single_fmt": "33.95",
+          "average_fmt": "41.83"
+        }
+      }
+    }
+  ]
+}

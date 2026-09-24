@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DirectoOBS - Overlay Competidor y Evento (Broadcast Edition)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Roboto+Condensed:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --banner-bg: rgba(9, 18, 32, 0.94);
+    --header-green: #0d8250;
+    --header-green-grad: linear-gradient(90deg, #0d8250 0%, #10a364 100%);
+    --header-blue-grad: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
+    --grid-border: rgba(255, 255, 255, 0.14);
+    --text-primary: #FFFFFF;
+    --text-muted: #94A3B8;
+    --accent-cyan: #38bdf8;
+    --accent-green: #4ade80;
+    --accent-orange: #fb923c;
+
+    /* Preset de Tipografía por Defecto: Barlow Slim (Estilizado, Delgado) */
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-text: 'Barlow', sans-serif;
+    --weight-name: 600;
+    --weight-head: 700;
+    --weight-num: 700;
+    --weight-header-title: 700;
+    --name-size: 25px;
+    --wcaid-col-width: 142px;
+    --single-col-width: 115px;
+    --avg-col-width: 115px;
+    --wcaid-size: 18px;
+  }
+
+  /* Preset: Barlow Delgado (Elegante y fino) */
+  body.font-barlow_slim {
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-text: 'Barlow', sans-serif;
+    --weight-name: 600;
+    --weight-head: 700;
+    --weight-num: 700;
+    --weight-header-title: 700;
+    --name-size: 25px;
+    --wcaid-col-width: 142px;
+    --wcaid-size: 18px;
+  }
+
+  /* Preset: Barlow Bold (Clásico y robusto) */
+  body.font-barlow_bold {
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-text: 'Barlow', sans-serif;
+    --weight-name: 800;
+    --weight-head: 800;
+    --weight-num: 900;
+    --weight-header-title: 800;
+    --name-size: 26px;
+    --wcaid-col-width: 145px;
+    --wcaid-size: 18px;
+  }
+
+  /* Preset: Inter Modern (Limpio y ultra legible, adaptado para no desbordar WCA ID) */
+  body.font-inter {
+    --font-display: 'Inter', sans-serif;
+    --font-text: 'Inter', sans-serif;
+    --weight-name: 600;
+    --weight-head: 700;
+    --weight-num: 700;
+    --weight-header-title: 700;
+    --name-size: 22px;
+    --wcaid-col-width: 156px;
+    --wcaid-size: 15px;
+  }
+
+  /* Preset: Roboto Condensed (Deportivo broadcast) */
+  body.font-roboto {
+    --font-display: 'Roboto Condensed', sans-serif;
+    --font-text: 'Barlow', sans-serif;
+    --weight-name: 600;
+    --weight-head: 700;
+    --weight-num: 700;
+    --weight-header-title: 700;
+    --name-size: 24px;
+    --wcaid-col-width: 142px;
+    --wcaid-size: 17px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  /* Resolución Nativa FullHD 1920x1080 con antialiasing avanzado */
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    max-width: 1920px;
+    max-height: 1080px;
+    background: transparent;
+    font-family: var(--font-text);
+    overflow: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  /* ━━━ BANNER SCOREBOARD BROADCAST (ESTILO WCA EURO 2026) ━━━ */
+  #banner {
+    position: absolute;
+    width: fit-content;
+    min-width: 480px;
+    max-width: 94vw;
+    background: var(--banner-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 6px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+    display: inline-flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                top 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 20;
+  }
+
+  /* Posicionamiento Vertical */
+  #banner.pos-top {
+    top: 36px;
+    bottom: auto;
+  }
+  #banner.pos-bottom {
+    top: auto;
+    bottom: 40px;
+  }
+
+  /* Alineación Horizontal: Izquierda */
+  #banner.align-left {
+    left: 40px;
+    right: auto;
+    transform: translateY(-24px) scale(0.98);
+  }
+  #banner.pos-bottom.align-left {
+    transform: translateY(24px) scale(0.98);
+  }
+  #banner.align-left.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  /* Alineación Horizontal: Centro */
+  #banner.align-center {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) translateY(-24px) scale(0.98) !important;
+  }
+  #banner.pos-bottom.align-center {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) translateY(24px) scale(0.98) !important;
+  }
+  #banner.align-center.visible {
+    opacity: 1;
+    pointer-events: auto;
+    left: 50% !important;
+    transform: translateX(-50%) translateY(0) scale(1) !important;
+  }
+
+  /* ━━━ CABECERA DEL BANNER ━━━ */
+  .banner-header {
+    display: grid;
+    grid-template-columns: var(--name-col-width, 280px) var(--wcaid-col-width, 142px) var(--single-col-width, 115px) var(--avg-col-width, 115px);
+    height: 42px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.45);
+    transition: grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .header-event-badge {
+    background: var(--header-green-grad);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    overflow: hidden;
+  }
+
+  .header-event-icon {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(1);
+    flex-shrink: 0;
+  }
+
+  .header-event-titles {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .header-event-title {
+    font-family: var(--font-display);
+    font-weight: var(--weight-header-title);
+    font-size: 20px;
+    color: #FFFFFF;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .header-event-round {
+    font-family: var(--font-text);
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.92);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .col-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid var(--grid-border);
+    font-family: var(--font-display);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    user-select: none;
+  }
+
+  .col-head.col-wcaid {
+    background: rgba(13, 27, 44, 0.96);
+    color: #E2E8F0;
+    font-weight: var(--weight-head);
+    font-size: 13px;
+  }
+
+  .col-head.col-single {
+    background: rgba(13, 27, 44, 0.96);
+    color: #F8FAFC;
+    font-weight: var(--weight-head);
+    font-size: 13px;
+  }
+
+  .col-head.col-avg {
+    background: var(--header-blue-grad);
+    color: #FFFFFF;
+    font-weight: var(--weight-head);
+    font-size: 14px;
+  }
+
+  /* ━━━ FILAS DE COMPETIDORES ━━━ */
+  .competitor-row {
+    display: grid;
+    grid-template-columns: var(--name-col-width, 280px) var(--wcaid-col-width, 142px) var(--single-col-width, 115px) var(--avg-col-width, 115px);
+    height: 52px;
+    align-items: center;
+    background: rgba(10, 22, 38, 0.88);
+    position: relative;
+    transition: background 0.2s ease, grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .competitor-row:nth-child(even) {
+    background: rgba(7, 16, 28, 0.94);
+  }
+
+  .competitor-row + .competitor-row {
+    border-top: 1px solid var(--grid-border);
+  }
+
+  .col-competitor-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    overflow: hidden;
+  }
+
+  /* Marcadores desactivados (layout limpio solo con nombres y banderas) */
+  .comp-marker {
+    display: none !important;
+  }
+
+  .comp-flag {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .comp-flag img {
+    width: 34px;
+    height: 23px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  }
+
+  .comp-name {
+    font-family: var(--font-display);
+    font-weight: var(--weight-name);
+    font-size: var(--name-size, 25px);
+    color: var(--text-primary);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  }
+
+  .col-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    border-left: 1px solid var(--grid-border);
+  }
+
+  .comp-wcaid {
+    font-family: var(--font-display);
+    font-weight: var(--weight-name);
+    font-size: var(--wcaid-size, 18px);
+    color: #F8FAFC;
+    letter-spacing: 0.5px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+  }
+
+  .badge-new {
+    background: var(--accent-cyan);
+    color: #050d18;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .pr-num {
+    font-family: var(--font-display);
+    font-weight: var(--weight-num);
+    font-size: 24px;
+    letter-spacing: 0.5px;
+    color: #FFFFFF;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+  }
+
+  .pr-num.no-data {
+    color: #94A3B8;
+    font-size: 20px;
+    font-weight: 500;
+    opacity: 0.85;
+    text-shadow: none;
+  }
+
+  .col-avg-data .pr-num {
+    color: var(--accent-cyan);
+    font-weight: var(--weight-num);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+  }
+
+  .col-avg-data .pr-num.no-data {
+    color: #94A3B8;
+    text-shadow: none;
+    opacity: 0.85;
+  }
+
+  /* Modo Individual: ocultar fila 2 y marcador */
+  #banner.mode-single #row-comp-2 {
+    display: none !important;
+  }
+  #banner.mode-single .comp-marker {
+    display: none !important;
+  }
+
+  /* ━━━ BADGE / BANNER DE EVENTO STANDALONE (ESTILO BROADCAST 4 NIVELES AUTOAJUSTABLE) ━━━ */
+  #event-badge {
+    position: absolute;
+    top: 36px;
+    right: 40px;
+    width: max-content;
+    min-width: 280px;
+    max-width: min(840px, calc(100vw - 80px));
+    background: var(--banner-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 6px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+    display: inline-flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px) scale(0.98);
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10;
+  }
+
+  #event-badge.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  /* Fila 1: Logo Evento + Nombre de Evento + Ronda */
+  .event-banner-header {
+    background: var(--header-green-grad);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    height: 38px;
+    padding: 0 14px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.45);
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .event-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .event-banner-header .header-event-icon {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+    flex-shrink: 0;
+  }
+
+  .event-banner-header .header-event-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: var(--weight-header-title);
+    color: #FFFFFF;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .event-header-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .event-round-badge {
+    background: var(--header-blue-grad);
+    color: #FFFFFF;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  /* Fila 2: Nombre del Torneo */
+  .event-banner-tourney-row {
+    background: rgba(13, 27, 44, 0.96);
+    padding: 9px 14px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .event-tournament-title {
+    font-family: var(--font-display);
+    font-weight: var(--weight-head);
+    font-size: 15px;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+
+  /* Fila 3: Lugar del Torneo */
+  .event-banner-location-row {
+    background: rgba(10, 22, 37, 0.96);
+    padding: 7px 14px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .event-location-text {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+
+  /* Fila 4: World Cube Association */
+  .event-banner-wca-row {
+    background: rgba(6, 14, 24, 0.98);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .event-wca-brand {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    color: #CBD5E1;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     LIVE RANKING TABLE OVERLAY (WCA EUROPEAN CHAMPIONSHIP STYLE)
+     ══════════════════════════════════════════════════════════════════ */
+  #live-ranking-overlay {
+    position: absolute;
+    left: 40px;
+    top: 40px;
+    width: 420px;
+    background: rgba(8, 17, 30, 0.96);
+    border-radius: 8px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateX(-40px);
+    pointer-events: none;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: var(--font-text);
+  }
+
+  #live-ranking-overlay.visible {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  /* Header del Ranking */
+  .ranking-header {
+    background: linear-gradient(135deg, #061e3d 0%, #0d3b6c 100%);
+    border-bottom: 2px solid #0284c7;
+    padding: 10px 14px 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ranking-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ranking-event-icon {
+    width: 26px;
+    height: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+
+  .ranking-titles {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ranking-main-title {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 800;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    line-height: 1.15;
+  }
+
+  .ranking-subtitle {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    color: #38bdf8;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 1px;
+  }
+
+  .ranking-live-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(239, 68, 68, 0.18);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+
+  .ranking-live-dot {
+    width: 6px;
+    height: 6px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: livePulse 1.4s infinite;
+  }
+
+  @keyframes livePulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .ranking-live-text {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 800;
+    color: #fca5a5;
+    letter-spacing: 1px;
+  }
+
+  /* Encabezados de columnas */
+  .ranking-cols-header {
+    display: grid;
+    grid-template-columns: 36px 30px 1fr 56px 74px;
+    align-items: center;
+    background: rgba(13, 26, 45, 0.95);
+    padding: 6px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .col-r-pos { text-align: center; }
+  .col-r-flag { text-align: center; }
+  .col-r-name { padding-left: 4px; }
+  .col-r-solves { text-align: center; }
+  .col-r-avg { text-align: right; padding-right: 2px; }
+
+  /* Lista de Filas */
+  .ranking-rows-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ranking-row {
+    display: grid;
+    grid-template-columns: 36px 30px 1fr 56px 74px;
+    align-items: center;
+    padding: 5px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s ease;
+  }
+
+  .ranking-row:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .ranking-row:last-child {
+    border-bottom: none;
+  }
+
+  /* Posición con badge de pase a ronda */
+  .pos-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .pos-badge {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 800;
+    min-width: 22px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    padding: 0 4px;
+    line-height: 1;
+  }
+
+  .pos-badge.advancing {
+    background: #10b981;
+    color: #FFFFFF;
+    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.4);
+  }
+
+  .pos-badge.non-advancing {
+    background: transparent;
+    color: #94a3b8;
+  }
+
+  /* Bandera */
+  .flag-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .flag-cell img {
+    width: 22px;
+    height: 15px;
+    border-radius: 2px;
+    object-fit: cover;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Nombre */
+  .name-cell {
+    padding-left: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #FFFFFF;
+  }
+
+  /* Solves */
+  .solves-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .solves-pill {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    line-height: 1.1;
+  }
+
+  .solves-pill.in-progress {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
+  }
+
+  .solves-pill.completed {
+    background: transparent;
+    color: #94a3b8;
+  }
+
+  /* Tiempo / Promedio */
+  .avg-cell {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .time-value {
+    font-family: var(--font-display);
+    font-size: 15.5px;
+    font-weight: 700;
+    color: #FFFFFF;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.3px;
+  }
+
+  .record-tag-badge {
+    background: #ef4444;
+    color: #FFFFFF;
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 900;
+    padding: 1px 3px;
+    border-radius: 2px;
+    line-height: 1;
+    letter-spacing: 0.5px;
+  }
+
+  /* Pie del Ranking */
+  .ranking-footer {
+    background: rgba(5, 12, 22, 0.98);
+    padding: 5px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .ranking-footer-brand {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .ranking-footer-meta {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+    color: #38bdf8;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Banner Scoreboard Broadcast (WCA European Championship Style) -->
+<div id="banner" class="pos-top align-center mode-dual">
+  <!-- Cabecera de la tabla -->
+  <div class="banner-header">
+    <div class="header-event-badge">
+      <img id="banner-event-icon" class="header-event-icon" src="icons/333.svg" alt="Evento" onerror="this.style.display='none'">
+      <div class="header-event-titles">
+        <span id="banner-event-title" class="header-event-title">3x3</span>
+        <span id="banner-event-round" class="header-event-round">FIRST ROUND</span>
+      </div>
+    </div>
+    <div class="col-head col-wcaid">WCA ID</div>
+    <div class="col-head col-single">PR SINGLE</div>
+    <div class="col-head col-avg">PR AVG</div>
+  </div>
+
+  <!-- Fila Competidor 1 -->
+  <div class="competitor-row row-1" id="row-comp-1">
+    <div class="col-competitor-info">
+      <div class="comp-flag" id="flag-1"></div>
+      <span class="comp-name" id="name-1">—</span>
+    </div>
+    <div class="col-data col-wcaid-data">
+      <span class="comp-wcaid" id="wcaid-1">—</span>
+      <span class="badge-new" id="new-badge-1" style="display:none;">NUEVO</span>
+    </div>
+    <div class="col-data col-single-data">
+      <span class="pr-num" id="single-1">—</span>
+    </div>
+    <div class="col-data col-avg-data">
+      <span class="pr-num" id="avg-1">—</span>
+    </div>
+  </div>
+
+  <!-- Fila Competidor 2 (Modo Dual) -->
+  <div class="competitor-row row-2" id="row-comp-2">
+    <div class="col-competitor-info">
+      <div class="comp-flag" id="flag-2"></div>
+      <span class="comp-name" id="name-2">—</span>
+    </div>
+    <div class="col-data col-wcaid-data">
+      <span class="comp-wcaid" id="wcaid-2">—</span>
+      <span class="badge-new" id="new-badge-2" style="display:none;">NUEVO</span>
+    </div>
+    <div class="col-data col-single-data">
+      <span class="pr-num" id="single-2">—</span>
+    </div>
+    <div class="col-data col-avg-data">
+      <span class="pr-num" id="avg-2">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- Standalone Event Badge (Broadcast Scoreboard - 4 Filas Autoajustable) -->
+<div id="event-badge">
+  <!-- Fila 1: Logo evento + Nombre de evento + Ronda -->
+  <div class="event-banner-header">
+    <div class="event-header-left">
+      <img id="event-icon-badge" class="header-event-icon" src="icons/333.svg" alt="Evento" onerror="this.style.display='none'">
+      <span class="header-event-title" id="event-badge-title">3x3</span>
+    </div>
+    <div class="event-header-right">
+      <span class="event-round-badge" id="event-stat-round-num">RONDA 1 / 3</span>
+    </div>
+  </div>
+
+  <!-- Fila 2: Nombre del Torneo -->
+  <div class="event-banner-tourney-row">
+    <span class="event-tournament-title" id="event-tournament-name">Regionales Santander 2026</span>
+  </div>
+
+  <!-- Fila 3: Lugar del Torneo -->
+  <div class="event-banner-location-row">
+    <span class="event-location-text" id="event-tournament-location">Floridablanca, Santander</span>
+  </div>
+
+  <!-- Fila 4: World Cube Association -->
+  <div class="event-banner-wca-row">
+    <span class="event-wca-brand">WORLD CUBE ASSOCIATION</span>
+  </div>
+</div>
+
+<!-- Standalone Live Ranking Overlay (Broadcast Style) -->
+<div id="live-ranking-overlay">
+  <div class="ranking-header">
+    <div class="ranking-header-left">
+      <img id="lr-event-icon" class="ranking-event-icon" src="icons/333.svg" alt="Evento" onerror="this.style.display='none'">
+      <div class="ranking-titles">
+        <span id="lr-main-title" class="ranking-main-title">3x3 FIRST ROUND</span>
+        <span class="ranking-subtitle">PROJECTED RANKING</span>
+      </div>
+    </div>
+    <div class="ranking-live-pill">
+      <span class="ranking-live-dot"></span>
+      <span class="ranking-live-text">LIVE</span>
+    </div>
+  </div>
+
+  <div class="ranking-cols-header">
+    <span class="col-r-pos">POS</span>
+    <span class="col-r-flag"></span>
+    <span class="col-r-name">COMPETIDOR</span>
+    <span class="col-r-solves">SOLVES</span>
+    <span class="col-r-avg">AVG</span>
+  </div>
+
+  <div class="ranking-rows-list" id="lr-rows-container">
+    <!-- Filas generadas dinámicamente -->
+  </div>
+
+  <div class="ranking-footer">
+    <span class="ranking-footer-brand">WORLD CUBE ASSOCIATION · WCA LIVE</span>
+    <span class="ranking-footer-meta" id="lr-footer-meta">TOP 16</span>
+  </div>
+</div>
+
+<script>
+  let ws = null;
+  let reconnectTimer = null;
+  let currentEventData = {
+    event_id: '333',
+    event_name: '3x3',
+    round_number: 1,
+    total_rounds: 3
+  };
+
+  const EVENT_SHORT_NAMES = {
+    '333': '3x3',
+    '222': '2x2',
+    '444': '4x4',
+    '555': '5x5',
+    '666': '6x6',
+    '777': '7x7',
+    '333bf': '3BLD',
+    '333fm': 'FMC',
+    '333oh': 'OH',
+    'clock': 'Clock',
+    'minx': 'Megaminx',
+    'pyram': 'Pyraminx',
+    'skewb': 'Skewb',
+    'sq1': 'Square-1',
+    '444bf': '4BLD',
+    '555bf': '5BLD',
+    '333mbf': 'MBLD'
+  };
+
+  let currentBannerConfig = {
+    mode: 'dual',
+    position: 'top',
+    align: 'center'
+  };
+
+  const banner = document.getElementById('banner');
+  const bannerEventIcon = document.getElementById('banner-event-icon');
+  const bannerEventTitle = document.getElementById('banner-event-title');
+  const bannerEventRound = document.getElementById('banner-event-round');
+
+  const eventBadge = document.getElementById('event-badge');
+  const elEventBadgeTitle = document.getElementById('event-badge-title');
+  const elIconBadge = document.getElementById('event-icon-badge');
+  const elTourneyName = document.getElementById('event-tournament-name');
+  const elTourneyLocation = document.getElementById('event-tournament-location');
+  const elStatRoundNum = document.getElementById('event-stat-round-num');
+
+  function renderFlag(containerId, iso2) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!iso2) {
+      container.innerHTML = '';
+      return;
+    }
+    const clean = iso2.trim().toLowerCase();
+    container.innerHTML = `<img src="https://flagcdn.com/w80/${clean}.png" alt="${iso2}" onerror="this.style.display='none'">`;
+  }
+
+  function formatRound(rNum, total) {
+    if (!rNum) return '';
+    if (rNum === 1) return total === 1 ? 'FINAL' : 'FIRST ROUND';
+    if (rNum === total) return 'FINAL';
+    if (rNum === total - 1) return 'SEMI FINAL';
+    return `ROUND ${rNum}`;
+  }
+
+  const EVENT_FULL_NAMES = {
+    '333': '3x3',
+    '222': '2x2',
+    '444': '4x4',
+    '555': '5x5',
+    '666': '6x6',
+    '777': '7x7',
+    '333bf': '3x3 Blindfolded',
+    '333fm': 'Fewest Moves',
+    '333oh': '3x3 One-Handed',
+    'clock': 'Clock',
+    'minx': 'Megaminx',
+    'pyram': 'Pyraminx',
+    'skewb': 'Skewb',
+    'sq1': 'Square-1',
+    '444bf': '4x4 Blindfolded',
+    '555bf': '5x5 Blindfolded',
+    '333mbf': 'Multi-Blind'
+  };
+
+  function setEvent(eventData) {
+    if (!eventData) return;
+    currentEventData = eventData;
+    const eid = eventData.event_id || '333';
+    let rawName = eventData.event_name || eid;
+    rawName = rawName.replace(/(\d+)x\1x\1(\s*Cube)?/gi, '$1x$1');
+    const shortName = (EVENT_SHORT_NAMES[eid] || rawName).toUpperCase();
+    const fullEventName = (EVENT_FULL_NAMES[eid] || rawName).toUpperCase();
+    const rnum = eventData.round_number || 1;
+    const total = eventData.total_rounds || 3;
+    let tourney = eventData.tournament_name || 'Regionales Santander 2026';
+    if (tourney.toLowerCase() === 'world cube association') {
+      tourney = 'Regionales Santander 2026';
+    }
+    tourney = tourney.toUpperCase();
+
+    const roundText = formatRound(rnum, total);
+
+    // Actualizar encabezado del banner de mesa
+    if (bannerEventTitle) bannerEventTitle.textContent = shortName;
+    if (bannerEventRound) bannerEventRound.textContent = roundText;
+    if (bannerEventIcon) {
+      bannerEventIcon.src = `icons/${eid}.svg`;
+      bannerEventIcon.style.display = 'block';
+    }
+
+    // Actualizar banner standalone de evento (4 Filas)
+    if (elEventBadgeTitle) elEventBadgeTitle.textContent = fullEventName;
+    if (elTourneyName) elTourneyName.textContent = tourney;
+    if (elTourneyLocation) {
+      const loc = eventData.city || eventData.location || 'Floridablanca, Santander';
+      elTourneyLocation.textContent = loc.toUpperCase();
+    }
+    if (elIconBadge) {
+      elIconBadge.src = `icons/${eid}.svg`;
+      elIconBadge.style.display = 'block';
+    }
+    if (elStatRoundNum) {
+      if (rnum === total) {
+        elStatRoundNum.textContent = 'FINAL';
+      } else if (rnum === total - 1 && total >= 3) {
+        elStatRoundNum.textContent = 'SEMI FINAL';
+      } else {
+        elStatRoundNum.textContent = `RONDA ${rnum} / ${total}`;
+      }
+    }
+    adjustDynamicNameWidth();
+  }
+
+  function updateCompetitorRow(slotIndex, comp, activeEventId) {
+    const elName = document.getElementById(`name-${slotIndex}`);
+    const elWcaid = document.getElementById(`wcaid-${slotIndex}`);
+    const elNew = document.getElementById(`new-badge-${slotIndex}`);
+    const elSingle = document.getElementById(`single-${slotIndex}`);
+    const elAvg = document.getElementById(`avg-${slotIndex}`);
+
+    if (!elName) return;
+
+    if (!comp) {
+      elName.textContent = slotIndex === 1 ? 'MESA 1' : 'MESA 2';
+      renderFlag(`flag-${slotIndex}`, '');
+      if (elWcaid) {
+        elWcaid.textContent = '—';
+        elWcaid.style.display = 'inline';
+      }
+      if (elNew) elNew.style.display = 'none';
+      if (elSingle) {
+        elSingle.textContent = '—';
+        elSingle.classList.add('no-data');
+      }
+      if (elAvg) {
+        elAvg.textContent = '—';
+        elAvg.classList.add('no-data');
+      }
+      return;
+    }
+
+    elName.textContent = comp.name || '—';
+    renderFlag(`flag-${slotIndex}`, comp.country);
+
+    if (comp.is_new) {
+      if (elWcaid) elWcaid.style.display = 'none';
+      if (elNew) elNew.style.display = 'inline-block';
+    } else {
+      if (elWcaid) {
+        elWcaid.textContent = comp.wca_id || '—';
+        elWcaid.style.display = 'inline';
+      }
+      if (elNew) elNew.style.display = 'none';
+    }
+
+    const eid = activeEventId || (comp.current_event) || (currentEventData && currentEventData.event_id) || '333';
+    const pr = (comp.prs && comp.prs[eid]) || null;
+
+    if (pr) {
+      if (elSingle) {
+        elSingle.textContent = pr.single_fmt || '—';
+        elSingle.classList.toggle('no-data', !pr.single_cs && !pr.single_fmt);
+      }
+      if (elAvg) {
+        elAvg.textContent = pr.average_fmt || '—';
+        elAvg.classList.toggle('no-data', !pr.average_cs && !pr.average_fmt);
+      }
+    } else {
+      if (elSingle) {
+        elSingle.textContent = '—';
+        elSingle.classList.add('no-data');
+      }
+      if (elAvg) {
+        elAvg.textContent = '—';
+        elAvg.classList.add('no-data');
+      }
+    }
+  }
+
+  function adjustDynamicNameWidth() {
+    const elName1 = document.getElementById('name-1');
+    const elName2 = document.getElementById('name-2');
+    const isDual = currentBannerConfig.mode === 'dual';
+
+    // Ancho base mínimo para que el bloque de evento y títulos respire bien
+    let maxNameWidth = 220;
+    // Bandera (34px) + Gap (12px) + Padding lateral (32px) + Margen de seguridad (26px) = 104px
+    const offset = 104;
+
+    // Medir ancho de competidor 1
+    if (elName1 && elName1.textContent.trim() && elName1.textContent.trim() !== '—') {
+      const w1 = elName1.scrollWidth + offset;
+      if (w1 > maxNameWidth) maxNameWidth = w1;
+    }
+
+    // Medir ancho de competidor 2 (solo en modo Dual)
+    if (isDual && elName2 && elName2.textContent.trim() && elName2.textContent.trim() !== '—') {
+      const w2 = elName2.scrollWidth + offset;
+      if (w2 > maxNameWidth) maxNameWidth = w2;
+    }
+
+    // Comprobar también el ancho natural de la cabecera del evento para que no se recorte
+    const headerTitles = document.querySelector('.header-event-titles');
+    if (headerTitles) {
+      // Icono (24px) + Gap (12px) + Padding (32px) + Margen (16px) = 84px
+      const hw = headerTitles.scrollWidth + 84;
+      if (hw > maxNameWidth) maxNameWidth = hw;
+    }
+
+    // Limitar entre 220px y 750px para permitir nombres completos sin truncar
+    const finalWidth = Math.min(Math.max(Math.ceil(maxNameWidth), 220), 750);
+    banner.style.setProperty('--name-col-width', `${finalWidth}px`);
+  }
+
+  function applyFont(fontKey) {
+    if (!fontKey) return;
+    const validFonts = ['barlow_slim', 'barlow_bold', 'inter', 'roboto'];
+    const selected = validFonts.includes(fontKey) ? fontKey : 'barlow_slim';
+    validFonts.forEach(f => document.body.classList.remove(`font-${f}`));
+    document.body.classList.add(`font-${selected}`);
+    adjustDynamicNameWidth();
+  }
+
+  function applyBannerConfig(config) {
+    if (!config) return;
+    if (config.mode) currentBannerConfig.mode = config.mode;
+    if (config.position) currentBannerConfig.position = config.position;
+    if (config.align) currentBannerConfig.align = config.align;
+    if (config.font) applyFont(config.font);
+
+    const isVisible = (config.visible !== undefined)
+      ? (config.visible === true)
+      : banner.classList.contains('visible');
+
+    banner.className = `banner pos-${currentBannerConfig.position} align-${currentBannerConfig.align} mode-${currentBannerConfig.mode}`;
+    if (isVisible) {
+      banner.classList.add('visible');
+    }
+    adjustDynamicNameWidth();
+  }
+
+  function updateBanner(payload) {
+    if (!payload) return;
+
+    // Aplicar configuración de posición y modo preservando estado
+    applyBannerConfig(payload);
+
+    // Evento
+    if (payload.event) {
+      try {
+        setEvent(payload.event);
+      } catch (err) {
+        console.error('[DirectoOBS Overlay] Error al procesar evento en banner:', err);
+      }
+    }
+
+    const eid = (payload.event && payload.event.event_id) || currentEventData.event_id;
+
+    // Competidor 1
+    updateCompetitorRow(1, payload.competitor1 || payload.competitor || null, eid);
+
+    // Competidor 2
+    updateCompetitorRow(2, payload.competitor2 || null, eid);
+
+    // Ajustar ancho al competidor con nombre más largo
+    adjustDynamicNameWidth();
+
+    // Visibilidad
+    if (payload.visible !== false) {
+      banner.classList.add('visible');
+    } else {
+      banner.classList.remove('visible');
+    }
+  }
+
+  const lrOverlay = document.getElementById('live-ranking-overlay');
+  const lrEventIcon = document.getElementById('lr-event-icon');
+  const lrMainTitle = document.getElementById('lr-main-title');
+  const lrRowsContainer = document.getElementById('lr-rows-container');
+  const lrFooterMeta = document.getElementById('lr-footer-meta');
+
+  function renderLiveRanking(data) {
+    if (!data || !lrOverlay) return;
+
+    // Actualizar encabezado
+    const eid = data.eventId || '333';
+    if (lrEventIcon) {
+      lrEventIcon.src = `icons/${eid}.svg`;
+      lrEventIcon.style.display = 'block';
+    }
+    if (lrMainTitle) {
+      const eName = (EVENT_SHORT_NAMES[eid] || data.eventName || eid).toUpperCase();
+      const rName = (data.roundName || '').toUpperCase();
+      lrMainTitle.textContent = `${eName} ${rName}`.trim();
+    }
+
+    // Actualizar filas de competidores
+    if (lrRowsContainer) {
+      const results = data.ranking || [];
+      if (results.length === 0) {
+        lrRowsContainer.innerHTML = '<div style="padding:15px;text-align:center;color:#94a3b8;font-size:12px;">Sin resultados registrados aún</div>';
+      } else {
+        lrRowsContainer.innerHTML = results.map(r => {
+          const isAdv = !!r.isAdvancing;
+          const posClass = isAdv ? 'advancing' : 'non-advancing';
+          const flagIso = (r.countryIso2 || 'co').toLowerCase();
+          const inProgress = !!r.inProgress;
+          const solvesPillClass = inProgress ? 'in-progress' : 'completed';
+          const recBadge = r.recordTag ? `<span class="record-tag-badge">${r.recordTag}</span>` : '';
+          const displayTime = r.displayTime || (r.solvesCompleted > 0 ? (r.averageFormatted !== '—' ? r.averageFormatted : r.bestFormatted) : '—');
+
+          return `
+            <div class="ranking-row">
+              <div class="pos-cell">
+                <span class="pos-badge ${posClass}">${r.ranking}</span>
+              </div>
+              <div class="flag-cell">
+                <img src="https://flagcdn.com/w40/${flagIso}.png" alt="${flagIso}" onerror="this.style.display='none'">
+              </div>
+              <div class="name-cell" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div>
+              <div class="solves-cell">
+                <span class="solves-pill ${solvesPillClass}">${r.solvesText || `${r.solvesCompleted || 0}/${r.totalSolves || 5}`}</span>
+              </div>
+              <div class="avg-cell">
+                ${recBadge}
+                <span class="time-value">${displayTime}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    if (lrFooterMeta) {
+      const count = (data.ranking || []).length;
+      const cutoff = data.advancingCutoff || 16;
+      lrFooterMeta.textContent = `TOP ${count} · CORTE ${cutoff}`;
+    }
+
+    lrOverlay.classList.add('visible');
+  }
+
+  function hideLiveRanking() {
+    if (lrOverlay) lrOverlay.classList.remove('visible');
+  }
+
+  function connect() {
+    let wsUrl = 'ws://localhost:8765';
+    if (window.location.protocol.startsWith('http')) {
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${proto}//${window.location.host}/ws?role=overlay`;
+    }
+
+    try {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        clearTimeout(reconnectTimer);
+        console.log('[DirectoOBS Overlay] Conectado a:', wsUrl);
+      };
+
+      ws.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+
+          if (msg.type === 'banner_data') {
+            updateBanner(msg);
+          } else if (msg.type === 'banner_config') {
+            applyBannerConfig(msg);
+          } else if (msg.type === 'banner_event') {
+            setEvent(msg.event);
+          } else if (msg.type === 'competitor') {
+            // Compatibilidad retroactiva respetando align y mode actuales
+            updateBanner({
+              mode: currentBannerConfig.mode,
+              position: currentBannerConfig.position,
+              align: currentBannerConfig.align,
+              competitor1: msg.data,
+              visible: true
+            });
+          } else if (msg.type === 'event') {
+            setEvent(msg.data);
+            eventBadge.classList.add('visible');
+          } else if (msg.type === 'live_ranking_show') {
+            renderLiveRanking(msg.data);
+          } else if (msg.type === 'live_ranking_hide') {
+            hideLiveRanking();
+          } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {
+            banner.classList.remove('visible');
+          } else if (msg.type === 'hide_event') {
+            eventBadge.classList.remove('visible');
+          }
+        } catch (e) {
+          console.error('[DirectoOBS Overlay] Error parseando mensaje:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        reconnectTimer = setTimeout(connect, 2000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    } catch {
+      reconnectTimer = setTimeout(connect, 2000);
+    }
+  }
+
+  applyFont('barlow_slim');
+  connect();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => adjustDynamicNameWidth());
+  }
+</script>
+</body>
+</html>

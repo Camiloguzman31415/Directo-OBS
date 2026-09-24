@@ -1,0 +1,26 @@
+{
+  "name": "directo-obs",
+  "version": "2.0.0",
+  "description": "Sistema de Overlays y Panel de Control en tiempo real para OBS Studio y Torneos WCA",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "obs",
+    "obs-websocket",
+    "wca",
+    "speedcubing",
+    "overlay",
+    "streaming"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "obs-websocket-js": "^5.0.6",
+    "ws": "^8.18.0"
+  }
+}

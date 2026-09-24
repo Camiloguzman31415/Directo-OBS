@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DirectoOBS — Control Deck de Transmisión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/panel.css">
+</head>
+<body>
+
+  <!-- ━━━ BARRA DE ESTADO BROADCAST ━━━ -->
+  <header class="broadcast-bar">
+    <div class="brand-section">
+      <div class="brand-badge">
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span>DIRECTO OBS</span>
+      </div>
+      <div class="tournament-badge" id="tournament-title">Cargando Torneo...</div>
+      <button class="btn-clear-tournament" id="btn-clear-header" onclick="clearCurrentTournament()" title="Limpiar torneo actual y empezar vacío" style="display:none;">
+        ✕ Limpiar
+      </button>
+    </div>
+
+    <div class="header-status-group">
+      <!-- Indicador Servidor Node -->
+      <div class="status-pill" title="Estado de la conexión WebSocket local">
+        <div class="status-dot" id="ws-status-dot"></div>
+        <span id="ws-status-text">Conectando...</span>
+      </div>
+
+      <!-- Indicador OBS Studio -->
+      <div class="status-pill" title="Estado de la conexión a OBS Studio">
+        <div class="status-dot" id="obs-status-dot"></div>
+        <span id="obs-status-text">OBS Desconectado</span>
+      </div>
+
+      <!-- Overlays Conectados -->
+      <div class="status-pill">
+        <span style="color:var(--accent);">📺</span>
+        <span id="overlay-count-badge">0 overlay(s) OBS</span>
+      </div>
+
+      <!-- Botón Modo Estudio -->
+      <button class="btn-obs-live" id="btn-header-studio-toggle" onclick="toggleStudioMode()" title="Alternar Modo Estudio Preview/Program en OBS">
+        <span class="status-dot" id="header-studio-dot"></span> ESTUDIO
+      </button>
+
+      <!-- Botón Transmitir OBS -->
+      <button class="btn-obs-live" id="btn-stream-toggle" onclick="toggleStream()" title="Iniciar o detener transmisión en OBS">
+        <span class="status-dot"></span> STREAM
+      </button>
+
+      <!-- Botón Grabar OBS -->
+      <button class="btn-obs-live" id="btn-record-toggle" onclick="toggleRecord()" title="Iniciar o detener grabación en OBS">
+        <span class="status-dot"></span> REC
+      </button>
+    </div>
+  </header>
+
+  <!-- ━━━ ESPACIO DE TRABAJO PRINCIPAL (3 COLUMNAS) ━━━ -->
+  <main class="deck-workspace">
+
+    <!-- DOCK SUPERIOR: MONITOR DUAL DE MODO ESTUDIO (PREVIEW / PROGRAM) -->
+    <section class="studio-deck-dock" id="studio-deck-dock" style="display:none;">
+      <div class="studio-dock-header">
+        <div class="studio-dock-title">
+          <span class="icon">🎦</span>
+          <span>MODO ESTUDIO DUAL (OBS BROADCAST SWITCHER)</span>
+        </div>
+        <div class="studio-dock-actions">
+          <label class="monitor-footer-label" style="margin-right:-4px;">Refresco:</label>
+          <select class="select-filter" id="studio-fps-select" onchange="setStudioFps(this.value)" style="height:32px;padding:2px 8px;font-size:11px;">
+            <option value="100">10 FPS (Máxima fluidez)</option>
+            <option value="125">8 FPS (Muy fluido)</option>
+            <option value="250">4 FPS (Fluido)</option>
+            <option value="500" selected>2 FPS (Equilibrado)</option>
+            <option value="1000">1 FPS (Económico)</option>
+            <option value="0">Pausa (Manual)</option>
+          </select>
+
+          <label class="monitor-footer-label" style="margin-right:-4px;">Calidad:</label>
+          <select class="select-filter" id="studio-quality-select" onchange="setStudioQuality(this.value)" style="height:32px;padding:2px 8px;font-size:11px;">
+            <option value="hd" selected>HD (540p)</option>
+            <option value="fhd">Full HD (720p)</option>
+            <option value="sd">Rápido (360p)</option>
+          </select>
+
+          <button class="btn-studio-toggle" id="btn-studio-toggle" onclick="toggleStudioMode()" title="Activar/Desactivar Modo Estudio en OBS">
+            MODO ESTUDIO: <span id="studio-mode-status-text">DESACTIVADO</span>
+          </button>
+          <button class="btn-studio-refresh" onclick="refreshStudioScreenshots(true)" title="Refrescar capturas en vivo">
+            🔄 Refrescar
+          </button>
+        </div>
+      </div>
+
+      <div class="studio-monitors-row">
+        <!-- MONITOR IZQUIERDA: PREVIEW -->
+        <div class="studio-monitor-card preview">
+          <div class="monitor-header">
+            <span class="monitor-tag preview">● PREVIEW (PREPARACIÓN)</span>
+            <span class="monitor-scene-label" id="studio-preview-name-label">Escena: —</span>
+          </div>
+          <div class="monitor-viewport">
+            <img id="studio-preview-screen" alt="Preview Monitor" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+            <div class="monitor-overlay-badge preview" id="studio-preview-overlay-badge">PREPARANDO</div>
+          </div>
+          <div class="monitor-footer">
+            <label class="monitor-footer-label">Preparar Escena:</label>
+            <select class="select-filter monitor-scene-select" id="studio-preview-scene-select" onchange="switchOBSPreviewScene(this.value)">
+              <option value="">Seleccionar escena...</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CENTRO: CONTROL DE TRANSICIÓN -->
+        <div class="studio-transition-controller">
+          <button class="btn-tactile btn-transition-live" id="btn-studio-transition" onclick="triggerStudioTransition()" title="Atajo: Barra Espaciadora">
+            <span class="transition-icon">➔</span>
+            <span class="transition-title">TRANSICIÓN</span>
+            <span class="transition-sub">CORTE / FUNDIDO</span>
+          </button>
+          <div class="transition-shortcut-hint">
+            <span>[Espacio]</span> Transición
+          </div>
+        </div>
+
+        <!-- MONITOR DERECHA: PROGRAM -->
+        <div class="studio-monitor-card program">
+          <div class="monitor-header">
+            <span class="monitor-tag program">● PROGRAM (EN VIVO)</span>
+            <span class="monitor-scene-label" id="studio-program-name-label">En vivo: —</span>
+          </div>
+          <div class="monitor-viewport">
+            <img id="studio-program-screen" alt="Program Monitor" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+            <div class="monitor-overlay-badge live" id="studio-program-overlay-badge">AL AIRE</div>
+          </div>
+          <div class="monitor-footer program-footer">
+            <div class="program-status-meta">
+              <span class="program-meta-pill" id="studio-stream-status-pill">STREAM: OFF</span>
+              <span class="program-meta-pill" id="studio-record-status-pill">REC: OFF</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUMNA 1: REMOTE DECK OBS (CONTROL DE ESCENAS) -->
+    <section class="deck-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="icon">🎛️</span> Escenas de OBS Studio
+        </div>
+        <span class="deck-caption">STREAM DECK</span>
+      </div>
+
+      <div class="panel-body">
+        <!-- Rejilla de botones de Escenas -->
+        <div class="scenes-grid" id="scenes-grid" style="display:none;"></div>
+
+        <!-- Control de Salida de Video y FPS de OBS -->
+        <div class="obs-video-box" id="obs-video-box" style="display:none;">
+          <div class="source-box-header">
+            <span class="section-sublabel" style="margin-bottom:0;">Formato / FPS de Salida</span>
+            <span class="deck-caption" id="obs-video-current-badge">—</span>
+          </div>
+          <div class="video-preset-grid">
+            <button class="btn-video-preset" id="btn-fps-1080p60" onclick="setOBSVideoPreset('1080p60')" title="Establecer salida a 1080p a 60 FPS">
+              <span class="preset-res">1080p</span>
+              <span class="preset-fps">60 FPS</span>
+            </button>
+            <button class="btn-video-preset" id="btn-fps-1080p30" onclick="setOBSVideoPreset('1080p30')" title="Establecer salida a 1080p a 30 FPS">
+              <span class="preset-res">1080p</span>
+              <span class="preset-fps">30 FPS</span>
+            </button>
+            <button class="btn-video-preset" id="btn-fps-720p60" onclick="setOBSVideoPreset('720p60')" title="Establecer salida a 720p a 60 FPS">
+              <span class="preset-res">720p</span>
+              <span class="preset-fps">60 FPS</span>
+            </button>
+            <button class="btn-video-preset" id="btn-fps-720p30" onclick="setOBSVideoPreset('720p30')" title="Establecer salida a 720p a 30 FPS">
+              <span class="preset-res">720p</span>
+              <span class="preset-fps">30 FPS</span>
+            </button>
+          </div>
+          <div class="video-hint-caption" id="video-hint-caption">
+            * Aplica a la resolución del lienzo/salida y framerate de OBS.
+          </div>
+        </div>
+
+        <!-- DIRECTOR DE CÁMARAS Y PANTALLA DIVIDIDA (LAYOUT COMPOSITOR) -->
+        <div class="camera-layout-director-box" id="camera-layout-director-box" style="display:none;">
+          <div class="source-box-header">
+            <span class="section-sublabel" style="margin-bottom:0;">📐 Distribución de Cámaras (Split Screen)</span>
+            <span class="deck-caption" id="layout-target-badge">EN VIVO</span>
+          </div>
+
+          <!-- Selectores de Cámara A y B -->
+          <div class="layout-selectors-grid">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:10px;">CÁMARA A (Principal / Izq)</label>
+              <select class="select-filter" id="select-cam-a" style="height:32px;font-size:11px;padding:2px 8px;width:100%;">
+                <option value="">Selecciona Cámara A...</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:10px;">CÁMARA B (Secundaria / Der)</label>
+              <select class="select-filter" id="select-cam-b" style="height:32px;font-size:11px;padding:2px 8px;width:100%;">
+                <option value="">Selecciona Cámara B...</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Opciones de Banners y Destino de Producción -->
+          <div class="layout-options-row">
+            <div style="flex:1;">
+              <label class="form-label" style="font-size:10px;">MARGEN PARA BANNERS</label>
+              <select class="select-filter" id="select-banner-mode" style="height:30px;font-size:11px;width:100%;padding:2px 8px;">
+                <option value="none" selected>Limpio (Sin Banners / Borde a Borde)</option>
+                <option value="top">Espacio Banner Superior (130px)</option>
+                <option value="bottom">Espacio Banner Inferior (160px)</option>
+                <option value="both">Doble Banner (Arriba + Abajo)</option>
+              </select>
+            </div>
+            <div id="layout-dest-box" style="display:none;flex-direction:column;gap:4px;">
+              <label class="form-label" style="font-size:10px;">DESTINO</label>
+              <div class="dest-toggle-group">
+                <button class="btn-dest-toggle active" id="btn-dest-prev" onclick="setLayoutTarget('preview')">Preview</button>
+                <button class="btn-dest-toggle" id="btn-dest-prog" onclick="setLayoutTarget('program')">En Vivo</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Matriz de Presets Rápidos -->
+          <div class="layout-presets-matrix">
+            <!-- Fila 1: Pantalla Dividida Horizontal -->
+            <div class="preset-btn-row">
+              <button class="btn-layout-preset" onclick="applyCameraLayout('split_lr')" title="Cámara A a la izquierda, Cámara B a la derecha">
+                <span class="preset-icon">◫</span>
+                <span class="preset-label">A | B</span>
+              </button>
+              <button class="btn-layout-preset" onclick="applyCameraLayout('split_rl')" title="Cámara B a la izquierda, Cámara A a la derecha">
+                <span class="preset-icon">◫</span>
+                <span class="preset-label">B | A</span>
+              </button>
+              <button class="btn-layout-preset swap" onclick="applyCameraLayout('swap')" title="Intercambiar instantáneamente las posiciones de Cámara A y Cámara B">
+                <span class="preset-icon">⇄</span>
+                <span class="preset-label">INVERTIR</span>
+              </button>
+            </div>
+
+            <!-- Fila 2: Pantalla Dividida Vertical & PiP -->
+            <div class="preset-btn-row">
+              <button class="btn-layout-preset" onclick="applyCameraLayout('split_tb')" title="Cámara A arriba, Cámara B abajo">
+                <span class="preset-icon">⬒</span>
+                <span class="preset-label">A / B</span>
+              </button>
+              <button class="btn-layout-preset" onclick="applyCameraLayout('split_bt')" title="Cámara B arriba, Cámara A abajo">
+                <span class="preset-icon">⬓</span>
+                <span class="preset-label">B / A</span>
+              </button>
+              <button class="btn-layout-preset" onclick="applyCameraLayout('pip_a_main')" title="Cámara A pantalla completa + Cámara B en recuadro">
+                <span class="preset-icon">◳</span>
+                <span class="preset-label">PiP A</span>
+              </button>
+              <button class="btn-layout-preset" onclick="applyCameraLayout('pip_b_main')" title="Cámara B pantalla completa + Cámara A en recuadro">
+                <span class="preset-icon">◳</span>
+                <span class="preset-label">PiP B</span>
+              </button>
+            </div>
+
+            <!-- Fila 3: Pantalla Completa Individual -->
+            <div class="preset-btn-row">
+              <button class="btn-layout-preset" onclick="applyCameraLayout('full_a')" title="Cámara A a pantalla completa (1920x1080)">
+                <span class="preset-icon">⛶</span>
+                <span class="preset-label">Solo Cam A (Full)</span>
+              </button>
+              <button class="btn-layout-preset" onclick="applyCameraLayout('full_b')" title="Cámara B a pantalla completa (1920x1080)">
+                <span class="preset-icon">⛶</span>
+                <span class="preset-label">Solo Cam B (Full)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fuentes y Cámaras de la Escena Activa -->
+        <div class="active-scene-sources-box" id="active-scene-sources-box" style="display:none;">
+          <div class="source-box-header">
+            <span class="section-sublabel" id="active-scene-name-label" style="margin-bottom:0;">Capas y Fuentes</span>
+            <span class="deck-caption" id="sources-count-caption">0 fuentes</span>
+          </div>
+          <div class="scene-sources-list" id="scene-sources-list"></div>
+        </div>
+
+        <!-- Mensaje / Conexión manual si OBS está desconectado -->
+        <div class="obs-connect-box" id="obs-disconnected-box">
+          <div class="box-heading">Conectar con OBS Studio</div>
+          <p class="box-description">
+            Abre OBS Studio y activa el servidor WebSocket en <code>Herramientas &gt; Ajustes del servidor WebSocket</code>.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Dirección WebSocket</label>
+            <input type="text" class="form-input" id="obs-address-input" value="ws://127.0.0.1:4455">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contraseña (opcional)</label>
+            <input type="password" class="form-input" id="obs-password-input" placeholder="Sin contraseña">
+          </div>
+          <button class="btn-tactile btn-secondary" onclick="connectToOBSManual()" style="height:40px;margin-top:4px;">
+            🔌 Conectar a OBS
+          </button>
+        </div>
+
+        <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--border);">
+          <div class="footer-legend">
+            * Los botones de escena cambian en vivo el programa de OBS.<br>
+            * El botón rojo indica la escena actualmente al aire.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUMNA 2: CONTROL DE TRANSMISIÓN WCA (EN PANTALLA) -->
+    <section class="deck-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="icon">🏆</span> Control de Torneo en Vivo
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-tactile btn-danger-outline btn-sm" onclick="sendHideAll()" title="Atajo: F10">
+            ⛔ Ocultar Todo
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+
+        <!-- Selector de Evento y Categoría -->
+        <div class="event-selection-box">
+          <div class="section-sublabel-flex">
+            <span>1. Disciplina / Categoría Activa</span>
+            <span class="active-discipline-badge" id="active-discipline-badge">3x3</span>
+          </div>
+          <div class="event-chips-bar" id="event-chips-bar"></div>
+        </div>
+
+        <!-- Tarjeta de Control y Transmisión de Evento (Estilo Broadcast) -->
+        <div class="event-broadcast-deck-card" id="event-deck-card">
+          <div class="event-card-header">
+            <div class="event-card-icon-wrap" id="event-card-icon-wrap">
+              <img id="event-card-icon" src="icons/333.svg" alt="Icono" onerror="this.style.display='none'">
+            </div>
+            <div class="event-card-info">
+              <div class="event-card-subtitle" id="event-card-subtitle">CATEGORÍA OFICIAL WCA</div>
+              <div class="event-card-title" id="event-card-title">3x3</div>
+            </div>
+            <div class="event-card-round-badge" id="event-card-round-badge">
+              RONDA 1 DE 3
+            </div>
+          </div>
+
+          <!-- Selector Rápido de Rondas -->
+          <div class="event-rounds-bar">
+            <span class="event-rounds-label">Ronda:</span>
+            <div class="event-rounds-chips" id="event-rounds-chips"></div>
+            <div class="round-stepper-compact">
+              <button type="button" class="stepper-btn-sm" onclick="adjustRound(-1)" title="Ronda anterior">−</button>
+              <button type="button" class="stepper-btn-sm" onclick="adjustRound(1)" title="Siguiente ronda">+</button>
+            </div>
+          </div>
+
+          <!-- Acciones de Transmisión de Evento -->
+          <div class="event-deck-actions">
+            <button class="btn-tactile btn-primary-live btn-event-live" id="btn-show-event" onclick="sendShowEvent()" title="Atajo: F9">
+              <span>▲ MOSTRAR EVENTO EN OBS</span>
+            </button>
+            <button class="btn-tactile btn-secondary btn-icon-only" onclick="sendHideEvent()" title="Ocultar badge de evento de OBS">
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- CONFIGURACIÓN DE BANNER (MODO Y POSICIÓN) -->
+        <div class="banner-settings-box">
+          <div class="section-sublabel">
+            2. Configuración del Banner
+          </div>
+          
+          <div class="settings-segmented-grid">
+            <!-- Selector de Modo -->
+            <div class="segmented-control-group">
+              <span class="control-label">Modo:</span>
+              <div class="segmented-control" id="mode-selector">
+                <button type="button" class="segment-btn active" data-mode="dual" onclick="setBannerMode('dual')">
+                  👥 Dual
+                </button>
+                <button type="button" class="segment-btn" data-mode="single" onclick="setBannerMode('single')">
+                  👤 Individual
+                </button>
+              </div>
+            </div>
+
+            <!-- Selector de Posición -->
+            <div class="segmented-control-group">
+              <span class="control-label">Ubicación:</span>
+              <div class="segmented-control" id="position-selector">
+                <button type="button" class="segment-btn active" data-pos="top" onclick="setBannerPosition('top')">
+                  ⬆ Arriba
+                </button>
+                <button type="button" class="segment-btn" data-pos="bottom" onclick="setBannerPosition('bottom')">
+                  ⬇ Abajo
+                </button>
+              </div>
+            </div>
+
+
+            <!-- Selector de Estilo de Fuente -->
+            <div class="segmented-control-group">
+              <span class="control-label">Tipografía / Estilo:</span>
+              <div class="segmented-control" id="font-selector">
+                <button type="button" class="segment-btn active" data-font="barlow_slim" onclick="setBannerFont('barlow_slim')" title="Barlow Delgado: Elegante, fino y nítido">
+                  Delgada (Slim)
+                </button>
+                <button type="button" class="segment-btn" data-font="barlow_bold" onclick="setBannerFont('barlow_bold')" title="Barlow Clásico: Grueso y contundente">
+                  Gruesa (Bold)
+                </button>
+                <button type="button" class="segment-btn" data-font="inter" onclick="setBannerFont('inter')" title="Inter: Ultra limpio y moderno">
+                  Inter
+                </button>
+                <button type="button" class="segment-btn" data-font="roboto" onclick="setBannerFont('roboto')" title="Roboto Condensed: Deportivo">
+                  Roboto
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ASIGNACIÓN DE COMPETIDORES -->
+        <div class="competitors-selection-section">
+          <div class="section-sublabel">
+            3. Competidores en Mesa
+          </div>
+
+          <!-- MODO DUAL: MESA 1 Y MESA 2 -->
+          <div id="dual-selection-wrapper" class="dual-slots-container">
+            <!-- Slot Mesa 1 -->
+            <div class="table-slot-card slot-1" id="slot-mesa-1">
+              <div class="slot-header">
+                <span class="slot-badge marker-blue">1</span>
+                <span class="slot-title">Mesa 1 (Izquierda)</span>
+              </div>
+              <div class="search-input-group search-slot">
+                <span class="search-icon-decor">🔍</span>
+                <input type="text" class="search-input" id="search-slot-1" placeholder="Buscar competidor 1..." autocomplete="off">
+              </div>
+              <div class="search-results-menu" id="search-results-slot-1"></div>
+
+              <div class="selected-competitor-pill" id="pill-comp-1">
+                <div class="pill-flag" id="pill-flag-1"></div>
+                <div class="pill-details">
+                  <div class="pill-name" id="pill-name-1">Sin competidor</div>
+                  <div class="pill-stats" id="pill-stats-1">WCA ID: — · PR Single: — · PR Avg: —</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón Swap Mesas -->
+            <div class="swap-action-wrapper">
+              <button type="button" class="btn-swap-tables" onclick="swapTables()" title="Intercambiar Mesa 1 y Mesa 2">
+                ⇄ Intercambiar Mesas (Swap)
+              </button>
+            </div>
+
+            <!-- Slot Mesa 2 -->
+            <div class="table-slot-card slot-2" id="slot-mesa-2">
+              <div class="slot-header">
+                <span class="slot-badge marker-orange">2</span>
+                <span class="slot-title">Mesa 2 (Derecha)</span>
+              </div>
+              <div class="search-input-group search-slot">
+                <span class="search-icon-decor">🔍</span>
+                <input type="text" class="search-input" id="search-slot-2" placeholder="Buscar competidor 2..." autocomplete="off">
+              </div>
+              <div class="search-results-menu" id="search-results-slot-2"></div>
+
+              <div class="selected-competitor-pill" id="pill-comp-2">
+                <div class="pill-flag" id="pill-flag-2"></div>
+                <div class="pill-details">
+                  <div class="pill-name" id="pill-name-2">Sin competidor</div>
+                  <div class="pill-stats" id="pill-stats-2">WCA ID: — · PR Single: — · PR Avg: —</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MODO INDIVIDUAL: 1 SOLO COMPETIDOR -->
+          <div id="single-selection-wrapper" class="single-slot-container" style="display:none;">
+            <div class="search-input-group">
+              <span class="search-icon-decor">🔍</span>
+              <input type="text" class="search-input" id="competitor-search-input" placeholder="Buscar por nombre o WCA ID..." autocomplete="off">
+              <span class="search-shortcut">/</span>
+            </div>
+            <div class="search-results-menu" id="search-results-menu"></div>
+
+            <div class="selected-competitor-pill" id="pill-comp-single" style="margin-top:10px;">
+              <div class="pill-flag" id="pill-flag-single"></div>
+              <div class="pill-details">
+                <div class="pill-name" id="pill-name-single">Sin competidor seleccionado</div>
+                <div class="pill-stats" id="pill-stats-single">Selecciona un competidor para transmitir</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PREVISUALIZACIÓN BROADCAST SCOREBOARD (WCA EURO 2026 STYLE) -->
+        <div class="card-preview-container">
+          <div class="preview-header-bar">
+            <span class="preview-tag">VISTA PREVIA EN VIVO (OBS)</span>
+            <span class="preview-pos-indicator" id="preview-pos-indicator">ARRIBA · IZQUIERDA</span>
+          </div>
+
+          <div class="simulated-broadcast-table" id="simulated-table">
+            <!-- Header Simulado -->
+            <div class="sim-header">
+              <div class="sim-header-event">
+                <span class="sim-event-title" id="sim-event-title">3x3</span>
+                <span class="sim-round-title" id="sim-round-title">FIRST ROUND</span>
+              </div>
+              <div class="sim-col-wcaid">WCA ID</div>
+              <div class="sim-col-single">PR SINGLE</div>
+              <div class="sim-col-avg">PR AVG</div>
+            </div>
+
+            <!-- Fila Mesa 1 -->
+            <div class="sim-row row-1" id="sim-row-1">
+              <div class="sim-comp-info">
+                <div class="sim-flag" id="sim-flag-1"></div>
+                <span class="sim-name" id="sim-name-1">Competidor 1</span>
+              </div>
+              <div class="sim-val sim-wcaid" id="sim-wcaid-1">—</div>
+              <div class="sim-val sim-single" id="sim-single-1">—</div>
+              <div class="sim-val sim-avg" id="sim-avg-1">—</div>
+            </div>
+
+            <!-- Fila Mesa 2 -->
+            <div class="sim-row row-2" id="sim-row-2">
+              <div class="sim-comp-info">
+                <div class="sim-flag" id="sim-flag-2"></div>
+                <span class="sim-name" id="sim-name-2">Competidor 2</span>
+              </div>
+              <div class="sim-val sim-wcaid" id="sim-wcaid-2">—</div>
+              <div class="sim-val sim-single" id="sim-single-2">—</div>
+              <div class="sim-val sim-avg" id="sim-avg-2">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción de Competidor -->
+        <div class="broadcast-actions-grid">
+          <button class="btn-tactile btn-primary-live" id="btn-show-competitor" onclick="sendShowCompetitor()" title="Atajo: F8">
+            <span>▲ MOSTRAR EN PANTALLA</span>
+          </button>
+          <button class="btn-tactile btn-secondary" onclick="sendHideCompetitor()" title="Ocultar competidor de OBS">
+            <span>✕ OCULTAR</span>
+          </button>
+        </div>
+
+        <!-- Leyenda de atajos rápidos -->
+        <div class="shortcuts-legend">
+          <span>Atajos: [/] Buscar</span>
+          <span>[F8] Mostrar/Ocultar Banner</span>
+          <span>[F9] Mostrar Evento</span>
+          <span>[F10] Ocultar Todo</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- COLUMNA 3: HUB DE OPERACIONES Y DIRECTORIO -->
+    <section class="deck-panel">
+      <div class="panel-header">
+        <div class="tabs-nav" style="width:100%;">
+          <button class="tab-btn active" data-tab="directory" onclick="switchTab('directory')">
+            👥 Directorio <span class="tab-badge" id="tab-directory-count">0</span>
+          </button>
+          <button class="tab-btn" data-tab="live" onclick="switchTab('live')">
+            🏆 WCA Live
+          </button>
+          <button class="tab-btn" data-tab="wca" onclick="switchTab('wca')">🌐 API WCA</button>
+          <button class="tab-btn" data-tab="json" onclick="switchTab('json')">📂 Archivos</button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+
+        <!-- PESTAÑA: RANKING EN VIVO (WCA LIVE) -->
+        <div class="tab-content" id="tab-live">
+          <div class="live-ranking-panel-box">
+            
+            <!-- Barra de Torneo y Carga -->
+            <div>
+              <div class="box-heading">🏆 Ranking en Vivo (WCA Live)</div>
+              <p class="box-description">
+                Conéctate a la API en vivo de WCA Live para proyectar tablas de posiciones en tiempo real.
+              </p>
+            </div>
+
+            <div class="form-group" style="margin-bottom:6px;">
+              <label class="form-label">ID de Competencia WCA Live o WCA ID:</label>
+              <div style="display:flex;gap:6px;">
+                <input type="text" class="form-input" id="live-comp-id-input" placeholder="Ej: 11003 o RegionalesSantander2026" style="flex:1;">
+                <button class="btn-tactile btn-secondary" onclick="loadLiveCompetitionRounds()" style="padding:0 14px;white-space:nowrap;height:38px;">
+                  🔍 Cargar
+                </button>
+              </div>
+            </div>
+
+            <!-- Selector de Ronda -->
+            <div class="form-group" style="margin-bottom:6px;">
+              <label class="form-label">Ronda Activa:</label>
+              <select class="form-input" id="live-round-select" onchange="onLiveRoundChanged()" disabled>
+                <option value="">Ingresa una competencia primero...</option>
+              </select>
+            </div>
+
+            <!-- Opciones de Configuración de Transmisión -->
+            <div class="live-ranking-filters">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Top en Pantalla:</label>
+                <select class="select-filter" id="live-top-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
+                  <option value="8">Top 8</option>
+                  <option value="12">Top 12</option>
+                  <option value="16" selected>Top 16 (Recomendado)</option>
+                  <option value="20">Top 20</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Pasan a Ronda (Corte):</label>
+                <select class="select-filter" id="live-cutoff-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
+                  <option value="4">Top 4 (Verde)</option>
+                  <option value="8">Top 8 (Verde)</option>
+                  <option value="12">Top 12 (Verde)</option>
+                  <option value="16" selected>Top 16 (Verde)</option>
+                  <option value="24">Top 24 (Verde)</option>
+                  <option value="0">Sin corte</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Auto-Refresco (Polling) -->
+            <div class="form-group" style="margin-bottom:6px;">
+              <label class="form-label">Auto-Actualización (Sondeo en Vivo):</label>
+              <select class="select-filter" id="live-polling-select" onchange="onLivePollingChanged()" style="width:100%;height:34px;">
+                <option value="0">Desactivado (Manual)</option>
+                <option value="10">Cada 10 segundos</option>
+                <option value="15" selected>Cada 15 segundos (Recomendado)</option>
+                <option value="30">Cada 30 segundos</option>
+              </select>
+            </div>
+
+            <!-- Botones de Control en Pantalla -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+              <button class="btn-tactile btn-primary-live" id="btn-show-live-ranking" onclick="sendShowLiveRanking()" style="height:42px;">
+                <span>▲ MOSTRAR EN OBS</span>
+              </button>
+              <button class="btn-tactile btn-secondary" id="btn-hide-live-ranking" onclick="sendHideLiveRanking()" style="height:42px;">
+                <span>✕ OCULTAR DE OBS</span>
+              </button>
+            </div>
+
+            <!-- Previsualización en Vivo de la Tabla -->
+            <div style="margin-top:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span class="form-label" style="margin-bottom:0;">Previsualización de Posiciones:</span>
+                <button class="btn-tactile btn-secondary" onclick="refreshCurrentLiveRanking()" style="padding:2px 8px;font-size:11px;height:24px;">
+                  🔄 Actualizar
+                </button>
+              </div>
+
+              <div class="live-preview-table-wrap">
+                <table class="live-preview-table">
+                  <thead>
+                    <tr>
+                      <th style="width:36px;text-align:center;">Pos</th>
+                      <th style="width:28px;"></th>
+                      <th>Competidor</th>
+                      <th style="width:52px;text-align:center;">Solves</th>
+                      <th style="width:64px;text-align:right;">Promedio</th>
+                    </tr>
+                  </thead>
+                  <tbody id="live-preview-table-body">
+                    <tr>
+                      <td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px 8px;">
+                        Carga una ronda para ver los resultados en vivo
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PESTAÑA: DIRECTORIO DE COMPETIDORES -->
+        <div class="tab-content active" id="tab-directory">
+          <div class="comp-filter-row">
+            <input type="text" class="form-input" id="competitor-list-search" placeholder="Filtrar lista..." oninput="filterCompetitorList()" style="flex:1;">
+            <select class="select-filter" id="competitor-event-filter" onchange="filterCompetitorList()"></select>
+            <select class="select-filter" id="competitor-type-filter" onchange="filterCompetitorList()">
+              <option value="">Todos</option>
+              <option value="veteran">Veteranos</option>
+              <option value="new">Nuevos</option>
+            </select>
+          </div>
+
+          <div class="directory-summary-bar">
+            <span id="directory-count-text">0 competidores</span>
+            <span id="directory-filter-badge" class="directory-filter-tag" style="display:none;">FILTRADO</span>
+          </div>
+
+          <div class="competitors-scroll-list" id="competitors-scroll-list"></div>
+        </div>
+
+        <!-- PESTAÑA: INGESTA DESDE API WCA -->
+        <div class="tab-content" id="tab-wca">
+          <div class="wca-ingest-box">
+            <div class="box-heading">Descargar Torneo desde WCA</div>
+            <p class="box-description">
+              Ingresa el ID oficial de la competencia para descargar automáticamente la lista de registrados y récords (PRs).
+            </p>
+            <div class="form-group">
+              <label class="form-label">ID de la competencia</label>
+              <input type="text" class="form-input" id="wca-comp-id-input" placeholder="ej: RoadToSACSantander2026">
+            </div>
+            <button class="btn-tactile btn-secondary" id="btn-wca-fetch" onclick="triggerWCAFetch()" style="height:42px;">
+              🌐 Descargar desde WCA
+            </button>
+
+            <div class="progress-container" id="wca-progress-box" style="display:none;">
+              <div class="progress-track">
+                <div class="progress-fill" id="wca-progress-fill"></div>
+              </div>
+              <div class="progress-status-text" id="wca-progress-status-text">Iniciando...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA: CARGA MANUAL DE JSON -->
+        <div class="tab-content" id="tab-json">
+          <div class="box-heading">Cargar archivo JSON</div>
+          <p class="box-description" style="margin-bottom:12px;">
+            Si ya tienes un archivo <code>_data.json</code> en tu computadora, selecciónalo aquí para cargarlo al servidor.
+          </p>
+          <div class="form-group">
+            <input type="file" id="json-upload-input" accept=".json" onchange="handleJSONUpload(event)"
+                   style="background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-main);padding:10px;font-size:var(--type-xs);">
+          </div>
+
+          <div style="margin-top:14px;">
+            <button class="btn-tactile btn-danger-outline btn-sm" onclick="clearCurrentTournament()" style="width:100%;height:38px;">
+              🗑️ Limpiar Torneo y Empezar Limpio
+            </button>
+          </div>
+
+          <div style="margin-top:20px;padding:14px;background:var(--surface-card);border-radius:var(--radius-sm);border:1px solid var(--border);">
+            <div class="box-heading">URLs para OBS Studio:</div>
+            <div style="font-family:'Space Mono',monospace;font-size:var(--type-xs);color:var(--accent);word-break:break-all;">
+              http://localhost:3000/overlay
+            </div>
+            <div class="deck-caption" style="margin-top:4px;">
+              Agrégala en OBS como "Navegador" (1920x1080).
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Contenedor para avisos flotantes (Toasts) -->
+  <div id="toast-container"></div>
+
+  <script src="js/panel.js"></script>
+</body>
+</html>
