@@ -925,7 +925,7 @@
   .fs-bg-overlay {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 22% 46%, #0c4ea8 0%, #07347a 38%, #031a44 76%, #010c22 100%);
+    background: radial-gradient(circle at 35% 45%, #0e56be 0%, #0a439b 40%, #042566 78%, #021236 100%);
     z-index: 1;
   }
 
@@ -1012,8 +1012,8 @@
   .fs-round-name {
     font-family: 'DM Sans', 'Inter', sans-serif;
     font-size: 26px;
-    font-weight: 700;
-    color: #38bdf8;
+    font-weight: 800;
+    color: #FFFFFF;
     margin-top: 6px;
     letter-spacing: 0.4px;
     text-transform: capitalize;
@@ -1046,7 +1046,7 @@
 
   .fs-head-solves-bar {
     grid-column: 4 / 5;
-    background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+    background: #16a34a;
     border-radius: 4px;
     height: 30px;
     display: grid;
@@ -1054,7 +1054,7 @@
     align-items: center;
     justify-items: center;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.35);
     width: 100%;
     box-sizing: border-box;
   }
@@ -1064,7 +1064,7 @@
     font-size: 15.5px;
     font-weight: 900;
     color: #FFFFFF;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   }
 
   .fs-head-pill {
@@ -1079,30 +1079,31 @@
     font-size: 15px;
     font-weight: 900;
     letter-spacing: 0.8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     box-sizing: border-box;
   }
 
   .fs-head-pill.fs-head-avg {
     grid-column: 5 / 6;
-    background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
-    color: #FFFFFF;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    background: #38bdf8;
+    color: #03162b;
+    text-shadow: none;
   }
 
   .fs-head-pill.fs-head-best {
     grid-column: 6 / 7;
-    background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
-    color: #FFFFFF;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    background: #22c55e;
+    color: #03162b;
+    text-shadow: none;
   }
 
   /* Filas de Resultados */
   .fs-rows-container {
     display: flex;
     flex-direction: column;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    border: 1.5px solid rgba(56, 189, 248, 0.7);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 20px rgba(2, 132, 199, 0.25);
     border-radius: 4px;
     overflow: hidden;
     transition: opacity 0.26s cubic-bezier(0.4, 0, 0.2, 1), transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1133,14 +1134,14 @@
     grid-template-columns: 48px 44px 363px 550px 120px 120px;
     align-items: center;
     height: 48px;
-    background: rgba(5, 15, 32, 0.94);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #071836;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.28);
     box-sizing: border-box;
     transition: background 0.15s ease;
   }
 
   .fs-row:nth-child(even) {
-    background: rgba(9, 23, 48, 0.96);
+    background: #0a224a;
   }
 
   .fs-row:last-child {
@@ -1153,40 +1154,41 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 100%;
   }
 
   .fs-pos-badge {
-    min-width: 30px;
-    height: 27px;
-    border-radius: 3px;
-    font-family: 'Inter', -apple-system, sans-serif;
-    font-size: 14px;
-    font-weight: 900;
-    display: inline-flex;
+    width: 100%;
+    height: 100%;
+    display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 15.5px;
+    font-weight: 900;
   }
 
   .fs-pos-badge.pos-1 {
-    background: #FACC15;
+    background: #f5b000;
     color: #000000;
   }
 
   .fs-pos-badge.pos-2 {
-    background: #F1F5F9;
+    background: #cbd5e1;
     color: #000000;
   }
 
   .fs-pos-badge.pos-3 {
-    background: #D97706;
-    color: #FFFFFF;
+    background: #f97316;
+    color: #000000;
   }
 
   .fs-pos-badge.pos-rest {
-    background: #0B162C;
+    background: transparent;
     color: #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: none;
+    box-shadow: none;
+    font-weight: 800;
   }
 
   /* Celda Bandera */
@@ -1208,8 +1210,8 @@
   /* Celda Nombre */
   .fs-col-name {
     grid-column: 3 / 4;
-    font-family: 'DM Sans', 'Inter', sans-serif;
-    font-size: 17px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 16.5px;
     font-weight: 700;
     color: #FFFFFF;
     padding-left: 10px;
@@ -1277,14 +1279,14 @@
     width: 100%;
     height: 100%;
     align-items: center;
-    border-left: 1px solid rgba(255, 255, 255, 0.12);
+    border-left: 1.5px solid rgba(56, 189, 248, 0.45);
     box-sizing: border-box;
   }
 
   .fs-solve-item {
     position: relative;
     text-align: center;
-    font-family: 'Barlow Condensed', 'Inter', -apple-system, sans-serif;
+    font-family: 'Barlow Semi Condensed', 'Inter', -apple-system, sans-serif;
     font-variant-numeric: tabular-nums;
     color: #FFFFFF;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
@@ -1303,7 +1305,7 @@
   }
 
   .fs-solve-item + .fs-solve-item {
-    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    border-left: 1px solid rgba(56, 189, 248, 0.25);
   }
 
   .fs-solve-val {
@@ -1382,9 +1384,9 @@
   }
 
   .fs-solve-item.trimmed {
-    color: #E2E8F0;
-    font-weight: 600;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    color: #bfdbfe;
+    font-weight: 550;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   }
 
   .fs-solve-item.trimmed.is-record {
@@ -1402,11 +1404,11 @@
   .fs-col-avg {
     grid-column: 5 / 6;
     text-align: center;
-    font-family: 'Barlow Condensed', 'Inter', -apple-system, sans-serif;
+    font-family: 'Barlow Semi Condensed', 'Inter', -apple-system, sans-serif;
     font-variant-numeric: tabular-nums;
     color: #FFFFFF;
-    border-left: 2px solid rgba(56, 189, 248, 0.35);
-    background: rgba(56, 189, 248, 0.05);
+    border-left: 1.5px solid rgba(56, 189, 248, 0.45);
+    background: transparent;
     height: 100%;
     display: flex;
     align-items: center;
@@ -1418,18 +1420,18 @@
   }
 
   .fs-col-avg.has-record {
-    background: rgba(56, 189, 248, 0.14);
+    background: rgba(56, 189, 248, 0.1);
   }
 
   /* Celda BEST */
   .fs-col-best {
     grid-column: 6 / 7;
     text-align: center;
-    font-family: 'Barlow Condensed', 'Inter', -apple-system, sans-serif;
+    font-family: 'Barlow Semi Condensed', 'Inter', -apple-system, sans-serif;
     font-variant-numeric: tabular-nums;
     color: #FFFFFF;
-    border-left: 2px solid rgba(74, 222, 128, 0.35);
-    background: rgba(74, 222, 128, 0.05);
+    border-left: 1.5px solid rgba(56, 189, 248, 0.45);
+    background: transparent;
     height: 100%;
     display: flex;
     align-items: center;
@@ -1441,29 +1443,31 @@
   }
 
   .fs-col-best.has-record {
-    background: rgba(74, 222, 128, 0.14);
+    background: rgba(34, 197, 94, 0.1);
   }
 
-  /* Estilos para el texto de tiempo en AVG y BEST (Alta Legibilidad) */
+  /* Estilos para el texto de tiempo en AVG y BEST (Fiel al Original: blanco puro y negrita 900) */
   .fs-time-val {
     display: inline-block;
     white-space: nowrap;
-    font-size: 18.5px;
-    font-weight: 800;
+    font-family: 'Barlow Semi Condensed', 'Inter', -apple-system, sans-serif;
+    font-size: 19px;
+    font-weight: 900;
+    color: #FFFFFF;
     line-height: 1;
     letter-spacing: 0.25px;
     transition: font-size 0.15s ease;
   }
 
   .fs-time-val.minute-time {
-    font-size: 17px;
-    font-weight: 800;
+    font-size: 17.5px;
+    font-weight: 900;
     letter-spacing: -0.1px;
   }
 
   .fs-time-val.minute-with-badge {
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 16.5px;
+    font-weight: 900;
     letter-spacing: -0.2px;
   }
 
