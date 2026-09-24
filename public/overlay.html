@@ -1280,6 +1280,7 @@
   let liveRankingCurrentPage = 0;
   let liveRankingConfig = {
     dynamicPaging: true,
+    autoBalance: true,
     pageSize: 16,
     pageDuration: 10
   };
@@ -1292,19 +1293,57 @@
     }
   }
 
+  function calculateRankingPages(allResults, maxPageSize, autoBalance = true) {
+    if (!allResults || allResults.length === 0) return [[]];
+    const total = allResults.length;
+    const maxSize = Math.max(1, maxPageSize || 16);
+
+    if (total <= maxSize) {
+      return [allResults];
+    }
+
+    const numPages = Math.ceil(total / maxSize);
+
+    if (!autoBalance) {
+      const pages = [];
+      for (let i = 0; i < numPages; i++) {
+        pages.push(allResults.slice(i * maxSize, (i + 1) * maxSize));
+      }
+      return pages;
+    }
+
+    // Auto-balanceo equitativo:
+    // Distribuir 'total' elementos en 'numPages' con una diferencia máxima de 1 entre páginas
+    const baseCount = Math.floor(total / numPages);
+    const remainder = total % numPages;
+
+    const pages = [];
+    let currentIndex = 0;
+    for (let i = 0; i < numPages; i++) {
+      const count = baseCount + (i < remainder ? 1 : 0);
+      pages.push(allResults.slice(currentIndex, currentIndex + count));
+      currentIndex += count;
+    }
+    return pages;
+  }
+
   function renderCurrentPage(animate = true) {
     if (!currentRawRankingData) return;
     const allResults = currentRawRankingData.ranking || [];
     const pageSize = liveRankingConfig.pageSize || 16;
-    const totalPages = Math.max(1, Math.ceil(allResults.length / pageSize));
+    const autoBalance = liveRankingConfig.autoBalance !== false;
+
+    const pages = liveRankingConfig.dynamicPaging
+      ? calculateRankingPages(allResults, pageSize, autoBalance)
+      : [allResults.slice(0, pageSize)];
+
+    const totalPages = Math.max(1, pages.length);
 
     if (liveRankingCurrentPage >= totalPages) {
       liveRankingCurrentPage = 0;
     }
 
-    const pageResults = liveRankingConfig.dynamicPaging
-      ? allResults.slice(liveRankingCurrentPage * pageSize, (liveRankingCurrentPage + 1) * pageSize)
-      : allResults.slice(0, pageSize);
+    const pageResults = pages[liveRankingCurrentPage] || [];
 
     const updateDOM = () => {
       if (lrRowsContainer) {
@@ -1375,16 +1414,18 @@
     if (!currentRawRankingData) return;
     const allResults = currentRawRankingData.ranking || [];
     const pageSize = liveRankingConfig.pageSize || 16;
-    const totalPages = Math.ceil(allResults.length / pageSize);
+    const autoBalance = liveRankingConfig.autoBalance !== false;
+    const pages = calculateRankingPages(allResults, pageSize, autoBalance);
+    const totalPages = pages.length;
 
     if (totalPages <= 1) return;
 
     const intervalMs = Math.max(4, (liveRankingConfig.pageDuration || 10)) * 1000;
     liveRankingTimer = setInterval(() => {
       const all = currentRawRankingData?.ranking || [];
-      const pages = Math.ceil(all.length / (liveRankingConfig.pageSize || 16));
-      if (pages <= 1) return;
-      liveRankingCurrentPage = (liveRankingCurrentPage + 1) % pages;
+      const currentPages = calculateRankingPages(all, liveRankingConfig.pageSize || 16, liveRankingConfig.autoBalance !== false);
+      if (currentPages.length <= 1) return;
+      liveRankingCurrentPage = (liveRankingCurrentPage + 1) % currentPages.length;
       renderCurrentPage(true);
     }, intervalMs);
   }
@@ -1395,6 +1436,7 @@
 
     // Actualizar configuración si viene en el payload
     if (payload.dynamicPaging !== undefined) liveRankingConfig.dynamicPaging = !!payload.dynamicPaging;
+    if (payload.autoBalance !== undefined) liveRankingConfig.autoBalance = !!payload.autoBalance;
     if (payload.pageSize) liveRankingConfig.pageSize = parseInt(payload.pageSize, 10) || 16;
     if (payload.pageDuration) liveRankingConfig.pageDuration = parseInt(payload.pageDuration, 10) || 10;
 

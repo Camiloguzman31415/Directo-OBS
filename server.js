@@ -69,6 +69,7 @@ let liveRankingCompId = null;
 let liveRankingTop = 16;
 let liveRankingCutoff = 16;
 let liveRankingDynamicPaging = true;
+let liveRankingAutoBalance = true;
 let liveRankingPageSize = 16;
 let liveRankingPageDuration = 10;
 let liveRankingPollTimer = null;
@@ -1299,6 +1300,7 @@ function startLiveRankingPolling(intervalSecs) {
           type: 'live_ranking_show',
           data: liveRankingData,
           dynamicPaging: liveRankingDynamicPaging,
+          autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
           pageDuration: liveRankingPageDuration
         });
@@ -1313,6 +1315,7 @@ function startLiveRankingPolling(intervalSecs) {
         top: liveRankingTop,
         cutoff: liveRankingCutoff,
         dynamicPaging: liveRankingDynamicPaging,
+        autoBalance: liveRankingAutoBalance,
         pageSize: liveRankingPageSize,
         pageDuration: liveRankingPageDuration
       });
@@ -1408,6 +1411,7 @@ function handleSocketConnection(ws, req) {
         type: 'live_ranking_show',
         data: liveRankingData,
         dynamicPaging: liveRankingDynamicPaging,
+        autoBalance: liveRankingAutoBalance,
         pageSize: liveRankingPageSize,
         pageDuration: liveRankingPageDuration
       }));
@@ -1436,6 +1440,7 @@ function handleSocketConnection(ws, req) {
       liveRankingPollInterval,
       liveRankingData,
       liveRankingDynamicPaging,
+      liveRankingAutoBalance,
       liveRankingPageSize,
       liveRankingPageDuration,
       overlayCount: overlayClients.size,
@@ -1601,6 +1606,7 @@ function handleSocketConnection(ws, req) {
         if (msg.top !== undefined) liveRankingTop = parseInt(msg.top, 10) || 16;
         if (msg.cutoff !== undefined) liveRankingCutoff = parseInt(msg.cutoff, 10) || 16;
         if (msg.dynamicPaging !== undefined) liveRankingDynamicPaging = !!msg.dynamicPaging;
+        if (msg.autoBalance !== undefined) liveRankingAutoBalance = !!msg.autoBalance;
         if (msg.pageSize !== undefined) liveRankingPageSize = parseInt(msg.pageSize, 10) || 16;
         if (msg.pageDuration !== undefined) liveRankingPageDuration = parseInt(msg.pageDuration, 10) || 10;
 
@@ -1612,6 +1618,7 @@ function handleSocketConnection(ws, req) {
           type: 'live_ranking_show',
           data: liveRankingData,
           dynamicPaging: liveRankingDynamicPaging,
+          autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
           pageDuration: liveRankingPageDuration
         });
@@ -1625,6 +1632,7 @@ function handleSocketConnection(ws, req) {
           top: liveRankingTop,
           cutoff: liveRankingCutoff,
           dynamicPaging: liveRankingDynamicPaging,
+          autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
           pageDuration: liveRankingPageDuration
         });

@@ -632,13 +632,19 @@
             <!-- Opciones de Configuración de Transmisión -->
             <div class="live-ranking-filters">
               <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label">Filas por Pantalla:</label>
-                <select class="select-filter" id="live-top-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
-                  <option value="8">8 por página</option>
-                  <option value="12">12 por página</option>
-                  <option value="16" selected>16 por página (Recomendado)</option>
-                  <option value="20">20 por página</option>
-                </select>
+                <label class="form-label">Filas por Pantalla (Máx):</label>
+                <input type="number" class="form-input" id="live-top-input" min="4" max="32" value="16" list="live-top-presets" onchange="onLiveParamsChanged()" oninput="onLiveParamsChanged()" style="width:100%;height:34px;text-align:center;font-weight:700;font-size:13px;">
+                <datalist id="live-top-presets">
+                  <option value="8">
+                  <option value="10">
+                  <option value="12">
+                  <option value="14">
+                  <option value="15">
+                  <option value="16">
+                  <option value="18">
+                  <option value="20">
+                  <option value="24">
+                </datalist>
               </div>
               <div class="form-group" style="margin-bottom:0;">
                 <label class="form-label">Pasan a Ronda (Corte):</label>
@@ -653,35 +659,52 @@
               </div>
             </div>
 
-            <!-- Opciones de Paginación Dinámica Automática -->
+            <!-- Opciones de Paginación y Auto-Balanceo -->
             <div class="live-ranking-filters" style="margin-top:6px;">
               <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label">Modo de Tabla:</label>
+                <label class="form-label">Modo de Rotación:</label>
                 <select class="select-filter" id="live-paging-mode-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
                   <option value="dynamic" selected>🔄 Rotación Dinámica (Páginas)</option>
                   <option value="static">Fijo (Solo primera página)</option>
                 </select>
               </div>
               <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label">Tiempo por Página:</label>
-                <select class="select-filter" id="live-page-duration-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
-                  <option value="6">Cada 6 segundos</option>
-                  <option value="8">Cada 8 segundos</option>
-                  <option value="10" selected>Cada 10 segundos</option>
-                  <option value="15">Cada 15 segundos</option>
+                <label class="form-label">Distribución de Páginas:</label>
+                <select class="select-filter" id="live-balance-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
+                  <option value="balanced" selected>⚖️ Auto-balancear (Equitativo)</option>
+                  <option value="fill">Llenar al tope (Sin balanceo)</option>
                 </select>
               </div>
             </div>
 
-            <!-- Auto-Refresco de Datos (Polling) -->
-            <div class="form-group" style="margin-top:6px;margin-bottom:6px;">
-              <label class="form-label">Auto-Actualización de Datos (WCA Live):</label>
-              <select class="select-filter" id="live-polling-select" onchange="onLivePollingChanged()" style="width:100%;height:34px;">
-                <option value="0">Desactivado (Manual)</option>
-                <option value="10">Cada 10 segundos</option>
-                <option value="15" selected>Cada 15 segundos (Recomendado)</option>
-                <option value="30">Cada 30 segundos</option>
-              </select>
+            <!-- Tiempo por Página y Auto-Refresco WCA Live -->
+            <div class="live-ranking-filters" style="margin-top:6px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Tiempo por Página:</label>
+                <select class="select-filter" id="live-page-duration-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
+                  <option value="5">Cada 5 segundos</option>
+                  <option value="6">Cada 6 segundos</option>
+                  <option value="8">Cada 8 segundos</option>
+                  <option value="10" selected>Cada 10 segundos</option>
+                  <option value="15">Cada 15 segundos</option>
+                  <option value="20">Cada 20 segundos</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Auto-Actualizar WCA Live:</label>
+                <select class="select-filter" id="live-polling-select" onchange="onLivePollingChanged()" style="width:100%;height:34px;">
+                  <option value="0">Desactivado (Manual)</option>
+                  <option value="10">Cada 10 segundos</option>
+                  <option value="15" selected>Cada 15s (Recomendado)</option>
+                  <option value="30">Cada 30 segundos</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Resumen Informativo de Balanceo de Páginas -->
+            <div id="live-paging-summary" style="display:none;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.3);border-radius:6px;padding:6px 10px;font-size:11.5px;color:#7dd3fc;margin-top:6px;font-weight:600;align-items:center;gap:6px;">
+              <span>⚖️</span>
+              <span id="live-paging-summary-text">Cargando distribución de páginas...</span>
             </div>
 
             <!-- Botones de Control en Pantalla -->
@@ -808,6 +831,6 @@
   <!-- Contenedor para avisos flotantes (Toasts) -->
   <div id="toast-container"></div>
 
-  <script src="js/panel.js?v=2.3"></script>
+  <script src="js/panel.js?v=2.5"></script>
 </body>
 </html>

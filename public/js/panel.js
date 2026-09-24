@@ -32,6 +32,7 @@ let liveRankingTop = 16;
 let liveRankingCutoff = 16;
 let liveRankingPollInterval = 15;
 let liveRankingDynamicPaging = true;
+let liveRankingAutoBalance = true;
 let liveRankingPageDuration = 10;
 
 let obsStatus = {
@@ -157,6 +158,9 @@ function handleServerMessage(msg) {
       if (msg.liveRankingTop) liveRankingTop = msg.liveRankingTop;
       if (msg.liveRankingCutoff !== undefined) liveRankingCutoff = msg.liveRankingCutoff;
       if (msg.liveRankingPollInterval !== undefined) liveRankingPollInterval = msg.liveRankingPollInterval;
+      if (msg.liveRankingDynamicPaging !== undefined) liveRankingDynamicPaging = !!msg.liveRankingDynamicPaging;
+      if (msg.liveRankingAutoBalance !== undefined) liveRankingAutoBalance = !!msg.liveRankingAutoBalance;
+      if (msg.liveRankingPageDuration) liveRankingPageDuration = msg.liveRankingPageDuration;
       if (msg.liveRankingData) {
         liveRankingData = msg.liveRankingData;
         renderLiveRankingPreview(liveRankingData);
@@ -272,6 +276,9 @@ function handleServerMessage(msg) {
       if (msg.compId) liveRankingCompId = msg.compId;
       if (msg.top) liveRankingTop = msg.top;
       if (msg.cutoff !== undefined) liveRankingCutoff = msg.cutoff;
+      if (msg.dynamicPaging !== undefined) liveRankingDynamicPaging = !!msg.dynamicPaging;
+      if (msg.autoBalance !== undefined) liveRankingAutoBalance = !!msg.autoBalance;
+      if (msg.pageDuration) liveRankingPageDuration = msg.pageDuration;
       if (msg.pollInterval !== undefined) liveRankingPollInterval = msg.pollInterval;
       updateLiveRankingUI();
       break;
@@ -1981,6 +1988,7 @@ async function fetchLiveRoundRanking(roundId, isUserTriggered = false) {
           pageSize: liveRankingTop,
           pageDuration: liveRankingPageDuration,
           dynamicPaging: liveRankingDynamicPaging,
+          autoBalance: liveRankingAutoBalance,
           cutoff: liveRankingCutoff,
           pollInterval: liveRankingPollInterval,
           data: liveRankingData
@@ -2002,18 +2010,39 @@ function onLiveRoundChanged() {
 }
 
 function onLiveParamsChanged() {
+  const topInput = document.getElementById('live-top-input');
   const topSel = document.getElementById('live-top-select');
   const cutSel = document.getElementById('live-cutoff-select');
   const modeSel = document.getElementById('live-paging-mode-select');
+  const balSel = document.getElementById('live-balance-select');
   const durSel = document.getElementById('live-page-duration-select');
 
-  if (topSel) liveRankingTop = parseInt(topSel.value, 10) || 16;
+  if (topInput) liveRankingTop = Math.max(1, Math.min(60, parseInt(topInput.value, 10) || 16));
+  else if (topSel) liveRankingTop = parseInt(topSel.value, 10) || 16;
+
   if (cutSel) liveRankingCutoff = parseInt(cutSel.value, 10) || 16;
   if (modeSel) liveRankingDynamicPaging = modeSel.value === 'dynamic';
+  if (balSel) liveRankingAutoBalance = balSel.value === 'balanced';
   if (durSel) liveRankingPageDuration = parseInt(durSel.value, 10) || 10;
+
+  updatePagingSummary();
 
   if (liveRankingSelectedRoundId) {
     fetchLiveRoundRanking(liveRankingSelectedRoundId, false);
+  } else if (liveRankingVisible) {
+    sendWS({
+      type: 'live_ranking_show',
+      roundId: liveRankingSelectedRoundId,
+      compId: liveRankingCompId,
+      top: liveRankingTop,
+      pageSize: liveRankingTop,
+      pageDuration: liveRankingPageDuration,
+      dynamicPaging: liveRankingDynamicPaging,
+      autoBalance: liveRankingAutoBalance,
+      cutoff: liveRankingCutoff,
+      pollInterval: liveRankingPollInterval,
+      data: liveRankingData
+    });
   }
 }
 
@@ -2057,6 +2086,7 @@ function sendShowLiveRanking() {
         pageSize: liveRankingTop,
         pageDuration: liveRankingPageDuration,
         dynamicPaging: liveRankingDynamicPaging,
+        autoBalance: liveRankingAutoBalance,
         cutoff: liveRankingCutoff,
         pollInterval: liveRankingPollInterval,
         data: liveRankingData
@@ -2076,6 +2106,7 @@ function sendShowLiveRanking() {
     pageSize: liveRankingTop,
     pageDuration: liveRankingPageDuration,
     dynamicPaging: liveRankingDynamicPaging,
+    autoBalance: liveRankingAutoBalance,
     cutoff: liveRankingCutoff,
     pollInterval: liveRankingPollInterval,
     data: liveRankingData
@@ -2092,6 +2123,54 @@ function sendHideLiveRanking() {
   showToast('Ranking en Vivo ocultado de OBS', 'info');
 }
 
+function updatePagingSummary() {
+  const summaryBox = document.getElementById('live-paging-summary');
+  const summaryText = document.getElementById('live-paging-summary-text');
+  if (!summaryBox || !summaryText) return;
+
+  const total = liveRankingData?.ranking?.length || 0;
+  if (total === 0) {
+    summaryBox.style.display = 'none';
+    return;
+  }
+
+  const maxPerPage = Math.max(1, liveRankingTop || 16);
+  summaryBox.style.display = 'flex';
+
+  if (!liveRankingDynamicPaging) {
+    summaryText.innerHTML = `Mostrando <strong>Top ${Math.min(total, maxPerPage)}</strong> de ${total} competidores (Modo Fijo)`;
+    return;
+  }
+
+  if (total <= maxPerPage) {
+    summaryText.innerHTML = `<strong>${total} competidores</strong> • 1 sola página completa (${total} filas, sin rotación)`;
+    return;
+  }
+
+  const numPages = Math.ceil(total / maxPerPage);
+
+  if (!liveRankingAutoBalance) {
+    const pageCounts = [];
+    for (let i = 0; i < numPages; i++) {
+      const start = i * maxPerPage;
+      const count = Math.min(maxPerPage, total - start);
+      pageCounts.push(count);
+    }
+    summaryText.innerHTML = `<strong>${total} competidores</strong> • <strong>${numPages} páginas</strong> (${pageCounts.join(' + ')} filas) • ${liveRankingPageDuration}s por página (Sin balanceo)`;
+    return;
+  }
+
+  // Auto-balanceo equitativo
+  const baseCount = Math.floor(total / numPages);
+  const remainder = total % numPages;
+  const pageCounts = [];
+  for (let i = 0; i < numPages; i++) {
+    pageCounts.push(baseCount + (i < remainder ? 1 : 0));
+  }
+
+  summaryText.innerHTML = `<strong>${total} competidores</strong> • <strong>${numPages} páginas balanceadas</strong> (${pageCounts.join(' + ')} filas) • ${liveRankingPageDuration}s por página`;
+}
+
 function renderLiveRankingPreview(rankingObj) {
   const tbody = document.getElementById('live-preview-table-body');
   if (!tbody) return;
@@ -2104,6 +2183,7 @@ function renderLiveRankingPreview(rankingObj) {
         </td>
       </tr>
     `;
+    updatePagingSummary();
     return;
   }
 
@@ -2135,6 +2215,8 @@ function renderLiveRankingPreview(rankingObj) {
       </tr>
     `;
   }).join('');
+
+  updatePagingSummary();
 }
 
 function updateLiveRankingUI() {
@@ -2154,6 +2236,9 @@ function updateLiveRankingUI() {
     compInput.value = liveRankingCompId;
   }
 
+  const topInput = document.getElementById('live-top-input');
+  if (topInput && liveRankingTop) topInput.value = String(liveRankingTop);
+
   const topSel = document.getElementById('live-top-select');
   if (topSel && liveRankingTop) topSel.value = String(liveRankingTop);
 
@@ -2166,7 +2251,12 @@ function updateLiveRankingUI() {
   const modeSel = document.getElementById('live-paging-mode-select');
   if (modeSel) modeSel.value = liveRankingDynamicPaging ? 'dynamic' : 'static';
 
+  const balSel = document.getElementById('live-balance-select');
+  if (balSel) balSel.value = liveRankingAutoBalance ? 'balanced' : 'fill';
+
   const durSel = document.getElementById('live-page-duration-select');
   if (durSel && liveRankingPageDuration) durSel.value = String(liveRankingPageDuration);
+
+  updatePagingSummary();
 }
 
