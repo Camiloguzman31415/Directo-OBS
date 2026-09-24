@@ -1024,14 +1024,14 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: 913px;
+    width: 924px;
     flex-shrink: 0;
   }
 
   /* Header de la Tabla */
   .fs-table-header {
     display: grid;
-    grid-template-columns: 44px 38px 280px 375px 88px 88px;
+    grid-template-columns: 44px 36px 275px 385px 92px 92px;
     align-items: flex-end;
     margin-bottom: 4px;
     height: 32px;
@@ -1130,7 +1130,7 @@
 
   .fs-row {
     display: grid;
-    grid-template-columns: 44px 38px 280px 375px 88px 88px;
+    grid-template-columns: 44px 36px 275px 385px 92px 92px;
     align-items: center;
     height: 44px;
     background: rgba(5, 15, 32, 0.94);
@@ -1284,17 +1284,17 @@
   .fs-solve-item {
     position: relative;
     text-align: center;
-    font-family: 'Space Mono', 'Barlow Condensed', monospace;
-    font-size: 15px;
-    font-weight: 600;
+    font-family: 'Barlow Condensed', 'Inter', -apple-system, sans-serif;
+    font-variant-numeric: tabular-nums;
     color: #F1F5F9;
-    letter-spacing: 0.2px;
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100%;
     box-sizing: border-box;
     transition: background 0.2s ease;
+    overflow: hidden;
+    padding: 0 1px;
   }
 
   .fs-solve-item.is-record {
@@ -1303,6 +1303,36 @@
 
   .fs-solve-item + .fs-solve-item {
     border-left: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .fs-solve-val {
+    display: inline-block;
+    white-space: nowrap;
+    font-size: 15.5px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.1px;
+    transition: font-size 0.15s ease;
+  }
+
+  /* Auto-ajuste para tiempos con minutos (ej. 4:26.99) o >= 6 caracteres */
+  .fs-solve-val.long-time {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+
+  /* Auto-ajuste para tiempos recortados largos (ej. (3:28.59)) */
+  .fs-solve-val.xlong-time {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  /* Separación para que el badge [PR] no colisione con el número en tiempos largos */
+  .fs-solve-item.is-record .fs-solve-val.long-time,
+  .fs-solve-item.is-record .fs-solve-val.xlong-time {
+    margin-top: 8px;
   }
 
   .fs-solve-badge {
@@ -1364,9 +1394,8 @@
   .fs-col-avg {
     grid-column: 5 / 6;
     text-align: center;
-    font-family: 'Space Mono', 'Barlow Condensed', monospace;
-    font-size: 16.5px;
-    font-weight: 800;
+    font-family: 'Barlow Condensed', 'Inter', -apple-system, sans-serif;
+    font-variant-numeric: tabular-nums;
     color: #FFFFFF;
     border-left: 2px solid rgba(56, 189, 248, 0.35);
     background: rgba(56, 189, 248, 0.05);
@@ -1374,10 +1403,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    letter-spacing: 0.2px;
     box-sizing: border-box;
     gap: 4px;
-    padding: 0 2px;
+    padding: 0 4px;
+    overflow: hidden;
   }
 
   .fs-col-avg.has-record {
@@ -1388,9 +1417,8 @@
   .fs-col-best {
     grid-column: 6 / 7;
     text-align: center;
-    font-family: 'Space Mono', 'Barlow Condensed', monospace;
-    font-size: 16.5px;
-    font-weight: 800;
+    font-family: 'Barlow Condensed', 'Inter', -apple-system, sans-serif;
+    font-variant-numeric: tabular-nums;
     color: #FFFFFF;
     border-left: 2px solid rgba(74, 222, 128, 0.35);
     background: rgba(74, 222, 128, 0.05);
@@ -1398,14 +1426,37 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    letter-spacing: 0.2px;
     box-sizing: border-box;
     gap: 4px;
-    padding: 0 2px;
+    padding: 0 4px;
+    overflow: hidden;
   }
 
   .fs-col-best.has-record {
     background: rgba(74, 222, 128, 0.14);
+  }
+
+  /* Estilos para el texto de tiempo en AVG y BEST */
+  .fs-time-val {
+    display: inline-block;
+    white-space: nowrap;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.2px;
+    transition: font-size 0.15s ease;
+  }
+
+  .fs-time-val.minute-time {
+    font-size: 14.5px;
+    font-weight: 800;
+    letter-spacing: -0.1px;
+  }
+
+  .fs-time-val.minute-with-badge {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
   }
 
   /* Badge para columnas AVG y BEST */
@@ -2130,6 +2181,7 @@
             for (let s = 0; s < 5; s++) {
               const detail = r.attemptsDetail && r.attemptsDetail[s];
               if (detail) {
+                const solveText = detail.displayText || '—';
                 const isTrimmed = detail.isTrimmed;
                 const isDnf = detail.formatted === 'DNF' || detail.formatted === 'DNS';
                 const trimClass = isTrimmed ? 'trimmed' : '';
@@ -2157,15 +2209,29 @@
                   recordSolveClass = 'is-record';
                 }
 
+                // Auto-ajuste de tamaño para tiempos de más de 60s o cadenas largas
+                let lengthClass = '';
+                if (solveText.length >= 8) {
+                  lengthClass = 'xlong-time';
+                } else if (solveText.includes(':') || solveText.length >= 6) {
+                  lengthClass = 'long-time';
+                }
+
                 solvesHtml.push(`
                   <div class="fs-solve-item ${recordSolveClass} ${trimClass} ${dnfClass}">
                     ${solveBadgeHtml}
-                    <span class="fs-solve-val">${detail.displayText}</span>
+                    <span class="fs-solve-val ${lengthClass}">${solveText}</span>
                   </div>
                 `);
               } else {
                 const rawSolve = r.attempts && r.attempts[s] ? r.attempts[s] : '—';
-                solvesHtml.push(`<div class="fs-solve-item"><span class="fs-solve-val">${rawSolve}</span></div>`);
+                let lengthClass = '';
+                if (rawSolve.length >= 8) {
+                  lengthClass = 'xlong-time';
+                } else if (rawSolve.includes(':') || rawSolve.length >= 6) {
+                  lengthClass = 'long-time';
+                }
+                solvesHtml.push(`<div class="fs-solve-item"><span class="fs-solve-val ${lengthClass}">${rawSolve}</span></div>`);
               }
             }
 
@@ -2179,6 +2245,10 @@
               avgBadgeHtml = `<span class="fs-record-pill ${tagClass}">${tag}</span>`;
               avgColClass = 'has-record';
             }
+            let avgTimeClass = '';
+            if (displayAvg.includes(':') || displayAvg.length >= 7) {
+              avgTimeClass = avgBadgeHtml ? 'minute-with-badge' : 'minute-time';
+            }
 
             // Distintivo de récord para mejor tiempo (BEST / SINGLE)
             const displayBest = r.bestFormatted !== '—' ? r.bestFormatted : '—';
@@ -2189,6 +2259,10 @@
               const tagClass = tag === 'WR' ? 'tag-wr' : tag === 'CR' ? 'tag-cr' : tag === 'NR' ? 'tag-nr' : 'tag-pr';
               bestBadgeHtml = `<span class="fs-record-pill ${tagClass}">${tag}</span>`;
               bestColClass = 'has-record';
+            }
+            let bestTimeClass = '';
+            if (displayBest.includes(':') || displayBest.length >= 7) {
+              bestTimeClass = bestBadgeHtml ? 'minute-with-badge' : 'minute-time';
             }
 
             return `
@@ -2206,11 +2280,11 @@
                   ${solvesHtml.join('')}
                 </div>
                 <div class="fs-col-avg ${avgColClass}">
-                  <span>${displayAvg}</span>
+                  <span class="fs-time-val ${avgTimeClass}">${displayAvg}</span>
                   ${avgBadgeHtml}
                 </div>
                 <div class="fs-col-best ${bestColClass}">
-                  <span>${displayBest}</span>
+                  <span class="fs-time-val ${bestTimeClass}">${displayBest}</span>
                   ${bestBadgeHtml}
                 </div>
               </div>
