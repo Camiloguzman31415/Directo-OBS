@@ -864,7 +864,7 @@
     left: 0;
     width: 1920px;
     height: 1080px;
-    z-index: 1500;
+    z-index: 3000;
     opacity: 0;
     pointer-events: none;
     overflow: hidden;
@@ -874,9 +874,17 @@
   }
 
   #fullscreen-ranking-overlay.visible {
-    opacity: 1;
-    pointer-events: auto;
-    transform: scale(1);
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: scale(1) !important;
+    display: block !important;
+  }
+
+  /* Si la página es la ruta dedicada /fullscreen, ocultar banners de competidor y evento */
+  body.is-fullscreen-page #banner,
+  body.is-fullscreen-page #event-badge,
+  body.is-fullscreen-page #live-ranking-overlay {
+    display: none !important;
   }
 
   /* Fondo Broadcast Degradado y Patrón Geométrico de Cubos */
@@ -1364,6 +1372,7 @@
 
   <div class="ranking-rows-list" id="lr-rows-container">
     <!-- Filas generadas dinámicamente -->
+  </div>
 </div>
 
 <!-- Fullscreen Championship Results Board (WCA European Championship 2026 Style) -->
@@ -2127,8 +2136,45 @@
     }
   }
 
+  if (isDedicatedFullscreen) {
+    document.body.classList.add('is-fullscreen-page');
+  }
+
   applyFont('barlow_slim');
   connect();
+
+  // Precarga inmediata por HTTP REST de ranking y torneo para visualización instantánea
+  fetch('/api/live/status')
+    .then(r => r.json())
+    .then(st => {
+      if (st && st.ok && st.data) {
+        if (isDedicatedFullscreen || st.visible) {
+          renderLiveRanking({
+            data: st.data,
+            dynamicPaging: st.dynamicPaging,
+            autoBalance: st.autoBalance,
+            pageSize: st.pageSize,
+            pageDuration: st.pageDuration,
+            viewMode: isDedicatedFullscreen ? 'fullscreen' : (st.viewMode || 'fullscreen')
+          });
+        }
+      }
+    })
+    .catch(() => {});
+
+  fetch('/api/tournament')
+    .then(r => r.json())
+    .then(t => {
+      if (t && t.data) {
+        tournamentData = t.data;
+        if (fsTournamentName && currentRawRankingData) {
+          const comp = currentRawRankingData.competitionName || tournamentData.name;
+          fsTournamentName.textContent = formatTournamentTitle(comp);
+        }
+      }
+    })
+    .catch(() => {});
+
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(() => adjustDynamicNameWidth());
   }

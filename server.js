@@ -527,6 +527,9 @@ app.get('/api/live/rounds/:roundId', async (req, res) => {
 
 // Consultar estado actual del ranking en vivo
 app.get('/api/live/status', (req, res) => {
+  if (liveRankingData && !liveRankingData.competitionName && tournamentData?.name) {
+    liveRankingData.competitionName = tournamentData.name;
+  }
   res.json({
     ok: true,
     visible: liveRankingVisible,
@@ -535,6 +538,11 @@ app.get('/api/live/status', (req, res) => {
     top: liveRankingTop,
     cutoff: liveRankingCutoff,
     pollInterval: liveRankingPollInterval,
+    dynamicPaging: liveRankingDynamicPaging,
+    autoBalance: liveRankingAutoBalance,
+    pageSize: liveRankingPageSize,
+    pageDuration: liveRankingPageDuration,
+    viewMode: liveRankingViewMode,
     data: liveRankingData
   });
 });
