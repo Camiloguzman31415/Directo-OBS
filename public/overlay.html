@@ -928,6 +928,26 @@
     inset: 0;
     background: radial-gradient(circle at 35% 45%, #0e56be 0%, #0a439b 40%, #042566 78%, #021236 100%);
     z-index: 1;
+    overflow: hidden;
+    transition: opacity 0.25s ease;
+  }
+
+  .fs-bg-image {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 2;
+    transition: background-image 0.3s ease;
+  }
+
+  .fs-bg-tint {
+    position: absolute;
+    inset: 0;
+    background: rgba(3, 10, 24, 0.45);
+    z-index: 3;
+    pointer-events: none;
   }
 
   .fs-cubes-pattern {
@@ -936,6 +956,8 @@
     opacity: 0.14;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='277.128' viewBox='0 0 160 277.128'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-opacity='0.45' d='M80 0 L160 46.188 L160 138.564 L80 184.752 L0 138.564 L0 46.188 Z M80 0 L80 92.376 L160 138.564 M80 92.376 L0 138.564 M80 92.376 L80 184.752 M80 184.752 L160 230.94 L160 277.128 M80 184.752 L0 230.94 L0 277.128'/%3E%3C/svg%3E");
     background-repeat: repeat;
+    z-index: 4;
+    pointer-events: none;
   }
 
   /* Contenedor Principal Centrado */
@@ -1660,9 +1682,11 @@
 
 <!-- Fullscreen Championship Results Board (WCA European Championship 2026 Style) -->
 <div id="fullscreen-ranking-overlay">
-  <!-- Fondo broadcast con degradado y cubos isométricos sutiles -->
-  <div class="fs-bg-overlay">
-    <div class="fs-cubes-pattern"></div>
+  <!-- Fondo broadcast con degradado, imagen personalizada y cubos isométricos sutiles -->
+  <div class="fs-bg-overlay" id="fs-bg-overlay">
+    <div class="fs-bg-image" id="fs-bg-image" style="display: none;"></div>
+    <div class="fs-bg-tint" id="fs-bg-tint" style="display: none;"></div>
+    <div class="fs-cubes-pattern" id="fs-cubes-pattern"></div>
   </div>
 
   <div class="fs-content-container">
@@ -2487,6 +2511,8 @@
             renderLiveRanking(msg);
           } else if (msg.type === 'live_ranking_hide') {
             hideLiveRanking();
+          } else if (msg.type === 'fs_theme_updated') {
+            applyFsTheme(msg.data);
           } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {
             banner.classList.remove('visible');
           } else if (msg.type === 'hide_event') {
@@ -2509,6 +2535,61 @@
     }
   }
 
+  // ── Gestión Dinámica del Fondo Fullscreen ──
+  function hexToRgb(hex) {
+    if (!hex) return { r: 12, g: 78, b: 168 };
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(x => x + x).join('');
+    const num = parseInt(c, 16);
+    return {
+      r: (num >> 16) & 255,
+      g: (num >> 8) & 255,
+      b: num & 255
+    };
+  }
+
+  function generateRadialGradient(hex) {
+    try {
+      const { r, g, b } = hexToRgb(hex);
+      const c1 = `rgb(${r}, ${g}, ${b})`;
+      const c2 = `rgb(${Math.round(r * 0.65)}, ${Math.round(g * 0.65)}, ${Math.round(b * 0.65)})`;
+      const c3 = `rgb(${Math.round(r * 0.28)}, ${Math.round(g * 0.28)}, ${Math.round(b * 0.28)})`;
+      const c4 = `rgb(${Math.round(r * 0.08)}, ${Math.round(g * 0.08)}, ${Math.round(b * 0.08)})`;
+      return `radial-gradient(circle at 35% 45%, ${c1} 0%, ${c2} 40%, ${c3} 78%, ${c4} 100%)`;
+    } catch {
+      return `radial-gradient(circle at 35% 45%, #0e56be 0%, #0a439b 40%, #042566 78%, #021236 100%)`;
+    }
+  }
+
+  function applyFsTheme(theme) {
+    if (!theme) return;
+    const bgOverlay = document.getElementById('fs-bg-overlay');
+    const bgImage = document.getElementById('fs-bg-image');
+    const bgTint = document.getElementById('fs-bg-tint');
+
+    if (bgOverlay) {
+      if (theme.bgColor) {
+        bgOverlay.style.background = generateRadialGradient(theme.bgColor);
+      }
+      if (theme.opacity !== undefined) {
+        const opVal = Math.max(0, Math.min(100, Number(theme.opacity)));
+        bgOverlay.style.opacity = opVal / 100;
+      }
+    }
+
+    if (bgImage && bgTint) {
+      if (theme.bgImage) {
+        bgImage.style.backgroundImage = `url("${theme.bgImage}")`;
+        bgImage.style.display = 'block';
+        bgTint.style.display = 'block';
+      } else {
+        bgImage.style.backgroundImage = 'none';
+        bgImage.style.display = 'none';
+        bgTint.style.display = 'none';
+      }
+    }
+  }
+
   if (isDedicatedFullscreen) {
     document.body.classList.add('is-fullscreen-page');
   }
@@ -2520,8 +2601,11 @@
   fetch('/api/live/status')
     .then(r => r.json())
     .then(st => {
-      if (st && st.ok && st.data) {
-        if (isDedicatedFullscreen || st.visible) {
+      if (st && st.ok) {
+        if (st.fsTheme) {
+          applyFsTheme(st.fsTheme);
+        }
+        if (st.data && (isDedicatedFullscreen || st.visible)) {
           renderLiveRanking({
             data: st.data,
             dynamicPaging: st.dynamicPaging,

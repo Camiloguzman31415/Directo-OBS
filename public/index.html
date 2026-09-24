@@ -738,6 +738,72 @@
               </a>
             </div>
 
+            <!-- Personalización de Fondo Pantalla Completa (OBS) -->
+            <div class="fs-customization-box" id="fs-customization-container">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="font-size:14px;">🎨</span>
+                  <span style="font-size:12px;font-weight:700;color:#f8fafc;letter-spacing:0.3px;">Fondo Pantalla Completa (OBS)</span>
+                </div>
+                <button type="button" class="btn-tactile btn-secondary" onclick="resetFsTheme()" style="padding:2px 8px;font-size:10.5px;height:22px;" title="Restablecer color e imagen por defecto">
+                  ↺ Por Defecto
+                </button>
+              </div>
+
+              <!-- Color Base y Paleta Rápida -->
+              <div style="margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                  <label class="form-label" style="margin-bottom:0;font-size:11px;">Color Base de Fondo:</label>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="color" id="fs-color-picker" value="#0c4ea8" oninput="onFsColorPickerChange(this.value)" onchange="onFsColorPickerFinal(this.value)" style="width:28px;height:24px;border:none;border-radius:4px;cursor:pointer;background:transparent;padding:0;">
+                    <span id="fs-color-val" style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#38bdf8;min-width:62px;">#0c4ea8</span>
+                  </div>
+                </div>
+                <!-- Presets Rápidos -->
+                <div style="display:flex;gap:7px;align-items:center;">
+                  <button type="button" class="fs-color-preset" data-color="#0c4ea8" onclick="setFsPresetColor('#0c4ea8')" style="background:#0c4ea8;" title="Azul WCA Oficial"></button>
+                  <button type="button" class="fs-color-preset" data-color="#0284c7" onclick="setFsPresetColor('#0284c7')" style="background:#0284c7;" title="Azul Cielo"></button>
+                  <button type="button" class="fs-color-preset" data-color="#0f172a" onclick="setFsPresetColor('#0f172a')" style="background:#0f172a;" title="Oscuro Slate"></button>
+                  <button type="button" class="fs-color-preset" data-color="#1e1b4b" onclick="setFsPresetColor('#1e1b4b')" style="background:#1e1b4b;" title="Índigo Noche"></button>
+                  <button type="button" class="fs-color-preset" data-color="#064e3b" onclick="setFsPresetColor('#064e3b')" style="background:#064e3b;" title="Esmeralda"></button>
+                  <button type="button" class="fs-color-preset" data-color="#831843" onclick="setFsPresetColor('#831843')" style="background:#831843;" title="Rubí / Magenta"></button>
+                  <button type="button" class="fs-color-preset" data-color="#000000" onclick="setFsPresetColor('#000000')" style="background:#000000;border:1px solid #475569;" title="Negro Puro"></button>
+                  <span style="font-size:10px;color:#64748b;margin-left:4px;">Presets</span>
+                </div>
+              </div>
+
+              <!-- Imagen de Fondo Personalizada -->
+              <div style="margin-bottom:8px;padding-top:7px;border-top:1px dashed rgba(255,255,255,0.08);">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px;">Imagen de Fondo Personalizada:</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input type="file" id="fs-image-input" accept="image/png,image/jpeg,image/webp,image/jpg" style="display:none;" onchange="handleFsImageUpload(this)">
+                  <button type="button" class="btn-tactile btn-secondary" onclick="document.getElementById('fs-image-input').click()" style="height:28px;font-size:11px;padding:0 10px;display:flex;align-items:center;gap:4px;">
+                    📁 Subir Imagen
+                  </button>
+                  <button type="button" class="btn-tactile" id="btn-fs-remove-image" onclick="removeFsImage()" style="height:28px;font-size:11px;padding:0 8px;display:none;background:rgba(239,68,68,0.2);color:#ef4444;border:1px solid rgba(239,68,68,0.4);">
+                    ✕ Quitar
+                  </button>
+                  <span id="fs-image-status" style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">Sin imagen (usa degradado)</span>
+                </div>
+                <div id="fs-image-preview-container" style="display:none;margin-top:6px;position:relative;width:100%;height:52px;border-radius:5px;overflow:hidden;border:1px solid rgba(56,189,248,0.3);background:#000;">
+                  <img id="fs-image-preview" src="" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+              </div>
+
+              <!-- Control de Opacidad del Fondo -->
+              <div style="padding-top:7px;border-top:1px dashed rgba(255,255,255,0.08);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                  <label class="form-label" style="margin-bottom:0;font-size:11px;">Opacidad del Fondo en OBS:</label>
+                  <span id="fs-opacity-val" style="font-family:'Space Mono',monospace;font-size:11.5px;font-weight:700;color:#38bdf8;">100%</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-size:10px;color:#64748b;min-width:75px;">0% (Transparente)</span>
+                  <input type="range" id="fs-opacity-slider" min="0" max="100" value="100" oninput="onFsOpacityChange(this.value)" style="flex:1;cursor:pointer;accent-color:#0284c7;">
+                  <span style="font-size:10px;color:#64748b;min-width:65px;text-align:right;">100% (Opaco)</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Previsualización en Vivo de la Tabla -->
             <div style="margin-top:6px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">

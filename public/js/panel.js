@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
   connectWebSocket();
   setupEventListeners();
   setupKeyboardShortcuts();
+  updateFsThemeUI();
 });
 
 // ── Conexión WebSocket ──
@@ -169,6 +170,11 @@ function handleServerMessage(msg) {
       if (msg.liveRankingPageDuration) liveRankingPageDuration = msg.liveRankingPageDuration;
       if (msg.liveRankingViewMode) liveRankingViewMode = msg.liveRankingViewMode;
       updateViewModeButtons();
+
+      if (msg.fsTheme) {
+        currentFsTheme = Object.assign({}, currentFsTheme, msg.fsTheme);
+        updateFsThemeUI();
+      }
 
       // Recuperar competencia y ronda seleccionada (prioridad: servidor -> localStorage)
       const targetCompId = liveRankingCompId || localStorage.getItem('directoobs_live_comp_id');
@@ -324,6 +330,13 @@ function handleServerMessage(msg) {
       if (msg.data) {
         liveRankingData = msg.data;
         renderLiveRankingPreview(liveRankingData);
+      }
+      break;
+
+    case 'fs_theme_updated':
+      if (msg.data) {
+        currentFsTheme = Object.assign({}, currentFsTheme, msg.data);
+        updateFsThemeUI();
       }
       break;
   }
@@ -2382,4 +2395,195 @@ function updateLiveRankingUI() {
 
   updatePagingSummary();
 }
+
+// ━━━ TEMA Y PERSONALIZACIÓN DE FONDO FULLSCREEN ━━━
+let currentFsTheme = {
+  bgColor: '#0c4ea8',
+  bgImage: null,
+  opacity: 100
+};
+
+function rgbToHex(rgbStr) {
+  if (!rgbStr) return '';
+  if (rgbStr.startsWith('#')) return rgbStr.toLowerCase();
+  const match = rgbStr.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+  if (!match) return rgbStr.toLowerCase();
+  const hex = (x) => ('0' + parseInt(x, 10).toString(16)).slice(-2);
+  return ('#' + hex(match[1]) + hex(match[2]) + hex(match[3])).toLowerCase();
+}
+
+function updateFsThemeUI() {
+  const picker = document.getElementById('fs-color-picker');
+  const valLabel = document.getElementById('fs-color-val');
+  const slider = document.getElementById('fs-opacity-slider');
+  const opLabel = document.getElementById('fs-opacity-val');
+  const statusLabel = document.getElementById('fs-image-status');
+  const previewBox = document.getElementById('fs-image-preview-container');
+  const previewImg = document.getElementById('fs-image-preview');
+  const btnRemove = document.getElementById('btn-fs-remove-image');
+
+  const curColor = (currentFsTheme.bgColor || '#0c4ea8').toLowerCase();
+  const curOpacity = currentFsTheme.opacity !== undefined ? currentFsTheme.opacity : 100;
+
+  if (picker) picker.value = curColor;
+  if (valLabel) valLabel.textContent = curColor;
+  if (slider) slider.value = curOpacity;
+  if (opLabel) opLabel.textContent = `${curOpacity}%`;
+
+  // Resaltar preset activo si coincide
+  document.querySelectorAll('.fs-color-preset').forEach(btn => {
+    const dataCol = (btn.getAttribute('data-color') || '').toLowerCase();
+    const bgCol = rgbToHex(btn.style.background || '');
+    if (dataCol === curColor || bgCol === curColor) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Imagen personalizada
+  if (currentFsTheme.bgImage) {
+    if (statusLabel) {
+      statusLabel.textContent = 'Imagen personalizada activa';
+      statusLabel.style.color = '#38bdf8';
+    }
+    if (btnRemove) btnRemove.style.display = 'inline-block';
+    if (previewBox && previewImg) {
+      previewBox.style.display = 'block';
+      previewImg.src = currentFsTheme.bgImage;
+    }
+  } else {
+    if (statusLabel) {
+      statusLabel.textContent = 'Sin imagen (usa degradado)';
+      statusLabel.style.color = '#94a3b8';
+    }
+    if (btnRemove) btnRemove.style.display = 'none';
+    if (previewBox) previewBox.style.display = 'none';
+  }
+}
+
+function onFsColorPickerChange(color) {
+  const valLabel = document.getElementById('fs-color-val');
+  if (valLabel) valLabel.textContent = color;
+  currentFsTheme.bgColor = color;
+  sendWS({
+    type: 'set_fs_theme',
+    data: { bgColor: color }
+  });
+}
+
+function onFsColorPickerFinal(color) {
+  currentFsTheme.bgColor = color;
+  updateFsThemeUI();
+  sendWS({
+    type: 'set_fs_theme',
+    data: { bgColor: color }
+  });
+}
+
+function setFsPresetColor(color) {
+  currentFsTheme.bgColor = color;
+  updateFsThemeUI();
+  sendWS({
+    type: 'set_fs_theme',
+    data: { bgColor: color }
+  });
+  showToast(`Color de fondo cambiado a ${color}`, 'info');
+}
+
+function onFsOpacityChange(val) {
+  const op = parseInt(val, 10);
+  currentFsTheme.opacity = op;
+  const opLabel = document.getElementById('fs-opacity-val');
+  if (opLabel) opLabel.textContent = `${op}%`;
+  sendWS({
+    type: 'set_fs_theme',
+    data: { opacity: op }
+  });
+}
+
+function handleFsImageUpload(input) {
+  if (!input.files || input.files.length === 0) return;
+  const file = input.files[0];
+  if (!file.type.startsWith('image/')) {
+    showToast('Selecciona un archivo de imagen válido (PNG, JPG, WebP)', 'error');
+    input.value = '';
+    return;
+  }
+  if (file.size > 12 * 1024 * 1024) {
+    showToast('La imagen es demasiado pesada (máximo 12MB)', 'error');
+    input.value = '';
+    return;
+  }
+
+  showToast('Subiendo imagen de fondo...', 'info');
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Data = e.target.result;
+    fetch('/api/fs-background', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        imageBase64: base64Data,
+        filename: file.name
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok && data.theme) {
+        currentFsTheme = data.theme;
+        updateFsThemeUI();
+        showToast('Imagen de fondo aplicada a pantalla completa', 'success');
+      } else {
+        showToast('Error al subir: ' + (data.error || 'Desconocido'), 'error');
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      showToast('Error de red al subir imagen', 'error');
+    })
+    .finally(() => {
+      input.value = '';
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeFsImage() {
+  fetch('/api/fs-background/delete', {
+    method: 'POST'
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.ok && data.theme) {
+      currentFsTheme = data.theme;
+      updateFsThemeUI();
+      showToast('Imagen de fondo eliminada', 'info');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    showToast('Error al eliminar imagen', 'error');
+  });
+}
+
+function resetFsTheme() {
+  currentFsTheme = {
+    bgColor: '#0c4ea8',
+    bgImage: null,
+    opacity: 100
+  };
+  fetch('/api/fs-background/delete', { method: 'POST' }).catch(() => {});
+  sendWS({
+    type: 'set_fs_theme',
+    data: {
+      bgColor: '#0c4ea8',
+      bgImage: null,
+      opacity: 100
+    }
+  });
+  updateFsThemeUI();
+  showToast('Fondo restablecido por defecto (Azul WCA, 100%)', 'info');
+}
+
 

@@ -77,6 +77,13 @@ let liveRankingPollInterval = 0; // segundos (0 = inactivo)
 let liveRankingRounds = [];
 let liveRankingViewMode = 'fullscreen'; // 'fullscreen' | 'widget'
 
+// ── Tema y Personalización de Fondo para Fullscreen ──
+let fsTheme = {
+  bgColor: '#0c4ea8',
+  bgImage: null,
+  opacity: 100
+};
+
 const LIVE_STATE_FILE = path.join(__dirname, 'live_state.json');
 
 function saveLiveState() {
@@ -93,7 +100,8 @@ function saveLiveState() {
       pageDuration: liveRankingPageDuration,
       pollInterval: liveRankingPollInterval,
       visible: liveRankingVisible,
-      viewMode: liveRankingViewMode
+      viewMode: liveRankingViewMode,
+      fsTheme: fsTheme
     };
     fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
   } catch (err) {
@@ -117,6 +125,13 @@ function loadLiveState() {
       if (state.pollInterval !== undefined) liveRankingPollInterval = state.pollInterval;
       if (state.visible !== undefined) liveRankingVisible = state.visible;
       if (state.viewMode) liveRankingViewMode = state.viewMode;
+      if (state.fsTheme) {
+        fsTheme = {
+          bgColor: state.fsTheme.bgColor || '#0c4ea8',
+          bgImage: state.fsTheme.bgImage || null,
+          opacity: state.fsTheme.opacity !== undefined ? state.fsTheme.opacity : 100
+        };
+      }
       console.log(`[LiveRanking] Estado restaurado: compId=${liveRankingCompId}, roundId=${liveRankingRoundId}`);
     }
   } catch (err) {
@@ -543,8 +558,69 @@ app.get('/api/live/status', (req, res) => {
     pageSize: liveRankingPageSize,
     pageDuration: liveRankingPageDuration,
     viewMode: liveRankingViewMode,
-    data: liveRankingData
+    data: liveRankingData,
+    fsTheme: fsTheme
   });
+});
+
+// Subir imagen personalizada de fondo para la tabla Fullscreen
+app.post('/api/fs-background', (req, res) => {
+  try {
+    const { imageBase64 } = req.body;
+    if (!imageBase64) {
+      return res.status(400).json({ error: 'Falta la imagen' });
+    }
+
+    const uploadsDir = path.join(__dirname, 'public', 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const matches = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    let ext = 'jpg';
+    let buffer;
+
+    if (matches && matches.length === 3) {
+      const mime = matches[1];
+      if (mime.includes('png')) ext = 'png';
+      else if (mime.includes('webp')) ext = 'webp';
+      else if (mime.includes('gif')) ext = 'gif';
+      buffer = Buffer.from(matches[2], 'base64');
+    } else {
+      buffer = Buffer.from(imageBase64, 'base64');
+    }
+
+    const savedFilename = `fs_bg_${Date.now()}.${ext}`;
+    const filePath = path.join(uploadsDir, savedFilename);
+    fs.writeFileSync(filePath, buffer);
+
+    const publicUrl = `/uploads/${savedFilename}`;
+    fsTheme.bgImage = publicUrl;
+    saveLiveState();
+
+    broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
+    broadcastToPanels({ type: 'fs_theme_updated', data: fsTheme });
+
+    res.json({ ok: true, url: publicUrl, theme: fsTheme });
+  } catch (err) {
+    console.error('[Upload FS BG Error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Eliminar imagen personalizada de fondo
+app.post('/api/fs-background/delete', (req, res) => {
+  try {
+    fsTheme.bgImage = null;
+    saveLiveState();
+
+    broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
+    broadcastToPanels({ type: 'fs_theme_updated', data: fsTheme });
+
+    res.json({ ok: true, theme: fsTheme });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Estado y control de OBS
@@ -1493,6 +1569,12 @@ function handleSocketConnection(ws, req) {
       }));
     }
 
+    // Enviar configuración de tema de fondo para Fullscreen
+    socket.send(JSON.stringify({
+      type: 'fs_theme_updated',
+      data: fsTheme
+    }));
+
     // Si el ranking en vivo está activo, enviarlo al nuevo overlay
     if (liveRankingVisible && liveRankingData) {
       if (!liveRankingData.competitionName && tournamentData?.name) {
@@ -1537,6 +1619,7 @@ function handleSocketConnection(ws, req) {
       liveRankingPageSize,
       liveRankingPageDuration,
       liveRankingViewMode,
+      fsTheme,
       overlayCount: overlayClients.size,
       obsStatus
     }));
@@ -1832,6 +1915,17 @@ function handleSocketConnection(ws, req) {
           top: liveRankingTop,
           cutoff: liveRankingCutoff
         });
+        break;
+
+      case 'set_fs_theme':
+        if (msg.data) {
+          if (msg.data.bgColor !== undefined) fsTheme.bgColor = msg.data.bgColor;
+          if (msg.data.bgImage !== undefined) fsTheme.bgImage = msg.data.bgImage;
+          if (msg.data.opacity !== undefined) fsTheme.opacity = parseInt(msg.data.opacity, 10);
+          saveLiveState();
+          broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
+          broadcastToPanels({ type: 'fs_theme_updated', data: fsTheme });
+        }
         break;
 
       case 'get_preloaded':
