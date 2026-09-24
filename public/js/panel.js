@@ -31,6 +31,8 @@ let liveRankingSelectedRoundId = '';
 let liveRankingTop = 16;
 let liveRankingCutoff = 16;
 let liveRankingPollInterval = 15;
+let liveRankingDynamicPaging = true;
+let liveRankingPageDuration = 10;
 
 let obsStatus = {
   connected: false,
@@ -1960,7 +1962,9 @@ async function loadLiveCompetitionRounds() {
 async function fetchLiveRoundRanking(roundId, isUserTriggered = false) {
   if (!roundId) return;
   try {
-    const res = await fetch(`/api/live/rounds/${roundId}?top=${liveRankingTop}&cutoff=${liveRankingCutoff}`);
+    // Pedir con top=0 para recibir la lista completa de competidores y poder paginarla
+    const fetchTop = liveRankingDynamicPaging ? 0 : liveRankingTop;
+    const res = await fetch(`/api/live/rounds/${roundId}?top=${fetchTop}&cutoff=${liveRankingCutoff}`);
     const data = await res.json();
     if (data.ok && data.ranking) {
       liveRankingData = data.ranking;
@@ -1974,6 +1978,9 @@ async function fetchLiveRoundRanking(roundId, isUserTriggered = false) {
           roundId: liveRankingSelectedRoundId,
           compId: liveRankingCompId,
           top: liveRankingTop,
+          pageSize: liveRankingTop,
+          pageDuration: liveRankingPageDuration,
+          dynamicPaging: liveRankingDynamicPaging,
           cutoff: liveRankingCutoff,
           pollInterval: liveRankingPollInterval,
           data: liveRankingData
@@ -1997,8 +2004,14 @@ function onLiveRoundChanged() {
 function onLiveParamsChanged() {
   const topSel = document.getElementById('live-top-select');
   const cutSel = document.getElementById('live-cutoff-select');
+  const modeSel = document.getElementById('live-paging-mode-select');
+  const durSel = document.getElementById('live-page-duration-select');
+
   if (topSel) liveRankingTop = parseInt(topSel.value, 10) || 16;
   if (cutSel) liveRankingCutoff = parseInt(cutSel.value, 10) || 16;
+  if (modeSel) liveRankingDynamicPaging = modeSel.value === 'dynamic';
+  if (durSel) liveRankingPageDuration = parseInt(durSel.value, 10) || 10;
+
   if (liveRankingSelectedRoundId) {
     fetchLiveRoundRanking(liveRankingSelectedRoundId, false);
   }
@@ -2041,6 +2054,9 @@ function sendShowLiveRanking() {
         roundId: liveRankingSelectedRoundId,
         compId: liveRankingCompId,
         top: liveRankingTop,
+        pageSize: liveRankingTop,
+        pageDuration: liveRankingPageDuration,
+        dynamicPaging: liveRankingDynamicPaging,
         cutoff: liveRankingCutoff,
         pollInterval: liveRankingPollInterval,
         data: liveRankingData
@@ -2057,6 +2073,9 @@ function sendShowLiveRanking() {
     roundId: liveRankingSelectedRoundId,
     compId: liveRankingCompId,
     top: liveRankingTop,
+    pageSize: liveRankingTop,
+    pageDuration: liveRankingPageDuration,
+    dynamicPaging: liveRankingDynamicPaging,
     cutoff: liveRankingCutoff,
     pollInterval: liveRankingPollInterval,
     data: liveRankingData
@@ -2143,5 +2162,11 @@ function updateLiveRankingUI() {
 
   const pollSel = document.getElementById('live-polling-select');
   if (pollSel && liveRankingPollInterval !== undefined) pollSel.value = String(liveRankingPollInterval);
+
+  const modeSel = document.getElementById('live-paging-mode-select');
+  if (modeSel) modeSel.value = liveRankingDynamicPaging ? 'dynamic' : 'static';
+
+  const durSel = document.getElementById('live-page-duration-select');
+  if (durSel && liveRankingPageDuration) durSel.value = String(liveRankingPageDuration);
 }
 

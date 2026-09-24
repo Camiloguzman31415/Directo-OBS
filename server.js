@@ -68,6 +68,9 @@ let liveRankingRoundId = null;
 let liveRankingCompId = null;
 let liveRankingTop = 16;
 let liveRankingCutoff = 16;
+let liveRankingDynamicPaging = true;
+let liveRankingPageSize = 16;
+let liveRankingPageDuration = 10;
 let liveRankingPollTimer = null;
 let liveRankingPollInterval = 0; // segundos (0 = inactivo)
 
@@ -1288,12 +1291,16 @@ function startLiveRankingPolling(intervalSecs) {
   liveRankingPollTimer = setInterval(async () => {
     if (!liveRankingRoundId) return;
     try {
-      const ranking = await fetchLiveRoundRanking(liveRankingRoundId, liveRankingTop, liveRankingCutoff);
+      const fetchTop = liveRankingDynamicPaging ? 0 : liveRankingTop;
+      const ranking = await fetchLiveRoundRanking(liveRankingRoundId, fetchTop, liveRankingCutoff);
       liveRankingData = ranking;
       if (liveRankingVisible) {
         broadcastToOverlays({
           type: 'live_ranking_show',
-          data: liveRankingData
+          data: liveRankingData,
+          dynamicPaging: liveRankingDynamicPaging,
+          pageSize: liveRankingPageSize,
+          pageDuration: liveRankingPageDuration
         });
       }
       broadcastToPanels({
@@ -1304,7 +1311,10 @@ function startLiveRankingPolling(intervalSecs) {
         compId: liveRankingCompId,
         pollInterval: liveRankingPollInterval,
         top: liveRankingTop,
-        cutoff: liveRankingCutoff
+        cutoff: liveRankingCutoff,
+        dynamicPaging: liveRankingDynamicPaging,
+        pageSize: liveRankingPageSize,
+        pageDuration: liveRankingPageDuration
       });
     } catch (err) {
       console.warn('[LiveRanking Polling Error]', err.message);
@@ -1396,7 +1406,10 @@ function handleSocketConnection(ws, req) {
     if (liveRankingVisible && liveRankingData) {
       socket.send(JSON.stringify({
         type: 'live_ranking_show',
-        data: liveRankingData
+        data: liveRankingData,
+        dynamicPaging: liveRankingDynamicPaging,
+        pageSize: liveRankingPageSize,
+        pageDuration: liveRankingPageDuration
       }));
     }
   }
@@ -1422,6 +1435,9 @@ function handleSocketConnection(ws, req) {
       liveRankingCutoff,
       liveRankingPollInterval,
       liveRankingData,
+      liveRankingDynamicPaging,
+      liveRankingPageSize,
+      liveRankingPageDuration,
       overlayCount: overlayClients.size,
       obsStatus
     }));
@@ -1584,13 +1600,20 @@ function handleSocketConnection(ws, req) {
         if (msg.compId) liveRankingCompId = msg.compId;
         if (msg.top !== undefined) liveRankingTop = parseInt(msg.top, 10) || 16;
         if (msg.cutoff !== undefined) liveRankingCutoff = parseInt(msg.cutoff, 10) || 16;
+        if (msg.dynamicPaging !== undefined) liveRankingDynamicPaging = !!msg.dynamicPaging;
+        if (msg.pageSize !== undefined) liveRankingPageSize = parseInt(msg.pageSize, 10) || 16;
+        if (msg.pageDuration !== undefined) liveRankingPageDuration = parseInt(msg.pageDuration, 10) || 10;
+
         liveRankingVisible = true;
         if (msg.pollInterval !== undefined) {
           startLiveRankingPolling(msg.pollInterval);
         }
         broadcastToOverlays({
           type: 'live_ranking_show',
-          data: liveRankingData
+          data: liveRankingData,
+          dynamicPaging: liveRankingDynamicPaging,
+          pageSize: liveRankingPageSize,
+          pageDuration: liveRankingPageDuration
         });
         broadcastToPanels({
           type: 'sync_live_ranking',
@@ -1600,7 +1623,10 @@ function handleSocketConnection(ws, req) {
           compId: liveRankingCompId,
           pollInterval: liveRankingPollInterval,
           top: liveRankingTop,
-          cutoff: liveRankingCutoff
+          cutoff: liveRankingCutoff,
+          dynamicPaging: liveRankingDynamicPaging,
+          pageSize: liveRankingPageSize,
+          pageDuration: liveRankingPageDuration
         });
         break;
 

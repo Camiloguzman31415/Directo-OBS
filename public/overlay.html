@@ -664,10 +664,46 @@
   .col-r-solves { text-align: center; }
   .col-r-avg { text-align: right; padding-right: 2px; }
 
-  /* Lista de Filas */
+  /* Lista de Filas con Animación de Transición de Página */
   .ranking-rows-list {
     display: flex;
     flex-direction: column;
+    transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ranking-rows-list.page-fade-out {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.99);
+  }
+
+  .ranking-rows-list.page-fade-in {
+    animation: pageSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes pageSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(8px) scale(0.99);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Indicador de Página en la Cabecera */
+  .ranking-page-pill {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 999px;
+    letter-spacing: 0.8px;
   }
 
   .ranking-row {
@@ -901,9 +937,12 @@
         <span class="ranking-subtitle">PROJECTED RANKING</span>
       </div>
     </div>
-    <div class="ranking-live-pill">
-      <span class="ranking-live-dot"></span>
-      <span class="ranking-live-text">LIVE</span>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span id="lr-page-indicator" class="ranking-page-pill" style="display:none;">PÁG 1 / 3</span>
+      <div class="ranking-live-pill">
+        <span class="ranking-live-dot"></span>
+        <span class="ranking-live-text">LIVE</span>
+      </div>
     </div>
   </div>
 
@@ -1232,10 +1271,134 @@
   const lrEventIcon = document.getElementById('lr-event-icon');
   const lrMainTitle = document.getElementById('lr-main-title');
   const lrRowsContainer = document.getElementById('lr-rows-container');
-  const lrFooterMeta = document.getElementById('lr-footer-meta');
 
-  function renderLiveRanking(data) {
-    if (!data || !lrOverlay) return;
+  let liveRankingTimer = null;
+  let liveRankingCurrentPage = 0;
+  let liveRankingConfig = {
+    dynamicPaging: true,
+    pageSize: 16,
+    pageDuration: 10
+  };
+  let currentRawRankingData = null;
+
+  function stopRankingPaging() {
+    if (liveRankingTimer) {
+      clearInterval(liveRankingTimer);
+      liveRankingTimer = null;
+    }
+  }
+
+  function renderCurrentPage(animate = true) {
+    if (!currentRawRankingData) return;
+    const allResults = currentRawRankingData.ranking || [];
+    const pageSize = liveRankingConfig.pageSize || 16;
+    const totalPages = Math.max(1, Math.ceil(allResults.length / pageSize));
+
+    if (liveRankingCurrentPage >= totalPages) {
+      liveRankingCurrentPage = 0;
+    }
+
+    const pageResults = liveRankingConfig.dynamicPaging
+      ? allResults.slice(liveRankingCurrentPage * pageSize, (liveRankingCurrentPage + 1) * pageSize)
+      : allResults.slice(0, pageSize);
+
+    const updateDOM = () => {
+      if (lrRowsContainer) {
+        if (pageResults.length === 0) {
+          lrRowsContainer.innerHTML = '<div style="padding:15px;text-align:center;color:#94a3b8;font-size:12px;">Sin resultados registrados aún</div>';
+        } else {
+          lrRowsContainer.innerHTML = pageResults.map(r => {
+            const isAdv = !!r.isAdvancing;
+            const posClass = isAdv ? 'advancing' : 'non-advancing';
+            const flagIso = (r.countryIso2 || 'co').toLowerCase();
+            const inProgress = !!r.inProgress;
+            const solvesPillClass = inProgress ? 'in-progress' : 'completed';
+            const recBadge = r.recordTag ? `<span class="record-tag-badge">${r.recordTag}</span>` : '';
+            const displayTime = r.displayTime || (r.solvesCompleted > 0 ? (r.averageFormatted !== '—' ? r.averageFormatted : r.bestFormatted) : '—');
+
+            return `
+              <div class="ranking-row">
+                <div class="pos-cell">
+                  <span class="pos-badge ${posClass}">${r.ranking}</span>
+                </div>
+                <div class="flag-cell">
+                  <img src="https://flagcdn.com/w40/${flagIso}.png" alt="${flagIso}" onerror="this.style.display='none'">
+                </div>
+                <div class="name-cell" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div>
+                <div class="solves-cell">
+                  <span class="solves-pill ${solvesPillClass}">${r.solvesText || `${r.solvesCompleted || 0}/${r.totalSolves || 5}`}</span>
+                </div>
+                <div class="avg-cell">
+                  ${recBadge}
+                  <span class="time-value">${displayTime}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // Actualizar badge indicador de página
+      const pageIndicator = document.getElementById('lr-page-indicator');
+      if (pageIndicator) {
+        if (liveRankingConfig.dynamicPaging && totalPages > 1) {
+          pageIndicator.style.display = 'inline-flex';
+          pageIndicator.textContent = `PÁG. ${liveRankingCurrentPage + 1} / ${totalPages}`;
+        } else {
+          pageIndicator.style.display = 'none';
+        }
+      }
+
+      if (animate && lrRowsContainer) {
+        lrRowsContainer.classList.remove('page-fade-out');
+        lrRowsContainer.classList.remove('page-fade-in');
+        void lrRowsContainer.offsetWidth; // Forzar reflow para reiniciar animación
+        lrRowsContainer.classList.add('page-fade-in');
+      }
+    };
+
+    if (animate && lrRowsContainer && lrRowsContainer.children.length > 0) {
+      lrRowsContainer.classList.add('page-fade-out');
+      setTimeout(updateDOM, 260);
+    } else {
+      updateDOM();
+    }
+  }
+
+  function startRankingPaging() {
+    stopRankingPaging();
+    if (!liveRankingConfig.dynamicPaging) return;
+    if (!currentRawRankingData) return;
+    const allResults = currentRawRankingData.ranking || [];
+    const pageSize = liveRankingConfig.pageSize || 16;
+    const totalPages = Math.ceil(allResults.length / pageSize);
+
+    if (totalPages <= 1) return;
+
+    const intervalMs = Math.max(4, (liveRankingConfig.pageDuration || 10)) * 1000;
+    liveRankingTimer = setInterval(() => {
+      const all = currentRawRankingData?.ranking || [];
+      const pages = Math.ceil(all.length / (liveRankingConfig.pageSize || 16));
+      if (pages <= 1) return;
+      liveRankingCurrentPage = (liveRankingCurrentPage + 1) % pages;
+      renderCurrentPage(true);
+    }, intervalMs);
+  }
+
+  function renderLiveRanking(payload) {
+    if (!payload || !lrOverlay) return;
+    const data = payload.data || payload;
+
+    // Actualizar configuración si viene en el payload
+    if (payload.dynamicPaging !== undefined) liveRankingConfig.dynamicPaging = !!payload.dynamicPaging;
+    if (payload.pageSize) liveRankingConfig.pageSize = parseInt(payload.pageSize, 10) || 16;
+    if (payload.pageDuration) liveRankingConfig.pageDuration = parseInt(payload.pageDuration, 10) || 10;
+
+    // Si cambió de ronda, reiniciar a página 0
+    if (currentRawRankingData && currentRawRankingData.roundId !== data.roundId) {
+      liveRankingCurrentPage = 0;
+    }
+    currentRawRankingData = data;
 
     // Actualizar encabezado
     const eid = data.eventId || '333';
@@ -1249,53 +1412,13 @@
       lrMainTitle.textContent = `${eName} ${rName}`.trim();
     }
 
-    // Actualizar filas de competidores
-    if (lrRowsContainer) {
-      const results = data.ranking || [];
-      if (results.length === 0) {
-        lrRowsContainer.innerHTML = '<div style="padding:15px;text-align:center;color:#94a3b8;font-size:12px;">Sin resultados registrados aún</div>';
-      } else {
-        lrRowsContainer.innerHTML = results.map(r => {
-          const isAdv = !!r.isAdvancing;
-          const posClass = isAdv ? 'advancing' : 'non-advancing';
-          const flagIso = (r.countryIso2 || 'co').toLowerCase();
-          const inProgress = !!r.inProgress;
-          const solvesPillClass = inProgress ? 'in-progress' : 'completed';
-          const recBadge = r.recordTag ? `<span class="record-tag-badge">${r.recordTag}</span>` : '';
-          const displayTime = r.displayTime || (r.solvesCompleted > 0 ? (r.averageFormatted !== '—' ? r.averageFormatted : r.bestFormatted) : '—');
-
-          return `
-            <div class="ranking-row">
-              <div class="pos-cell">
-                <span class="pos-badge ${posClass}">${r.ranking}</span>
-              </div>
-              <div class="flag-cell">
-                <img src="https://flagcdn.com/w40/${flagIso}.png" alt="${flagIso}" onerror="this.style.display='none'">
-              </div>
-              <div class="name-cell" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div>
-              <div class="solves-cell">
-                <span class="solves-pill ${solvesPillClass}">${r.solvesText || `${r.solvesCompleted || 0}/${r.totalSolves || 5}`}</span>
-              </div>
-              <div class="avg-cell">
-                ${recBadge}
-                <span class="time-value">${displayTime}</span>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-    }
-
-    if (lrFooterMeta) {
-      const count = (data.ranking || []).length;
-      const cutoff = data.advancingCutoff || 16;
-      lrFooterMeta.textContent = `TOP ${count} · CORTE ${cutoff}`;
-    }
-
+    renderCurrentPage(false);
+    startRankingPaging();
     lrOverlay.classList.add('visible');
   }
 
   function hideLiveRanking() {
+    stopRankingPaging();
     if (lrOverlay) lrOverlay.classList.remove('visible');
   }
 

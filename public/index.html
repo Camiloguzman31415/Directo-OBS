@@ -632,12 +632,12 @@
             <!-- Opciones de Configuración de Transmisión -->
             <div class="live-ranking-filters">
               <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label">Top en Pantalla:</label>
+                <label class="form-label">Filas por Pantalla:</label>
                 <select class="select-filter" id="live-top-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
-                  <option value="8">Top 8</option>
-                  <option value="12">Top 12</option>
-                  <option value="16" selected>Top 16 (Recomendado)</option>
-                  <option value="20">Top 20</option>
+                  <option value="8">8 por página</option>
+                  <option value="12">12 por página</option>
+                  <option value="16" selected>16 por página (Recomendado)</option>
+                  <option value="20">20 por página</option>
                 </select>
               </div>
               <div class="form-group" style="margin-bottom:0;">
@@ -653,9 +653,29 @@
               </div>
             </div>
 
-            <!-- Auto-Refresco (Polling) -->
-            <div class="form-group" style="margin-bottom:6px;">
-              <label class="form-label">Auto-Actualización (Sondeo en Vivo):</label>
+            <!-- Opciones de Paginación Dinámica Automática -->
+            <div class="live-ranking-filters" style="margin-top:6px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Modo de Tabla:</label>
+                <select class="select-filter" id="live-paging-mode-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
+                  <option value="dynamic" selected>🔄 Rotación Dinámica (Páginas)</option>
+                  <option value="static">Fijo (Solo primera página)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Tiempo por Página:</label>
+                <select class="select-filter" id="live-page-duration-select" onchange="onLiveParamsChanged()" style="width:100%;height:34px;">
+                  <option value="6">Cada 6 segundos</option>
+                  <option value="8">Cada 8 segundos</option>
+                  <option value="10" selected>Cada 10 segundos</option>
+                  <option value="15">Cada 15 segundos</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Auto-Refresco de Datos (Polling) -->
+            <div class="form-group" style="margin-top:6px;margin-bottom:6px;">
+              <label class="form-label">Auto-Actualización de Datos (WCA Live):</label>
               <select class="select-filter" id="live-polling-select" onchange="onLivePollingChanged()" style="width:100%;height:34px;">
                 <option value="0">Desactivado (Manual)</option>
                 <option value="10">Cada 10 segundos</option>
@@ -788,6 +808,6 @@
   <!-- Contenedor para avisos flotantes (Toasts) -->
   <div id="toast-container"></div>
 
-  <script src="js/panel.js?v=2.2"></script>
+  <script src="js/panel.js?v=2.3"></script>
 </body>
 </html>
