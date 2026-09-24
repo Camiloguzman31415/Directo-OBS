@@ -30,7 +30,7 @@
     --wcaid-col-width: 142px;
     --single-col-width: 115px;
     --avg-col-width: 115px;
-    --wcaid-size: 19px;
+    --wcaid-size: 22.5px;
   }
 
   /* Preset: Barlow Delgado (Elegante y fino) */
@@ -43,7 +43,7 @@
     --weight-header-title: 700;
     --name-size: 25px;
     --wcaid-col-width: 142px;
-    --wcaid-size: 19px;
+    --wcaid-size: 22.5px;
   }
 
   /* Preset: Barlow Bold (Clásico y robusto) */
@@ -56,7 +56,7 @@
     --weight-header-title: 800;
     --name-size: 26px;
     --wcaid-col-width: 145px;
-    --wcaid-size: 19px;
+    --wcaid-size: 23px;
   }
 
   /* Preset: Inter Modern (Limpio y ultra legible, adaptado para no desbordar WCA ID) */
@@ -69,7 +69,7 @@
     --weight-header-title: 700;
     --name-size: 22px;
     --wcaid-col-width: 156px;
-    --wcaid-size: 16.5px;
+    --wcaid-size: 18.5px;
   }
 
   /* Preset: Roboto Condensed (Deportivo broadcast) */
@@ -82,7 +82,7 @@
     --weight-header-title: 700;
     --name-size: 24px;
     --wcaid-col-width: 142px;
-    --wcaid-size: 18.5px;
+    --wcaid-size: 21.5px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -237,7 +237,7 @@
     background: rgba(13, 27, 44, 0.96);
     color: #FFFFFF;
     font-weight: 800;
-    font-size: 15px;
+    font-size: 16px;
     letter-spacing: 1.2px;
   }
 
@@ -326,10 +326,10 @@
 
   .comp-wcaid {
     font-family: var(--font-display);
-    font-weight: var(--weight-name);
-    font-size: var(--wcaid-size, 18px);
-    color: #F8FAFC;
-    letter-spacing: 0.5px;
+    font-weight: var(--weight-num, 700);
+    font-size: var(--wcaid-size, 22.5px);
+    color: #FFFFFF;
+    letter-spacing: 0.8px;
     font-variant-numeric: tabular-nums;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
   }
@@ -420,8 +420,8 @@
     background: var(--header-green-grad);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 18px;
+    justify-content: flex-start;
+    gap: 8px;
     height: 38px;
     padding: 0 14px;
     border-bottom: 2px solid rgba(0, 0, 0, 0.45);
@@ -432,8 +432,9 @@
   .event-header-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
+    flex-shrink: 0;
   }
 
   .event-banner-header .header-event-icon {
