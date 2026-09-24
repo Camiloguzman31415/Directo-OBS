@@ -2438,9 +2438,10 @@ main.deck-workspace {
 
 .live-preview-table th {
   background: rgba(13, 27, 44, 0.98);
-  color: var(--text-dim);
+  color: #E2E8F0;
   font-family: 'Space Mono', monospace;
-  font-size: 10px;
+  font-size: 10.5px;
+  font-weight: 700;
   text-transform: uppercase;
   padding: 6px 8px;
   text-align: left;
@@ -2479,8 +2480,8 @@ main.deck-workspace {
 }
 
 .live-pos-badge.non-advancing {
-  color: var(--text-dim);
-  background: transparent;
+  color: #F1F5F9;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .live-solves-pill {
@@ -2492,13 +2493,14 @@ main.deck-workspace {
 }
 
 .live-solves-pill.in-progress {
-  background: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.25);
   color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  border: 1px solid rgba(245, 158, 11, 0.5);
 }
 
 .live-solves-pill.completed {
-  color: var(--text-dim);
+  color: #F8FAFC;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .live-record-badge {

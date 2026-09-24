@@ -544,9 +544,10 @@
     left: 40px;
     top: 40px;
     width: 420px;
-    background: rgba(8, 17, 30, 0.96);
+    background: rgba(6, 14, 25, 0.98);
+    backdrop-filter: blur(14px);
     border-radius: 8px;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.16);
     overflow: hidden;
     z-index: 1000;
     opacity: 0;
@@ -601,11 +602,11 @@
 
   .ranking-subtitle {
     font-family: var(--font-display);
-    font-size: 11px;
-    font-weight: 700;
-    color: #38bdf8;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #7dd3fc;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.6px;
     margin-top: 1px;
   }
 
@@ -641,20 +642,20 @@
     letter-spacing: 1px;
   }
 
-  /* Encabezados de columnas */
+  /* Encabezados de columnas (Alto Contraste) */
   .ranking-cols-header {
     display: grid;
     grid-template-columns: 36px 30px 1fr 56px 74px;
     align-items: center;
-    background: rgba(13, 26, 45, 0.95);
-    padding: 6px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 22, 38, 0.98);
+    padding: 7px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
     font-family: var(--font-display);
-    font-size: 11px;
-    font-weight: 700;
-    color: #94a3b8;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #E2E8F0;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.9px;
   }
 
   .col-r-pos { text-align: center; }
@@ -674,12 +675,12 @@
     grid-template-columns: 36px 30px 1fr 56px 74px;
     align-items: center;
     padding: 5px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     transition: background 0.2s ease;
   }
 
   .ranking-row:nth-child(even) {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.03);
   }
 
   .ranking-row:last-child {
@@ -714,8 +715,9 @@
   }
 
   .pos-badge.non-advancing {
-    background: transparent;
-    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.08);
+    color: #F1F5F9;
+    font-weight: 800;
   }
 
   /* Bandera */
@@ -744,7 +746,7 @@
     color: #FFFFFF;
   }
 
-  /* Solves */
+  /* Solves (Alto Contraste) */
   .solves-cell {
     display: flex;
     justify-content: center;
@@ -753,7 +755,7 @@
 
   .solves-pill {
     font-family: var(--font-display);
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 700;
     padding: 1px 5px;
     border-radius: 3px;
@@ -761,15 +763,16 @@
   }
 
   .solves-pill.in-progress {
-    background: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.25);
     color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.45);
-    box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
+    border: 1px solid rgba(245, 158, 11, 0.55);
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.3);
   }
 
   .solves-pill.completed {
-    background: transparent;
-    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.08);
+    color: #F8FAFC;
+    letter-spacing: 0.3px;
   }
 
   /* Tiempo / Promedio */
@@ -801,31 +804,31 @@
     letter-spacing: 0.5px;
   }
 
-  /* Pie del Ranking */
+  /* Pie del Ranking (Alto Contraste) */
   .ranking-footer {
-    background: rgba(5, 12, 22, 0.98);
-    padding: 5px 12px;
+    background: rgba(4, 10, 18, 0.99);
+    padding: 6px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .ranking-footer-brand {
     font-family: var(--font-display);
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 700;
-    color: #64748b;
-    letter-spacing: 1px;
+    color: #CBD5E1;
+    letter-spacing: 1.1px;
     text-transform: uppercase;
   }
 
   .ranking-footer-meta {
     font-family: var(--font-display);
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 800;
     color: #38bdf8;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
   }
 </style>
 </head>
