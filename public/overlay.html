@@ -28,8 +28,8 @@
     --weight-header-title: 700;
     --name-size: 25px;
     --wcaid-col-width: 142px;
-    --single-col-width: 115px;
-    --avg-col-width: 115px;
+    --single-col-width: 122px;
+    --avg-col-width: 122px;
     --wcaid-size: 22.5px;
   }
 
@@ -69,6 +69,8 @@
     --weight-header-title: 700;
     --name-size: 22px;
     --wcaid-col-width: 156px;
+    --single-col-width: 126px;
+    --avg-col-width: 126px;
     --wcaid-size: 18.5px;
   }
 
@@ -174,8 +176,8 @@
   /* ━━━ CABECERA DEL BANNER ━━━ */
   .banner-header {
     display: grid;
-    grid-template-columns: var(--name-col-width, 280px) var(--wcaid-col-width, 142px) var(--single-col-width, 115px) var(--avg-col-width, 115px);
-    height: 42px;
+    grid-template-columns: var(--name-col-width, 280px) var(--wcaid-col-width, 142px) var(--single-col-width, 122px) var(--avg-col-width, 122px);
+    height: 44px;
     border-bottom: 2px solid rgba(0, 0, 0, 0.45);
     transition: grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -231,13 +233,14 @@
     letter-spacing: 1.5px;
     text-transform: uppercase;
     user-select: none;
+    white-space: nowrap;
   }
 
   .col-head.col-wcaid {
     background: rgba(13, 27, 44, 0.96);
     color: #FFFFFF;
     font-weight: 800;
-    font-size: 16px;
+    font-size: 20px;
     letter-spacing: 1.2px;
   }
 
@@ -245,7 +248,7 @@
     background: rgba(13, 27, 44, 0.96);
     color: #FFFFFF;
     font-weight: 800;
-    font-size: 14.5px;
+    font-size: 18px;
     letter-spacing: 0.8px;
   }
 
@@ -253,14 +256,14 @@
     background: var(--header-blue-grad);
     color: #FFFFFF;
     font-weight: 800;
-    font-size: 15.5px;
+    font-size: 19px;
     letter-spacing: 1.2px;
   }
 
   /* ━━━ FILAS DE COMPETIDORES ━━━ */
   .competitor-row {
     display: grid;
-    grid-template-columns: var(--name-col-width, 280px) var(--wcaid-col-width, 142px) var(--single-col-width, 115px) var(--avg-col-width, 115px);
+    grid-template-columns: var(--name-col-width, 280px) var(--wcaid-col-width, 142px) var(--single-col-width, 122px) var(--avg-col-width, 122px);
     height: 52px;
     align-items: center;
     background: rgba(10, 22, 38, 0.88);
