@@ -75,6 +75,7 @@ let liveRankingPageDuration = 10;
 let liveRankingPollTimer = null;
 let liveRankingPollInterval = 0; // segundos (0 = inactivo)
 let liveRankingRounds = [];
+let liveRankingViewMode = 'fullscreen'; // 'fullscreen' | 'widget'
 
 const LIVE_STATE_FILE = path.join(__dirname, 'live_state.json');
 
@@ -91,7 +92,8 @@ function saveLiveState() {
       pageSize: liveRankingPageSize,
       pageDuration: liveRankingPageDuration,
       pollInterval: liveRankingPollInterval,
-      visible: liveRankingVisible
+      visible: liveRankingVisible,
+      viewMode: liveRankingViewMode
     };
     fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
   } catch (err) {
@@ -114,6 +116,7 @@ function loadLiveState() {
       if (state.pageDuration !== undefined) liveRankingPageDuration = state.pageDuration;
       if (state.pollInterval !== undefined) liveRankingPollInterval = state.pollInterval;
       if (state.visible !== undefined) liveRankingVisible = state.visible;
+      if (state.viewMode) liveRankingViewMode = state.viewMode;
       console.log(`[LiveRanking] Estado restaurado: compId=${liveRankingCompId}, roundId=${liveRankingRoundId}`);
     }
   } catch (err) {
@@ -221,6 +224,10 @@ app.get('/', (req, res) => {
 });
 
 app.get('/overlay', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'overlay.html'));
+});
+
+app.get('/fullscreen', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'overlay.html'));
 });
 
@@ -1364,13 +1371,17 @@ function startLiveRankingPolling(intervalSecs) {
       const ranking = await fetchLiveRoundRanking(liveRankingRoundId, fetchTop, liveRankingCutoff);
       liveRankingData = ranking;
       if (liveRankingVisible) {
+        if (liveRankingData && !liveRankingData.competitionName && tournamentData?.name) {
+          liveRankingData.competitionName = tournamentData.name;
+        }
         broadcastToOverlays({
           type: 'live_ranking_show',
           data: liveRankingData,
           dynamicPaging: liveRankingDynamicPaging,
           autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
-          pageDuration: liveRankingPageDuration
+          pageDuration: liveRankingPageDuration,
+          viewMode: liveRankingViewMode
         });
       }
       broadcastToPanels({
@@ -1385,7 +1396,8 @@ function startLiveRankingPolling(intervalSecs) {
         dynamicPaging: liveRankingDynamicPaging,
         autoBalance: liveRankingAutoBalance,
         pageSize: liveRankingPageSize,
-        pageDuration: liveRankingPageDuration
+        pageDuration: liveRankingPageDuration,
+        viewMode: liveRankingViewMode
       });
     } catch (err) {
       console.warn('[LiveRanking Polling Error]', err.message);
@@ -1475,13 +1487,17 @@ function handleSocketConnection(ws, req) {
 
     // Si el ranking en vivo está activo, enviarlo al nuevo overlay
     if (liveRankingVisible && liveRankingData) {
+      if (!liveRankingData.competitionName && tournamentData?.name) {
+        liveRankingData.competitionName = tournamentData.name;
+      }
       socket.send(JSON.stringify({
         type: 'live_ranking_show',
         data: liveRankingData,
         dynamicPaging: liveRankingDynamicPaging,
         autoBalance: liveRankingAutoBalance,
         pageSize: liveRankingPageSize,
-        pageDuration: liveRankingPageDuration
+        pageDuration: liveRankingPageDuration,
+        viewMode: liveRankingViewMode
       }));
     }
   }
@@ -1512,6 +1528,7 @@ function handleSocketConnection(ws, req) {
       liveRankingAutoBalance,
       liveRankingPageSize,
       liveRankingPageDuration,
+      liveRankingViewMode,
       overlayCount: overlayClients.size,
       obsStatus
     }));
@@ -1678,6 +1695,11 @@ function handleSocketConnection(ws, req) {
         if (msg.autoBalance !== undefined) liveRankingAutoBalance = !!msg.autoBalance;
         if (msg.pageSize !== undefined) liveRankingPageSize = parseInt(msg.pageSize, 10) || 16;
         if (msg.pageDuration !== undefined) liveRankingPageDuration = parseInt(msg.pageDuration, 10) || 10;
+        if (msg.viewMode) liveRankingViewMode = msg.viewMode;
+
+        if (liveRankingData && !liveRankingData.competitionName && tournamentData?.name) {
+          liveRankingData.competitionName = tournamentData.name;
+        }
 
         liveRankingVisible = true;
         saveLiveState();
@@ -1691,7 +1713,8 @@ function handleSocketConnection(ws, req) {
           dynamicPaging: liveRankingDynamicPaging,
           autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
-          pageDuration: liveRankingPageDuration
+          pageDuration: liveRankingPageDuration,
+          viewMode: liveRankingViewMode
         });
         broadcastToPanels({
           type: 'sync_live_ranking',
@@ -1705,8 +1728,42 @@ function handleSocketConnection(ws, req) {
           dynamicPaging: liveRankingDynamicPaging,
           autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
-          pageDuration: liveRankingPageDuration
+          pageDuration: liveRankingPageDuration,
+          viewMode: liveRankingViewMode
         });
+        break;
+
+      case 'live_ranking_set_view':
+        if (msg.viewMode) {
+          liveRankingViewMode = msg.viewMode;
+          saveLiveState();
+          if (liveRankingVisible) {
+            broadcastToOverlays({
+              type: 'live_ranking_show',
+              data: liveRankingData,
+              dynamicPaging: liveRankingDynamicPaging,
+              autoBalance: liveRankingAutoBalance,
+              pageSize: liveRankingPageSize,
+              pageDuration: liveRankingPageDuration,
+              viewMode: liveRankingViewMode
+            });
+          }
+          broadcastToPanels({
+            type: 'sync_live_ranking',
+            visible: liveRankingVisible,
+            data: liveRankingData,
+            roundId: liveRankingRoundId,
+            compId: liveRankingCompId,
+            pollInterval: liveRankingPollInterval,
+            top: liveRankingTop,
+            cutoff: liveRankingCutoff,
+            dynamicPaging: liveRankingDynamicPaging,
+            autoBalance: liveRankingAutoBalance,
+            pageSize: liveRankingPageSize,
+            pageDuration: liveRankingPageDuration,
+            viewMode: liveRankingViewMode
+          });
+        }
         break;
 
       case 'live_ranking_hide':

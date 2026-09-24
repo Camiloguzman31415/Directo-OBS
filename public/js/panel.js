@@ -167,6 +167,8 @@ function handleServerMessage(msg) {
       if (msg.liveRankingDynamicPaging !== undefined) liveRankingDynamicPaging = !!msg.liveRankingDynamicPaging;
       if (msg.liveRankingAutoBalance !== undefined) liveRankingAutoBalance = !!msg.liveRankingAutoBalance;
       if (msg.liveRankingPageDuration) liveRankingPageDuration = msg.liveRankingPageDuration;
+      if (msg.liveRankingViewMode) liveRankingViewMode = msg.liveRankingViewMode;
+      updateViewModeButtons();
 
       // Recuperar competencia y ronda seleccionada (prioridad: servidor -> localStorage)
       const targetCompId = liveRankingCompId || localStorage.getItem('directoobs_live_comp_id');
@@ -311,6 +313,10 @@ function handleServerMessage(msg) {
       if (msg.autoBalance !== undefined) liveRankingAutoBalance = !!msg.autoBalance;
       if (msg.pageDuration) liveRankingPageDuration = msg.pageDuration;
       if (msg.pollInterval !== undefined) liveRankingPollInterval = msg.pollInterval;
+      if (msg.viewMode) {
+        liveRankingViewMode = msg.viewMode;
+        updateViewModeButtons();
+      }
       updateLiveRankingUI();
       break;
 
@@ -2148,6 +2154,33 @@ function refreshCurrentLiveRanking() {
   fetchLiveRoundRanking(liveRankingSelectedRoundId, true);
 }
 
+let liveRankingViewMode = 'fullscreen'; // 'fullscreen' | 'widget'
+
+function setRankingViewMode(mode) {
+  liveRankingViewMode = mode;
+  updateViewModeButtons();
+  sendWS({
+    type: 'live_ranking_set_view',
+    viewMode: mode
+  });
+  updateLiveRankingUI();
+  showToast(`Modo cambiado a: ${mode === 'fullscreen' ? 'Pantalla Completa' : 'Mini Widget'}`, 'info');
+}
+
+function updateViewModeButtons() {
+  const btnFs = document.getElementById('btn-mode-fs');
+  const btnW = document.getElementById('btn-mode-widget');
+  if (btnFs && btnW) {
+    if (liveRankingViewMode === 'fullscreen') {
+      btnFs.classList.add('active');
+      btnW.classList.remove('active');
+    } else {
+      btnW.classList.add('active');
+      btnFs.classList.remove('active');
+    }
+  }
+}
+
 function sendShowLiveRanking() {
   if (!liveRankingSelectedRoundId) {
     showToast('Selecciona o carga una ronda de WCA Live primero', 'warning');
@@ -2168,6 +2201,7 @@ function sendShowLiveRanking() {
         autoBalance: liveRankingAutoBalance,
         cutoff: liveRankingCutoff,
         pollInterval: liveRankingPollInterval,
+        viewMode: liveRankingViewMode,
         data: liveRankingData
       });
       liveRankingVisible = true;
@@ -2188,6 +2222,7 @@ function sendShowLiveRanking() {
     autoBalance: liveRankingAutoBalance,
     cutoff: liveRankingCutoff,
     pollInterval: liveRankingPollInterval,
+    viewMode: liveRankingViewMode,
     data: liveRankingData
   });
   liveRankingVisible = true;
@@ -2299,6 +2334,8 @@ function renderLiveRankingPreview(rankingObj) {
 }
 
 function updateLiveRankingUI() {
+  updateViewModeButtons();
+
   const btnShow = document.getElementById('btn-show-live-ranking');
   if (btnShow) {
     if (liveRankingVisible) {
@@ -2306,7 +2343,7 @@ function updateLiveRankingUI() {
       btnShow.innerHTML = '<span>● AL AIRE EN OBS</span>';
     } else {
       btnShow.classList.remove('active');
-      btnShow.innerHTML = '<span>▲ MOSTRAR EN OBS</span>';
+      btnShow.innerHTML = liveRankingViewMode === 'fullscreen' ? '<span>▲ MOSTRAR PANTALLA COMPLETA</span>' : '<span>▲ MOSTRAR EN OBS</span>';
     }
   }
 

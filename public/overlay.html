@@ -854,6 +854,401 @@
     line-height: 1;
     letter-spacing: 0.5px;
   }
+
+  /* ══════════════════════════════════════════════════════════════════
+     ━━━ TABLA FULLSCREEN (ESTILO WCA EUROPEAN CHAMPIONSHIP 2026) ━━━
+     ══════════════════════════════════════════════════════════════════ */
+  #fullscreen-ranking-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    z-index: 1500;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    transform: scale(0.99);
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: var(--font-text);
+  }
+
+  #fullscreen-ranking-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+  }
+
+  /* Fondo Broadcast Degradado y Patrón Geométrico de Cubos */
+  .fs-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 24% 45%, #0d4a8f 0%, #08295c 42%, #03142e 82%, #010a18 100%);
+    z-index: 1;
+  }
+
+  .fs-cubes-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.13;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='277.128' viewBox='0 0 160 277.128'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-opacity='0.45' d='M80 0 L160 46.188 L160 138.564 L80 184.752 L0 138.564 L0 46.188 Z M80 0 L80 92.376 L160 138.564 M80 92.376 L0 138.564 M80 92.376 L80 184.752 M80 184.752 L160 230.94 L160 277.128 M80 184.752 L0 230.94 L0 277.128'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+
+  /* Contenedor Principal en Grid */
+  .fs-content-container {
+    position: relative;
+    z-index: 2;
+    width: 1920px;
+    height: 1080px;
+    display: grid;
+    grid-template-columns: 480px 1fr;
+    padding: 60px 80px;
+    box-sizing: border-box;
+    align-items: center;
+    gap: 50px;
+  }
+
+  /* ━━━ Columna Izquierda: Branding ━━━ */
+  .fs-branding-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    padding-left: 20px;
+  }
+
+  .fs-tournament-name {
+    font-family: var(--font-display);
+    font-size: 52px;
+    font-weight: 900;
+    color: #FFFFFF;
+    line-height: 1.08;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 75px;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.75);
+    white-space: pre-line;
+  }
+
+  .fs-event-showcase {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fs-event-icon-card {
+    width: 110px;
+    height: 110px;
+    background: rgba(6, 16, 32, 0.92);
+    border: 2px solid rgba(255, 255, 255, 0.24);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .fs-event-icon {
+    width: 72px;
+    height: 72px;
+    filter: brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
+  }
+
+  .fs-event-name {
+    font-family: var(--font-display);
+    font-size: 44px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-top: 18px;
+    line-height: 1.05;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.5px;
+  }
+
+  .fs-round-name {
+    font-family: var(--font-text);
+    font-size: 26px;
+    font-weight: 600;
+    color: #7dd3fc;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+    text-transform: capitalize;
+  }
+
+  /* ━━━ Columna Derecha: Tabla Completa de Resultados ━━━ */
+  .fs-table-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    max-width: 1240px;
+  }
+
+  /* Header de la Tabla */
+  .fs-table-header {
+    display: grid;
+    grid-template-columns: 44px 36px 1fr 390px 92px 92px;
+    align-items: flex-end;
+    margin-bottom: 4px;
+    height: 32px;
+  }
+
+  .fs-head-spacer {
+    /* Espacio sin textos sobre Pos, Flag y Nombre para coincidir con el diseño original */
+  }
+
+  .fs-head-solves-bar {
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+    border-radius: 4px;
+    height: 28px;
+    display: grid;
+    grid-template-columns: repeat(5, 78px);
+    align-items: center;
+    justify-items: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .fs-head-num {
+    font-family: var(--font-display);
+    font-size: 14.5px;
+    font-weight: 800;
+    color: #FFFFFF;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  .fs-head-pill {
+    height: 28px;
+    width: 86px;
+    margin: 0 auto;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 14.5px;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .fs-head-pill.fs-head-avg {
+    background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+    color: #022642;
+  }
+
+  .fs-head-pill.fs-head-best {
+    background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+    color: #012812;
+  }
+
+  /* Filas de Resultados */
+  .fs-rows-container {
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: opacity 0.26s cubic-bezier(0.4, 0, 0.2, 1), transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fs-rows-container.page-fade-out {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.995);
+  }
+
+  .fs-rows-container.page-fade-in {
+    animation: fsPageSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fsPageSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(8px) scale(0.995);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .fs-row {
+    display: grid;
+    grid-template-columns: 44px 36px 1fr 390px 92px 92px;
+    align-items: center;
+    height: 44px;
+    background: rgba(6, 18, 36, 0.88);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-sizing: border-box;
+    transition: background 0.15s ease;
+  }
+
+  .fs-row:nth-child(even) {
+    background: rgba(10, 26, 52, 0.92);
+  }
+
+  .fs-row:last-child {
+    border-bottom: none;
+  }
+
+  /* Celda Posición */
+  .fs-col-pos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fs-pos-badge {
+    min-width: 28px;
+    height: 25px;
+    border-radius: 3px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 13.5px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  .fs-pos-badge.pos-1 {
+    background: #FACC15;
+    color: #000000;
+  }
+
+  .fs-pos-badge.pos-2 {
+    background: #F1F5F9;
+    color: #000000;
+  }
+
+  .fs-pos-badge.pos-3 {
+    background: #D97706;
+    color: #FFFFFF;
+  }
+
+  .fs-pos-badge.pos-rest {
+    background: #0F172A;
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+  }
+
+  /* Celda Bandera */
+  .fs-col-flag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fs-col-flag img {
+    width: 25px;
+    height: 16px;
+    object-fit: cover;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Celda Nombre */
+  .fs-col-name {
+    font-family: 'DM Sans', 'Inter', sans-serif;
+    font-size: 16.5px;
+    font-weight: 700;
+    color: #FFFFFF;
+    padding-left: 8px;
+    padding-right: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Celda Solves */
+  .fs-col-solves-wrap {
+    display: grid;
+    grid-template-columns: repeat(5, 78px);
+    height: 100%;
+    align-items: center;
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .fs-solve-item {
+    text-align: center;
+    font-family: 'Space Mono', 'Barlow Condensed', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: #F1F5F9;
+    letter-spacing: 0.2px;
+  }
+
+  .fs-solve-item + .fs-solve-item {
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .fs-solve-item.trimmed {
+    color: #94A3B8;
+    font-weight: 500;
+  }
+
+  .fs-solve-item.dnf {
+    color: #F87171;
+  }
+
+  /* Celda AVG */
+  .fs-col-avg {
+    text-align: center;
+    font-family: 'Space Mono', 'Barlow Condensed', monospace;
+    font-size: 17.5px;
+    font-weight: 800;
+    color: #FFFFFF;
+    border-left: 2px solid rgba(56, 189, 248, 0.35);
+    background: rgba(56, 189, 248, 0.05);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.3px;
+  }
+
+  /* Celda BEST */
+  .fs-col-best {
+    text-align: center;
+    font-family: 'Space Mono', 'Barlow Condensed', monospace;
+    font-size: 17.5px;
+    font-weight: 800;
+    color: #FFFFFF;
+    border-left: 2px solid rgba(74, 222, 128, 0.35);
+    background: rgba(74, 222, 128, 0.05);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.3px;
+  }
+
+  /* Footer de Paginación */
+  .fs-table-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  .fs-page-badge {
+    background: rgba(2, 132, 199, 0.2);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    color: #38bdf8;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 800;
+    padding: 3px 12px;
+    border-radius: 999px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
 </style>
 </head>
 <body>
@@ -969,6 +1364,55 @@
 
   <div class="ranking-rows-list" id="lr-rows-container">
     <!-- Filas generadas dinámicamente -->
+</div>
+
+<!-- Fullscreen Championship Results Board (WCA European Championship 2026 Style) -->
+<div id="fullscreen-ranking-overlay">
+  <!-- Fondo broadcast con degradado y cubos isométricos sutiles -->
+  <div class="fs-bg-overlay">
+    <div class="fs-cubes-pattern"></div>
+  </div>
+
+  <div class="fs-content-container">
+    <!-- Columna Izquierda: Branding de Torneo y Evento -->
+    <div class="fs-branding-col">
+      <div class="fs-tournament-name" id="fs-tournament-name">RUBIK'S WCA&#10;EUROPEAN&#10;CHAMPIONSHIP&#10;2026</div>
+
+      <div class="fs-event-showcase">
+        <div class="fs-event-icon-card">
+          <img id="fs-event-icon" class="fs-event-icon" src="icons/skewb.svg" alt="Evento" onerror="this.style.display='none'">
+        </div>
+        <div class="fs-event-name" id="fs-event-name">Skewb</div>
+        <div class="fs-round-name" id="fs-round-name">Final</div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Tabla Completa de Resultados -->
+    <div class="fs-table-col">
+      <!-- Barra superior / Header -->
+      <div class="fs-table-header">
+        <div class="fs-head-spacer"></div>
+        <div class="fs-head-solves-bar">
+          <span class="fs-head-num">1</span>
+          <span class="fs-head-num">2</span>
+          <span class="fs-head-num">3</span>
+          <span class="fs-head-num">4</span>
+          <span class="fs-head-num">5</span>
+        </div>
+        <div class="fs-head-pill fs-head-avg">AVG</div>
+        <div class="fs-head-pill fs-head-best">BEST</div>
+      </div>
+
+      <!-- Filas de Resultados con Transición de Páginas -->
+      <div class="fs-rows-container" id="fs-rows-container">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <!-- Footer / Paginación si hay múltiples páginas -->
+      <div class="fs-table-footer" id="fs-table-footer" style="display: none;">
+        <span class="fs-page-badge" id="fs-page-badge">PÁGINA 1 / 3</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1285,15 +1729,53 @@
   const lrMainTitle = document.getElementById('lr-main-title');
   const lrRowsContainer = document.getElementById('lr-rows-container');
 
+  // Elementos de Fullscreen Ranking Overlay
+  const fsOverlay = document.getElementById('fullscreen-ranking-overlay');
+  const fsTournamentName = document.getElementById('fs-tournament-name');
+  const fsEventIcon = document.getElementById('fs-event-icon');
+  const fsEventName = document.getElementById('fs-event-name');
+  const fsRoundName = document.getElementById('fs-round-name');
+  const fsRowsContainer = document.getElementById('fs-rows-container');
+  const fsTableFooter = document.getElementById('fs-table-footer');
+  const fsPageBadge = document.getElementById('fs-page-badge');
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const isDedicatedFullscreen = window.location.pathname.includes('/fullscreen') ||
+    urlParams.get('mode') === 'fullscreen' ||
+    urlParams.get('view') === 'fullscreen' ||
+    urlParams.get('fullscreen') === '1';
+
   let liveRankingTimer = null;
   let liveRankingCurrentPage = 0;
   let liveRankingConfig = {
     dynamicPaging: true,
     autoBalance: true,
     pageSize: 16,
-    pageDuration: 10
+    pageDuration: 10,
+    viewMode: isDedicatedFullscreen ? 'fullscreen' : 'fullscreen'
   };
   let currentRawRankingData = null;
+
+  function formatTournamentTitle(name) {
+    if (!name) return "RUBIK'S WCA\nEUROPEAN\nCHAMPIONSHIP\n2026";
+    const clean = String(name).trim().toUpperCase();
+    if (clean.includes('\n')) return clean;
+    const words = clean.split(/\s+/);
+    if (words.length <= 2) return clean;
+    if (words.length === 3) return `${words[0]}\n${words[1]}\n${words[2]}`;
+    if (words.length === 4) return `${words[0]} ${words[1]}\n${words[2]} ${words[3]}`;
+    const lines = [];
+    let current = [];
+    for (const w of words) {
+      current.push(w);
+      if (current.join(' ').length >= 12 || current.length >= 2) {
+        lines.push(current.join(' '));
+        current = [];
+      }
+    }
+    if (current.length > 0) lines.push(current.join(' '));
+    return lines.join('\n');
+  }
 
   function stopRankingPaging() {
     if (liveRankingTimer) {
@@ -1322,7 +1804,6 @@
     }
 
     // Auto-balanceo equitativo:
-    // Distribuir 'total' elementos en 'numPages' con una diferencia máxima de 1 entre páginas
     const baseCount = Math.floor(total / numPages);
     const remainder = total % numPages;
 
@@ -1355,6 +1836,7 @@
     const pageResults = pages[liveRankingCurrentPage] || [];
 
     const updateDOM = () => {
+      // 1. Renderizar en widget lateral (si existe)
       if (lrRowsContainer) {
         if (pageResults.length === 0) {
           lrRowsContainer.innerHTML = '<div style="padding:15px;text-align:center;color:#94a3b8;font-size:12px;">Sin resultados registrados aún</div>';
@@ -1390,7 +1872,64 @@
         }
       }
 
-      // Actualizar badge indicador de página
+      // 2. Renderizar en Fullscreen Championship Table (si existe)
+      if (fsRowsContainer) {
+        if (pageResults.length === 0) {
+          fsRowsContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#94a3b8;font-size:16px;">Sin resultados registrados aún</div>';
+        } else {
+          fsRowsContainer.innerHTML = pageResults.map(r => {
+            const pos = r.ranking;
+            const posClass = pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : pos === 3 ? 'pos-3' : 'pos-rest';
+            const flagIso = (r.countryIso2 || 'co').toLowerCase();
+
+            // Generar 5 solves con recorte automático
+            const solvesHtml = [];
+            for (let s = 0; s < 5; s++) {
+              const detail = r.attemptsDetail && r.attemptsDetail[s];
+              if (detail) {
+                const isTrimmed = detail.isTrimmed;
+                const isDnf = detail.formatted === 'DNF' || detail.formatted === 'DNS';
+                const trimClass = isTrimmed ? 'trimmed' : '';
+                const dnfClass = isDnf ? 'dnf' : '';
+                solvesHtml.push(`<div class="fs-solve-item ${trimClass} ${dnfClass}">${detail.displayText}</div>`);
+              } else {
+                const rawSolve = r.attempts && r.attempts[s] ? r.attempts[s] : '—';
+                solvesHtml.push(`<div class="fs-solve-item">${rawSolve}</div>`);
+              }
+            }
+
+            const recBadge = r.recordTag ? `<span class="record-tag-badge" style="margin-left:4px;">${r.recordTag}</span>` : '';
+            const displayAvg = r.averageFormatted !== '—' ? r.averageFormatted : (r.displayTime || '—');
+            const displayBest = r.bestFormatted !== '—' ? r.bestFormatted : '—';
+
+            return `
+              <div class="fs-row">
+                <div class="fs-col-pos">
+                  <span class="fs-pos-badge ${posClass}">${pos}</span>
+                </div>
+                <div class="fs-col-flag">
+                  <img src="https://flagcdn.com/w40/${flagIso}.png" alt="${flagIso}" onerror="this.style.display='none'">
+                </div>
+                <div class="fs-col-name" title="${escapeHtml(r.name)}">
+                  <span style="overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.name)}</span>
+                  ${recBadge}
+                </div>
+                <div class="fs-col-solves-wrap">
+                  ${solvesHtml.join('')}
+                </div>
+                <div class="fs-col-avg">
+                  <span>${displayAvg}</span>
+                </div>
+                <div class="fs-col-best">
+                  <span>${displayBest}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // Actualizar indicadores de página
       const pageIndicator = document.getElementById('lr-page-indicator');
       if (pageIndicator) {
         if (liveRankingConfig.dynamicPaging && totalPages > 1) {
@@ -1401,16 +1940,36 @@
         }
       }
 
+      const fsFooter = document.getElementById('fs-table-footer');
+      const fsPageBadge = document.getElementById('fs-page-badge');
+      if (fsFooter && fsPageBadge) {
+        if (liveRankingConfig.dynamicPaging && totalPages > 1) {
+          fsFooter.style.display = 'flex';
+          fsPageBadge.textContent = `PÁGINA ${liveRankingCurrentPage + 1} / ${totalPages}`;
+        } else {
+          fsFooter.style.display = 'none';
+        }
+      }
+
+      // Animaciones de transición de página
       if (animate && lrRowsContainer) {
         lrRowsContainer.classList.remove('page-fade-out');
         lrRowsContainer.classList.remove('page-fade-in');
-        void lrRowsContainer.offsetWidth; // Forzar reflow para reiniciar animación
+        void lrRowsContainer.offsetWidth;
         lrRowsContainer.classList.add('page-fade-in');
+      }
+
+      if (animate && fsRowsContainer) {
+        fsRowsContainer.classList.remove('page-fade-out');
+        fsRowsContainer.classList.remove('page-fade-in');
+        void fsRowsContainer.offsetWidth;
+        fsRowsContainer.classList.add('page-fade-in');
       }
     };
 
-    if (animate && lrRowsContainer && lrRowsContainer.children.length > 0) {
-      lrRowsContainer.classList.add('page-fade-out');
+    if (animate && ((lrRowsContainer && lrRowsContainer.children.length > 0) || (fsRowsContainer && fsRowsContainer.children.length > 0))) {
+      if (lrRowsContainer) lrRowsContainer.classList.add('page-fade-out');
+      if (fsRowsContainer) fsRowsContainer.classList.add('page-fade-out');
       setTimeout(updateDOM, 260);
     } else {
       updateDOM();
@@ -1440,7 +1999,7 @@
   }
 
   function renderLiveRanking(payload) {
-    if (!payload || !lrOverlay) return;
+    if (!payload) return;
     const data = payload.data || payload;
 
     // Actualizar configuración si viene en el payload
@@ -1448,6 +2007,7 @@
     if (payload.autoBalance !== undefined) liveRankingConfig.autoBalance = !!payload.autoBalance;
     if (payload.pageSize) liveRankingConfig.pageSize = parseInt(payload.pageSize, 10) || 16;
     if (payload.pageDuration) liveRankingConfig.pageDuration = parseInt(payload.pageDuration, 10) || 10;
+    if (payload.viewMode) liveRankingConfig.viewMode = payload.viewMode;
 
     // Si cambió de ronda, reiniciar a página 0
     if (currentRawRankingData && currentRawRankingData.roundId !== data.roundId) {
@@ -1455,8 +2015,9 @@
     }
     currentRawRankingData = data;
 
-    // Actualizar encabezado
     const eid = data.eventId || '333';
+
+    // 1. Actualizar encabezado del Widget Lateral
     if (lrEventIcon) {
       lrEventIcon.src = `icons/${eid}.svg`;
       lrEventIcon.style.display = 'block';
@@ -1467,14 +2028,40 @@
       lrMainTitle.textContent = `${eName} ${rName}`.trim();
     }
 
+    // 2. Actualizar branding de Fullscreen Table
+    if (fsTournamentName) {
+      const compName = data.competitionName || (typeof tournamentData !== 'undefined' && tournamentData?.name) || 'WCA TOURNAMENT';
+      fsTournamentName.textContent = formatTournamentTitle(compName);
+    }
+    if (fsEventIcon) {
+      fsEventIcon.src = `icons/${eid}.svg`;
+      fsEventIcon.style.display = 'block';
+    }
+    if (fsEventName) {
+      fsEventName.textContent = EVENT_SHORT_NAMES[eid] || data.eventName || eid;
+    }
+    if (fsRoundName) {
+      fsRoundName.textContent = data.roundName || 'Final';
+    }
+
+    // Determinar modo activo: si la URL es /fullscreen, forzar fullscreen; sino respetar viewMode
+    const activeMode = isDedicatedFullscreen ? 'fullscreen' : (liveRankingConfig.viewMode || 'fullscreen');
+    if (activeMode === 'fullscreen') {
+      if (lrOverlay) lrOverlay.classList.remove('visible');
+      if (fsOverlay) fsOverlay.classList.add('visible');
+    } else {
+      if (fsOverlay) fsOverlay.classList.remove('visible');
+      if (lrOverlay) lrOverlay.classList.add('visible');
+    }
+
     renderCurrentPage(false);
     startRankingPaging();
-    lrOverlay.classList.add('visible');
   }
 
   function hideLiveRanking() {
     stopRankingPaging();
     if (lrOverlay) lrOverlay.classList.remove('visible');
+    if (fsOverlay) fsOverlay.classList.remove('visible');
   }
 
   function connect() {
@@ -1515,7 +2102,7 @@
             setEvent(msg.data);
             eventBadge.classList.add('visible');
           } else if (msg.type === 'live_ranking_show') {
-            renderLiveRanking(msg.data);
+            renderLiveRanking(msg);
           } else if (msg.type === 'live_ranking_hide') {
             hideLiveRanking();
           } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {

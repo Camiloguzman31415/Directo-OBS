@@ -159,6 +159,68 @@ async function fetchLiveCompetitionRounds(compId) {
 }
 
 /**
+ * Calcula el detalle de cada intento incluyendo los tiempos recortados (mejor y peor con paréntesis)
+ */
+function getAttemptsDetail(attempts, eventId, totalAttempts) {
+  const count = totalAttempts || 5;
+  const rawList = [];
+  for (let i = 0; i < count; i++) {
+    const a = attempts && attempts[i];
+    const raw = (a && typeof a.result === 'number') ? a.result : 0;
+    rawList.push(raw);
+  }
+
+  const formattedList = rawList.map(r => formatWcaTime(r, eventId));
+  const trimmedIndices = new Set();
+
+  // En formato Ao5 (5 intentos), si se han completado los 5 intentos se recortan el mejor y peor
+  const completedSolves = rawList.filter(r => r !== 0).length;
+  if (count === 5 && completedSolves === 5) {
+    // 1. Encontrar peor tiempo (DNF = -1, DNS = -2 se consideran infinitamente peores)
+    let worstIdx = -1;
+    let worstVal = -Infinity;
+    for (let i = 0; i < 5; i++) {
+      const r = rawList[i];
+      const val = (r === -1 || r === -2) ? Infinity : r;
+      if (val > worstVal) {
+        worstVal = val;
+        worstIdx = i;
+      }
+    }
+
+    // 2. Encontrar mejor tiempo entre los demás
+    let bestIdx = -1;
+    let bestVal = Infinity;
+    for (let i = 0; i < 5; i++) {
+      if (i === worstIdx) continue;
+      const r = rawList[i];
+      if (r > 0 && r < bestVal) {
+        bestVal = r;
+        bestIdx = i;
+      }
+    }
+
+    if (worstIdx !== -1) trimmedIndices.add(worstIdx);
+    if (bestIdx !== -1) trimmedIndices.add(bestIdx);
+  }
+
+  return rawList.map((raw, idx) => {
+    const formatted = formattedList[idx];
+    const isTrimmed = trimmedIndices.has(idx);
+    let displayText = formatted;
+    if (isTrimmed && formatted !== '—') {
+      displayText = `(${formatted})`;
+    }
+    return {
+      raw,
+      formatted,
+      isTrimmed,
+      displayText
+    };
+  });
+}
+
+/**
  * Obtiene los resultados y ranking en tiempo real de una ronda específica en WCA Live
  */
 async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 16) {
@@ -244,7 +306,8 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 16) {
       singleRecordTag: r.singleRecordTag || null,
       averageRecordTag: r.averageRecordTag || null,
       recordTag: r.averageRecordTag || r.singleRecordTag || null,
-      attempts: attempts.map(a => formatWcaTime(a?.result, eventId))
+      attempts: attempts.map(a => formatWcaTime(a?.result, eventId)),
+      attemptsDetail: getAttemptsDetail(attempts, eventId, totalAttempts)
     };
   });
 
