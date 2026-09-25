@@ -802,6 +802,32 @@
                   <span style="font-size:10px;color:#64748b;min-width:65px;text-align:right;">100% (Opaco)</span>
                 </div>
               </div>
+
+              <!-- Animación y Movimiento del Fondo -->
+              <div style="padding-top:7px;border-top:1px dashed rgba(255,255,255,0.08);">
+                <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" style="font-size:11px;margin-bottom:4px;">Animación de Fondo:</label>
+                    <select class="select-filter" id="fs-anim-select" onchange="onFsAnimationChange(this.value)" style="width:100%;height:30px;font-size:11px;">
+                      <option value="none">Estático (Sin animación)</option>
+                      <option value="ken-burns">Cinemático Ken Burns (Zoom + Paneo)</option>
+                      <option value="scroll-left">Flujo Infinito: Izquierda ⬅️</option>
+                      <option value="scroll-right">Flujo Infinito: Derecha ➡️</option>
+                      <option value="scroll-up">Flujo Infinito: Arriba ⬆️</option>
+                      <option value="scroll-down">Flujo Infinito: Abajo ⬇️</option>
+                      <option value="diagonal">Flujo Infinito: Diagonal ↗️</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" style="font-size:11px;margin-bottom:4px;">Velocidad:</label>
+                    <select class="select-filter" id="fs-speed-select" onchange="onFsSpeedChange(this.value)" style="width:100%;height:30px;font-size:11px;">
+                      <option value="slow" selected>Lento (Elegante)</option>
+                      <option value="normal">Normal</option>
+                      <option value="fast">Rápido</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Previsualización en Vivo de la Tabla -->

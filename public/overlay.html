@@ -952,12 +952,136 @@
 
   .fs-cubes-pattern {
     position: absolute;
-    inset: 0;
+    inset: -30px;
     opacity: 0.14;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='277.128' viewBox='0 0 160 277.128'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-opacity='0.45' d='M80 0 L160 46.188 L160 138.564 L80 184.752 L0 138.564 L0 46.188 Z M80 0 L80 92.376 L160 138.564 M80 92.376 L0 138.564 M80 92.376 L80 184.752 M80 184.752 L160 230.94 L160 277.128 M80 184.752 L0 230.94 L0 277.128'/%3E%3C/svg%3E");
     background-repeat: repeat;
     z-index: 4;
     pointer-events: none;
+    will-change: transform, background-position;
+  }
+
+  /* ━━━ Animaciones del Fondo Fullscreen ━━━ */
+  :root {
+    --fs-anim-speed-img: 40s;
+    --fs-anim-speed-cubes: 25s;
+  }
+
+  /* Keyframes Imagen */
+  @keyframes fsKenBurns {
+    0% {
+      transform: scale(1.04) translate(0%, 0%);
+    }
+    50% {
+      transform: scale(1.15) translate(-2.5%, -1.5%);
+    }
+    100% {
+      transform: scale(1.08) translate(2%, 1.2%);
+    }
+  }
+
+  @keyframes fsScrollLeft {
+    0% { background-position: 0 0; }
+    100% { background-position: -1920px 0; }
+  }
+
+  @keyframes fsScrollRight {
+    0% { background-position: 0 0; }
+    100% { background-position: 1920px 0; }
+  }
+
+  @keyframes fsScrollUp {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 -1080px; }
+  }
+
+  @keyframes fsScrollDown {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 1080px; }
+  }
+
+  @keyframes fsScrollDiag {
+    0% { background-position: 0 0; }
+    100% { background-position: -1920px -1080px; }
+  }
+
+  /* Keyframes Patrón de Cubos Isométricos (160px x 277.128px) */
+  @keyframes fsCubesLeft {
+    0% { background-position: 0 0; }
+    100% { background-position: -320px 0; }
+  }
+
+  @keyframes fsCubesRight {
+    0% { background-position: 0 0; }
+    100% { background-position: 320px 0; }
+  }
+
+  @keyframes fsCubesUp {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 -277.128px; }
+  }
+
+  @keyframes fsCubesDown {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 277.128px; }
+  }
+
+  @keyframes fsCubesDiag {
+    0% { background-position: 0 0; }
+    100% { background-position: -320px -277.128px; }
+  }
+
+  @keyframes fsCubesKenBurns {
+    0% { transform: scale(1.01) translate(0%, 0%); }
+    50% { transform: scale(1.06) translate(-1%, -1%); }
+    100% { transform: scale(1.03) translate(1%, 0.5%); }
+  }
+
+  /* Clases de animación para .fs-bg-image */
+  .fs-anim-img-ken-burns {
+    animation: fsKenBurns var(--fs-anim-speed-img) ease-in-out infinite alternate !important;
+    transform-origin: center center;
+  }
+  .fs-anim-img-scroll-left {
+    background-repeat: repeat !important;
+    animation: fsScrollLeft var(--fs-anim-speed-img) linear infinite !important;
+  }
+  .fs-anim-img-scroll-right {
+    background-repeat: repeat !important;
+    animation: fsScrollRight var(--fs-anim-speed-img) linear infinite !important;
+  }
+  .fs-anim-img-scroll-up {
+    background-repeat: repeat !important;
+    animation: fsScrollUp var(--fs-anim-speed-img) linear infinite !important;
+  }
+  .fs-anim-img-scroll-down {
+    background-repeat: repeat !important;
+    animation: fsScrollDown var(--fs-anim-speed-img) linear infinite !important;
+  }
+  .fs-anim-img-diagonal {
+    background-repeat: repeat !important;
+    animation: fsScrollDiag var(--fs-anim-speed-img) linear infinite !important;
+  }
+
+  /* Clases de animación para .fs-cubes-pattern */
+  .fs-anim-cubes-scroll-left {
+    animation: fsCubesLeft var(--fs-anim-speed-cubes) linear infinite !important;
+  }
+  .fs-anim-cubes-scroll-right {
+    animation: fsCubesRight var(--fs-anim-speed-cubes) linear infinite !important;
+  }
+  .fs-anim-cubes-scroll-up {
+    animation: fsCubesUp var(--fs-anim-speed-cubes) linear infinite !important;
+  }
+  .fs-anim-cubes-scroll-down {
+    animation: fsCubesDown var(--fs-anim-speed-cubes) linear infinite !important;
+  }
+  .fs-anim-cubes-diagonal {
+    animation: fsCubesDiag var(--fs-anim-speed-cubes) linear infinite !important;
+  }
+  .fs-anim-cubes-ken-burns {
+    animation: fsCubesKenBurns var(--fs-anim-speed-cubes) ease-in-out infinite alternate !important;
+    transform-origin: center center;
   }
 
   /* Contenedor Principal Centrado */
@@ -2561,6 +2685,71 @@
     }
   }
 
+  function applyFsBgAnimation(animation, animSpeed) {
+    const bgImage = document.getElementById('fs-bg-image');
+    const bgCubes = document.getElementById('fs-cubes-pattern');
+
+    let imgDur = '50s';
+    let cubesDur = '30s';
+    if (animSpeed === 'fast') {
+      imgDur = '16s';
+      cubesDur = '10s';
+    } else if (animSpeed === 'normal') {
+      imgDur = '28s';
+      cubesDur = '18s';
+    } else {
+      imgDur = '50s';
+      cubesDur = '30s';
+    }
+
+    document.documentElement.style.setProperty('--fs-anim-speed-img', imgDur);
+    document.documentElement.style.setProperty('--fs-anim-speed-cubes', cubesDur);
+
+    const imgAnimClasses = [
+      'fs-anim-img-ken-burns',
+      'fs-anim-img-scroll-left',
+      'fs-anim-img-scroll-right',
+      'fs-anim-img-scroll-up',
+      'fs-anim-img-scroll-down',
+      'fs-anim-img-diagonal'
+    ];
+    const cubesAnimClasses = [
+      'fs-anim-cubes-ken-burns',
+      'fs-anim-cubes-scroll-left',
+      'fs-anim-cubes-scroll-right',
+      'fs-anim-cubes-scroll-up',
+      'fs-anim-cubes-scroll-down',
+      'fs-anim-cubes-diagonal'
+    ];
+
+    if (bgImage) bgImage.classList.remove(...imgAnimClasses);
+    if (bgCubes) bgCubes.classList.remove(...cubesAnimClasses);
+
+    if (!animation || animation === 'none') {
+      return;
+    }
+
+    if (animation === 'ken-burns') {
+      if (bgImage) bgImage.classList.add('fs-anim-img-ken-burns');
+      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-ken-burns');
+    } else if (animation === 'scroll-left') {
+      if (bgImage) bgImage.classList.add('fs-anim-img-scroll-left');
+      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-scroll-left');
+    } else if (animation === 'scroll-right') {
+      if (bgImage) bgImage.classList.add('fs-anim-img-scroll-right');
+      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-scroll-right');
+    } else if (animation === 'scroll-up') {
+      if (bgImage) bgImage.classList.add('fs-anim-img-scroll-up');
+      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-scroll-up');
+    } else if (animation === 'scroll-down') {
+      if (bgImage) bgImage.classList.add('fs-anim-img-scroll-down');
+      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-scroll-down');
+    } else if (animation === 'diagonal') {
+      if (bgImage) bgImage.classList.add('fs-anim-img-diagonal');
+      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-diagonal');
+    }
+  }
+
   function applyFsTheme(theme) {
     if (!theme) return;
     const bgOverlay = document.getElementById('fs-bg-overlay');
@@ -2588,6 +2777,8 @@
         bgTint.style.display = 'none';
       }
     }
+
+    applyFsBgAnimation(theme.animation || 'none', theme.animSpeed || 'slow');
   }
 
   if (isDedicatedFullscreen) {

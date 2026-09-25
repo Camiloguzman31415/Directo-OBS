@@ -2400,7 +2400,9 @@ function updateLiveRankingUI() {
 let currentFsTheme = {
   bgColor: '#0c4ea8',
   bgImage: null,
-  opacity: 100
+  opacity: 100,
+  animation: 'none',
+  animSpeed: 'slow'
 };
 
 function rgbToHex(rgbStr) {
@@ -2417,6 +2419,8 @@ function updateFsThemeUI() {
   const valLabel = document.getElementById('fs-color-val');
   const slider = document.getElementById('fs-opacity-slider');
   const opLabel = document.getElementById('fs-opacity-val');
+  const animSelect = document.getElementById('fs-anim-select');
+  const speedSelect = document.getElementById('fs-speed-select');
   const statusLabel = document.getElementById('fs-image-status');
   const previewBox = document.getElementById('fs-image-preview-container');
   const previewImg = document.getElementById('fs-image-preview');
@@ -2424,11 +2428,15 @@ function updateFsThemeUI() {
 
   const curColor = (currentFsTheme.bgColor || '#0c4ea8').toLowerCase();
   const curOpacity = currentFsTheme.opacity !== undefined ? currentFsTheme.opacity : 100;
+  const curAnim = currentFsTheme.animation || 'none';
+  const curSpeed = currentFsTheme.animSpeed || 'slow';
 
   if (picker) picker.value = curColor;
   if (valLabel) valLabel.textContent = curColor;
   if (slider) slider.value = curOpacity;
   if (opLabel) opLabel.textContent = `${curOpacity}%`;
+  if (animSelect) animSelect.value = curAnim;
+  if (speedSelect) speedSelect.value = curSpeed;
 
   // Resaltar preset activo si coincide
   document.querySelectorAll('.fs-color-preset').forEach(btn => {
@@ -2502,6 +2510,38 @@ function onFsOpacityChange(val) {
   });
 }
 
+function onFsAnimationChange(anim) {
+  currentFsTheme.animation = anim;
+  sendWS({
+    type: 'set_fs_theme',
+    data: { animation: anim }
+  });
+  const labelMap = {
+    'none': 'Desactivada (Estático)',
+    'ken-burns': 'Cinemático Ken Burns',
+    'scroll-left': 'Flujo Izquierda ⬅️',
+    'scroll-right': 'Flujo Derecha ➡️',
+    'scroll-up': 'Flujo Arriba ⬆️',
+    'scroll-down': 'Flujo Abajo ⬇️',
+    'diagonal': 'Flujo Diagonal ↗️'
+  };
+  showToast(`Animación de fondo: ${labelMap[anim] || anim}`, 'info');
+}
+
+function onFsSpeedChange(speed) {
+  currentFsTheme.animSpeed = speed;
+  sendWS({
+    type: 'set_fs_theme',
+    data: { animSpeed: speed }
+  });
+  const speedMap = {
+    'slow': 'Lento (Elegante)',
+    'normal': 'Normal',
+    'fast': 'Rápido'
+  };
+  showToast(`Velocidad de fondo: ${speedMap[speed] || speed}`, 'info');
+}
+
 function handleFsImageUpload(input) {
   if (!input.files || input.files.length === 0) return;
   const file = input.files[0];
@@ -2571,7 +2611,9 @@ function resetFsTheme() {
   currentFsTheme = {
     bgColor: '#0c4ea8',
     bgImage: null,
-    opacity: 100
+    opacity: 100,
+    animation: 'none',
+    animSpeed: 'slow'
   };
   fetch('/api/fs-background/delete', { method: 'POST' }).catch(() => {});
   sendWS({
@@ -2579,11 +2621,13 @@ function resetFsTheme() {
     data: {
       bgColor: '#0c4ea8',
       bgImage: null,
-      opacity: 100
+      opacity: 100,
+      animation: 'none',
+      animSpeed: 'slow'
     }
   });
   updateFsThemeUI();
-  showToast('Fondo restablecido por defecto (Azul WCA, 100%)', 'info');
+  showToast('Fondo restablecido por defecto (Azul WCA, 100%, Estático)', 'info');
 }
 
 

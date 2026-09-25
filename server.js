@@ -81,7 +81,9 @@ let liveRankingViewMode = 'fullscreen'; // 'fullscreen' | 'widget'
 let fsTheme = {
   bgColor: '#0c4ea8',
   bgImage: null,
-  opacity: 100
+  opacity: 100,
+  animation: 'none',
+  animSpeed: 'slow'
 };
 
 const LIVE_STATE_FILE = path.join(__dirname, 'live_state.json');
@@ -129,7 +131,9 @@ function loadLiveState() {
         fsTheme = {
           bgColor: state.fsTheme.bgColor || '#0c4ea8',
           bgImage: state.fsTheme.bgImage || null,
-          opacity: state.fsTheme.opacity !== undefined ? state.fsTheme.opacity : 100
+          opacity: state.fsTheme.opacity !== undefined ? state.fsTheme.opacity : 100,
+          animation: state.fsTheme.animation || 'none',
+          animSpeed: state.fsTheme.animSpeed || 'slow'
         };
       }
       console.log(`[LiveRanking] Estado restaurado: compId=${liveRankingCompId}, roundId=${liveRankingRoundId}`);
@@ -1922,6 +1926,8 @@ function handleSocketConnection(ws, req) {
           if (msg.data.bgColor !== undefined) fsTheme.bgColor = msg.data.bgColor;
           if (msg.data.bgImage !== undefined) fsTheme.bgImage = msg.data.bgImage;
           if (msg.data.opacity !== undefined) fsTheme.opacity = parseInt(msg.data.opacity, 10);
+          if (msg.data.animation !== undefined) fsTheme.animation = msg.data.animation;
+          if (msg.data.animSpeed !== undefined) fsTheme.animSpeed = msg.data.animSpeed;
           saveLiveState();
           broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
           broadcastToPanels({ type: 'fs_theme_updated', data: fsTheme });
