@@ -76,6 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (input) input.value = savedComp;
     liveRankingCompId = savedComp;
   }
+  const savedTourneyComp = localStorage.getItem('directoobs_tournament_comp_id');
+  if (savedTourneyComp) {
+    const wcaInput = document.getElementById('wca-comp-id-input');
+    if (wcaInput && !wcaInput.value) wcaInput.value = savedTourneyComp;
+  }
   connectWebSocket();
   setupEventListeners();
   setupKeyboardShortcuts();
@@ -1070,6 +1075,14 @@ function loadTournament(data) {
   titleEl.title = `Torneo: ${data.name}`;
   if (clearBtn) clearBtn.style.display = 'inline-flex';
 
+  if (data.competition_id) {
+    localStorage.setItem('directoobs_tournament_comp_id', data.competition_id);
+    const wcaInput = document.getElementById('wca-comp-id-input');
+    if (wcaInput && !wcaInput.value) {
+      wcaInput.value = data.competition_id;
+    }
+  }
+
   // Renderizar chips de eventos
   renderEventChips(data.events || []);
 
@@ -1753,7 +1766,80 @@ function filterCompetitorList() {
   });
 }
 
-// ── Ingesta WCA Directa ──
+// ── Ingesta WCA Directa y Refresco de Directorio ──
+async function refreshTournamentDirectory() {
+  const compId = (
+    tournamentData?.competition_id ||
+    tournamentData?.id ||
+    document.getElementById('wca-comp-id-input')?.value.trim() ||
+    localStorage.getItem('directoobs_tournament_comp_id') ||
+    ''
+  ).trim();
+
+  if (!compId) {
+    showToast('No hay un ID de torneo cargado. Ingresa el ID oficial en la pestaña API WCA.', 'warning');
+    switchTab('wca');
+    const compInput = document.getElementById('wca-comp-id-input');
+    if (compInput) compInput.focus();
+    return;
+  }
+
+  // Sincronizar input y almacenamiento
+  const compInput = document.getElementById('wca-comp-id-input');
+  if (compInput) compInput.value = compId;
+  localStorage.setItem('directoobs_tournament_comp_id', compId);
+
+  const refreshBtn = document.getElementById('btn-refresh-directory');
+  if (refreshBtn) {
+    refreshBtn.disabled = true;
+    refreshBtn.classList.add('is-refreshing');
+    const textSpan = refreshBtn.querySelector('.btn-text');
+    if (textSpan) textSpan.textContent = 'Actualizando...';
+  }
+
+  const wcaBtn = document.getElementById('btn-wca-fetch');
+  if (wcaBtn) {
+    wcaBtn.disabled = true;
+    wcaBtn.textContent = 'Descargando...';
+  }
+
+  showToast(`Actualizando lista de inscritos para "${compId}" desde WCA...`, 'info');
+
+  try {
+    const res = await fetch('/api/wca/fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ competitionId: compId })
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      showToast(`Error: ${data.error}`, 'error');
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.classList.remove('is-refreshing');
+        const textSpan = refreshBtn.querySelector('.btn-text');
+        if (textSpan) textSpan.textContent = 'Actualizar';
+      }
+      if (wcaBtn) {
+        wcaBtn.disabled = false;
+        wcaBtn.textContent = 'Descargar desde WCA';
+      }
+    }
+  } catch (err) {
+    showToast(`Error al actualizar inscritos: ${err.message}`, 'error');
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+      refreshBtn.classList.remove('is-refreshing');
+      const textSpan = refreshBtn.querySelector('.btn-text');
+      if (textSpan) textSpan.textContent = 'Actualizar';
+    }
+    if (wcaBtn) {
+      wcaBtn.disabled = false;
+      wcaBtn.textContent = 'Descargar desde WCA';
+    }
+  }
+}
+
 async function triggerWCAFetch() {
   const compId = document.getElementById('wca-comp-id-input').value.trim();
   if (!compId) {
@@ -1761,9 +1847,19 @@ async function triggerWCAFetch() {
     return;
   }
 
+  localStorage.setItem('directoobs_tournament_comp_id', compId);
+
   const btn = document.getElementById('btn-wca-fetch');
   btn.disabled = true;
   btn.textContent = 'Descargando...';
+
+  const refreshBtn = document.getElementById('btn-refresh-directory');
+  if (refreshBtn) {
+    refreshBtn.disabled = true;
+    refreshBtn.classList.add('is-refreshing');
+    const textSpan = refreshBtn.querySelector('.btn-text');
+    if (textSpan) textSpan.textContent = 'Actualizando...';
+  }
 
   try {
     const res = await fetch('/api/wca/fetch', {
@@ -1778,32 +1874,61 @@ async function triggerWCAFetch() {
       showToast(`Error: ${data.error}`, 'error');
       btn.disabled = false;
       btn.textContent = 'Descargar desde WCA';
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.classList.remove('is-refreshing');
+        const textSpan = refreshBtn.querySelector('.btn-text');
+        if (textSpan) textSpan.textContent = 'Actualizar';
+      }
     }
   } catch (err) {
     showToast(`Error al iniciar descarga: ${err.message}`, 'error');
     btn.disabled = false;
     btn.textContent = 'Descargar desde WCA';
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+      refreshBtn.classList.remove('is-refreshing');
+      const textSpan = refreshBtn.querySelector('.btn-text');
+      if (textSpan) textSpan.textContent = 'Actualizar';
+    }
   }
 }
 
 function updateWCAProgress(pct, message, status) {
   const container = document.getElementById('wca-progress-box');
-  container.style.display = 'flex';
+  if (container) container.style.display = 'flex';
 
   const fill = document.getElementById('wca-progress-fill');
   const text = document.getElementById('wca-progress-status-text');
   const btn = document.getElementById('btn-wca-fetch');
+  const refreshBtn = document.getElementById('btn-refresh-directory');
 
-  fill.style.transform = `scaleX(${Math.min(Math.max(pct, 0), 100) / 100})`;
-  text.textContent = `[${pct}%] ${message}`;
+  if (fill) fill.style.transform = `scaleX(${Math.min(Math.max(pct, 0), 100) / 100})`;
+  if (text) text.textContent = `[${pct}%] ${message}`;
 
   if (status === 'ok' || pct >= 100) {
-    btn.disabled = false;
-    btn.textContent = 'Descargar desde WCA';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Descargar desde WCA';
+    }
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+      refreshBtn.classList.remove('is-refreshing');
+      const textSpan = refreshBtn.querySelector('.btn-text');
+      if (textSpan) textSpan.textContent = 'Actualizar';
+    }
     showToast('¡Datos WCA descargados y listos!', 'success');
   } else if (status === 'error') {
-    btn.disabled = false;
-    btn.textContent = 'Descargar desde WCA';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Descargar desde WCA';
+    }
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+      refreshBtn.classList.remove('is-refreshing');
+      const textSpan = refreshBtn.querySelector('.btn-text');
+      if (textSpan) textSpan.textContent = 'Actualizar';
+    }
     showToast(message, 'error');
   }
 }

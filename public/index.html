@@ -903,8 +903,14 @@
           </div>
 
           <div class="directory-summary-bar">
-            <span id="directory-count-text">0 competidores</span>
-            <span id="directory-filter-badge" class="directory-filter-tag" style="display:none;">FILTRADO</span>
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+              <span id="directory-count-text">0 competidores</span>
+              <span id="directory-filter-badge" class="directory-filter-tag" style="display:none;">FILTRADO</span>
+            </div>
+            <button type="button" class="btn-refresh-directory" id="btn-refresh-directory" onclick="refreshTournamentDirectory()" title="Actualizar lista de inscritos desde WCA">
+              <span class="refresh-icon">🔄</span>
+              <span class="btn-text">Actualizar</span>
+            </button>
           </div>
 
           <div class="competitors-scroll-list" id="competitors-scroll-list"></div>
