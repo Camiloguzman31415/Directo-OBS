@@ -1172,22 +1172,24 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: 400px;
+    width: 440px;
     flex-shrink: 0;
   }
 
   .fs-tournament-name {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 60px;
+    font-size: 52px;
     font-weight: 900;
     color: #FFFFFF;
-    line-height: 1.02;
+    line-height: 1.04;
     text-transform: uppercase;
     letter-spacing: -0.5px;
     margin-bottom: 42px;
     text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85);
     white-space: pre-line;
-    word-break: break-word;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    hyphens: none;
   }
 
   .fs-event-showcase {
@@ -2446,7 +2448,7 @@
       const curW = tableCol.offsetWidth || 1200;
       const curH = tableCol.offsetHeight || 600;
 
-      const maxAvailableW = 1345;
+      const maxAvailableW = 1305;
       const maxAvailableH = 935;
 
       const scaleX = maxAvailableW / curW;
