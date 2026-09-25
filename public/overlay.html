@@ -1237,23 +1237,21 @@
     text-transform: capitalize;
   }
 
-  /* ━━━ Columna Derecha: Tabla Completa de Resultados (Autoajuste y Sobredimensión Proporcional) ━━━ */
+  /* ━━━ Columna Derecha: Tabla Completa de Resultados (Renderizado Nativo FullHD 1080p) ━━━ */
   .fs-table-col {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: calc(48px + 44px + var(--fs-name-col-width, 340px) + 550px + 120px + 120px);
-    max-width: 1400px;
+    width: calc(50px + 46px + var(--fs-name-col-width, 360px) + 600px + 135px + 135px);
+    max-width: 1350px;
     flex-shrink: 0;
-    transform-origin: center right;
-    transform: scale(var(--fs-table-scale, 1));
-    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* Header de la Tabla (Pegado a la tabla como etiqueta / hoja de cálculo) */
   .fs-table-header {
     display: grid;
-    grid-template-columns: 48px 44px var(--fs-name-col-width, 340px) 550px 120px 120px;
+    grid-template-columns: 50px 46px var(--fs-name-col-width, 360px) 600px 135px 135px;
     align-items: flex-end;
     margin-bottom: -1.5px;
     height: var(--fs-header-height, 32px);
@@ -1375,19 +1373,20 @@
 
   .fs-row {
     display: grid;
-    grid-template-columns: 48px 44px var(--fs-name-col-width, 340px) 550px 120px 120px;
+    grid-template-columns: 50px 46px var(--fs-name-col-width, 360px) 600px 135px 135px;
     align-items: center;
     height: var(--fs-row-height, 48px);
-    background: rgba(7, 24, 54, 0.75);
+    background: rgba(7, 24, 54, 0.82);
     border-bottom: 1px solid rgba(56, 189, 248, 0.28);
     box-sizing: border-box;
     transition: background 0.15s ease, grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s ease;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .fs-row:nth-child(even) {
-    background: rgba(11, 36, 80, 0.80);
+    background: rgba(11, 36, 80, 0.88);
   }
 
   .fs-row:last-child {
@@ -2437,29 +2436,6 @@
     document.documentElement.style.setProperty('--fs-font-name-size', `${nameSize}px`);
     document.documentElement.style.setProperty('--fs-font-solve-size', `${solveSize}px`);
     document.documentElement.style.setProperty('--fs-font-val-size', `${valSize}px`);
-
-    // 2. Cálculo de escala proporcional respecto al espacio disponible en pantalla 1920x1080
-    // Márgenes definidos: superior/inferior 45px (990px útiles), izquierdo/derecho 65px (1790px útiles)
-    // Columna branding: 400px + gap 45px => Espacio útil horizontal para la tabla: 1345px
-    // Espacio útil vertical: 935px
-    requestAnimationFrame(() => {
-      const tableCol = document.querySelector('.fs-table-col');
-      if (!tableCol) return;
-      const curW = tableCol.offsetWidth || 1200;
-      const curH = tableCol.offsetHeight || 600;
-
-      const maxAvailableW = 1305;
-      const maxAvailableH = 935;
-
-      const scaleX = maxAvailableW / curW;
-      const scaleY = maxAvailableH / curH;
-
-      let targetScale = Math.min(scaleX, scaleY);
-      // Rango seguro: mínimo 1.0 (tamaño original) y máximo 1.25 (25% más grande si sobra espacio)
-      targetScale = Math.max(1.0, Math.min(1.25, Math.floor(targetScale * 100) / 100));
-
-      document.documentElement.style.setProperty('--fs-table-scale', `${targetScale}`);
-    });
   }
 
   function calculateRankingPages(allResults, maxPageSize, autoBalance = true) {
