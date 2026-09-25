@@ -1235,8 +1235,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: calc(48px + 44px + var(--fs-name-col-width, 290px) + 550px + 120px + 120px);
-    max-width: 1300px;
+    width: calc(48px + 44px + var(--fs-name-col-width, 340px) + 550px + 120px + 120px);
+    max-width: 1350px;
     flex-shrink: 0;
     transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -1244,7 +1244,7 @@
   /* Header de la Tabla (Pegado a la tabla como etiqueta / hoja de cálculo) */
   .fs-table-header {
     display: grid;
-    grid-template-columns: 48px 44px var(--fs-name-col-width, 290px) 550px 120px 120px;
+    grid-template-columns: 48px 44px var(--fs-name-col-width, 340px) 550px 120px 120px;
     align-items: flex-end;
     margin-bottom: -1.5px;
     height: 32px;
@@ -1364,7 +1364,7 @@
 
   .fs-row {
     display: grid;
-    grid-template-columns: 48px 44px var(--fs-name-col-width, 290px) 550px 120px 120px;
+    grid-template-columns: 48px 44px var(--fs-name-col-width, 340px) 550px 120px 120px;
     align-items: center;
     height: 48px;
     background: #071836;
@@ -2311,35 +2311,55 @@
     }
   }
 
-  let fsMeasureCanvas = null;
+  let fsMeasureEl = null;
+  function getExactTextWidth(text) {
+    if (!fsMeasureEl) {
+      fsMeasureEl = document.createElement('span');
+      fsMeasureEl.style.position = 'fixed';
+      fsMeasureEl.style.left = '-9999px';
+      fsMeasureEl.style.top = '-9999px';
+      fsMeasureEl.style.visibility = 'hidden';
+      fsMeasureEl.style.whiteSpace = 'nowrap';
+      fsMeasureEl.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      fsMeasureEl.style.fontSize = '16.5px';
+      fsMeasureEl.style.fontWeight = '700';
+      fsMeasureEl.style.letterSpacing = '0.15px';
+      document.body.appendChild(fsMeasureEl);
+    }
+    fsMeasureEl.textContent = text;
+    return fsMeasureEl.getBoundingClientRect().width;
+  }
+
   function adjustFsNameColWidth(results) {
     if (!results || results.length === 0) return;
     try {
-      if (!fsMeasureCanvas) {
-        fsMeasureCanvas = document.createElement('canvas');
-      }
-      const ctx = fsMeasureCanvas.getContext('2d');
-      // Coincide exactamente con la tipografía y peso de .fs-col-name
-      ctx.font = '700 16.5px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      
       let maxTextWidth = 0;
+
+      // 1. Medir con el elemento de medición DOM exacto
       for (const item of results) {
         const name = (item && item.name) ? String(item.name).trim() : '';
         if (!name) continue;
-        const metrics = ctx.measureText(name);
-        const letterSpacingExtra = name.length > 0 ? (name.length - 1) * 0.15 : 0;
-        const w = metrics.width + letterSpacingExtra;
+        const w = getExactTextWidth(name);
         if (w > maxTextWidth) {
           maxTextWidth = w;
         }
       }
 
+      // 2. Si ya hay filas renderizadas en el DOM, verificar también sus scrollWidth
+      if (fsRowsContainer) {
+        const spans = fsRowsContainer.querySelectorAll('.fs-col-name span');
+        spans.forEach(sp => {
+          const sw = sp.scrollWidth || 0;
+          if (sw > maxTextWidth) maxTextWidth = sw;
+        });
+      }
+
       // Padding en .fs-col-name: 10px a la izquierda + 14px a la derecha = 24px
-      // Margen de seguridad estético y anti-recorte: 10px
-      const neededWidth = Math.ceil(maxTextWidth + 24 + 10);
+      // Margen de holgura confortable para evitar absolutamente elipsis: 26px
+      const neededWidth = Math.ceil(maxTextWidth + 24 + 26);
       
-      // Mínimo de 190px (para que la cabecera "COMPETIDOR" mantenga holgura) y máximo de 370px
-      const finalWidth = Math.max(190, Math.min(370, neededWidth));
+      // Mínimo de 240px (para que la cabecera "COMPETIDOR" se vea perfecta) y máximo de 420px
+      const finalWidth = Math.max(240, Math.min(420, neededWidth));
       
       document.documentElement.style.setProperty('--fs-name-col-width', `${finalWidth}px`);
     } catch (e) {
@@ -2958,7 +2978,12 @@
     .catch(() => {});
 
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => adjustDynamicNameWidth());
+    document.fonts.ready.then(() => {
+      adjustDynamicNameWidth();
+      if (currentRawRankingData && fsRowsContainer) {
+        renderCurrentPage(false);
+      }
+    });
   }
 </script>
 </body>
