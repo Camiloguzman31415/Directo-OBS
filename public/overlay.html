@@ -934,12 +934,14 @@
 
   .fs-bg-image {
     position: absolute;
-    inset: 0;
+    inset: -30px;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     z-index: 2;
     transition: background-image 0.3s ease;
+    filter: blur(var(--fs-bg-blur, 0px));
+    will-change: transform, background-position, filter;
   }
 
   .fs-bg-tint {
@@ -953,18 +955,20 @@
   .fs-cubes-pattern {
     position: absolute;
     inset: -30px;
-    opacity: 0.14;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='277.128' viewBox='0 0 160 277.128'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-opacity='0.45' d='M80 0 L160 46.188 L160 138.564 L80 184.752 L0 138.564 L0 46.188 Z M80 0 L80 92.376 L160 138.564 M80 92.376 L0 138.564 M80 92.376 L80 184.752 M80 184.752 L160 230.94 L160 277.128 M80 184.752 L0 230.94 L0 277.128'/%3E%3C/svg%3E");
+    opacity: 0.28;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='277.128' viewBox='0 0 160 277.128'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='2' stroke-opacity='0.65' d='M80 0 L160 46.188 L160 138.564 L80 184.752 L0 138.564 L0 46.188 Z M80 0 L80 92.376 L160 138.564 M80 92.376 L0 138.564 M80 92.376 L80 184.752 M80 184.752 L160 230.94 L160 277.128 M80 184.752 L0 230.94 L0 277.128'/%3E%3C/svg%3E");
     background-repeat: repeat;
     z-index: 4;
     pointer-events: none;
-    will-change: transform, background-position;
+    will-change: transform, background-position, filter;
+    filter: blur(calc(var(--fs-bg-blur, 0px) * 0.4));
   }
 
   /* ━━━ Animaciones del Fondo Fullscreen ━━━ */
   :root {
     --fs-anim-speed-img: 40s;
     --fs-anim-speed-cubes: 25s;
+    --fs-bg-blur: 0px;
   }
 
   /* Keyframes Imagen */
@@ -1003,6 +1007,47 @@
   @keyframes fsScrollDiag {
     0% { background-position: 0 0; }
     100% { background-position: -1920px -1080px; }
+  }
+
+  /* Keyframes Ciclo de Color Degradé */
+  @keyframes fsColorCycle {
+    0% { filter: blur(var(--fs-bg-blur, 0px)) hue-rotate(0deg); }
+    50% { filter: blur(var(--fs-bg-blur, 0px)) hue-rotate(180deg); }
+    100% { filter: blur(var(--fs-bg-blur, 0px)) hue-rotate(360deg); }
+  }
+
+  @keyframes fsBgRadialCycle {
+    0% { filter: hue-rotate(0deg); }
+    50% { filter: hue-rotate(180deg); }
+    100% { filter: hue-rotate(360deg); }
+  }
+
+  @keyframes fsDiagColor {
+    0% {
+      background-position: 0 0;
+      filter: blur(var(--fs-bg-blur, 0px)) hue-rotate(0deg);
+    }
+    50% {
+      filter: blur(var(--fs-bg-blur, 0px)) hue-rotate(180deg);
+    }
+    100% {
+      background-position: -1920px -1080px;
+      filter: blur(var(--fs-bg-blur, 0px)) hue-rotate(360deg);
+    }
+  }
+
+  @keyframes fsCubesDiagColor {
+    0% {
+      background-position: 0 0;
+      filter: blur(calc(var(--fs-bg-blur, 0px) * 0.4)) hue-rotate(0deg);
+    }
+    50% {
+      filter: blur(calc(var(--fs-bg-blur, 0px) * 0.4)) hue-rotate(180deg);
+    }
+    100% {
+      background-position: -320px -277.128px;
+      filter: blur(calc(var(--fs-bg-blur, 0px) * 0.4)) hue-rotate(360deg);
+    }
   }
 
   /* Keyframes Patrón de Cubos Isométricos (160px x 277.128px) */
@@ -1062,6 +1107,13 @@
     background-repeat: repeat !important;
     animation: fsScrollDiag var(--fs-anim-speed-img) linear infinite !important;
   }
+  .fs-anim-img-color-cycle {
+    animation: fsColorCycle var(--fs-anim-speed-img) linear infinite !important;
+  }
+  .fs-anim-img-diagonal-color {
+    background-repeat: repeat !important;
+    animation: fsDiagColor var(--fs-anim-speed-img) linear infinite !important;
+  }
 
   /* Clases de animación para .fs-cubes-pattern */
   .fs-anim-cubes-scroll-left {
@@ -1082,6 +1134,17 @@
   .fs-anim-cubes-ken-burns {
     animation: fsCubesKenBurns var(--fs-anim-speed-cubes) ease-in-out infinite alternate !important;
     transform-origin: center center;
+  }
+  .fs-anim-cubes-color-cycle {
+    animation: fsColorCycle var(--fs-anim-speed-cubes) linear infinite !important;
+  }
+  .fs-anim-cubes-diagonal-color {
+    animation: fsCubesDiagColor var(--fs-anim-speed-cubes) linear infinite !important;
+  }
+
+  /* Clase de animación para .fs-bg-overlay */
+  .fs-anim-bg-color-cycle {
+    animation: fsBgRadialCycle var(--fs-anim-speed-img) linear infinite !important;
   }
 
   /* Contenedor Principal Centrado */
@@ -2711,7 +2774,9 @@
       'fs-anim-img-scroll-right',
       'fs-anim-img-scroll-up',
       'fs-anim-img-scroll-down',
-      'fs-anim-img-diagonal'
+      'fs-anim-img-diagonal',
+      'fs-anim-img-color-cycle',
+      'fs-anim-img-diagonal-color'
     ];
     const cubesAnimClasses = [
       'fs-anim-cubes-ken-burns',
@@ -2719,9 +2784,13 @@
       'fs-anim-cubes-scroll-right',
       'fs-anim-cubes-scroll-up',
       'fs-anim-cubes-scroll-down',
-      'fs-anim-cubes-diagonal'
+      'fs-anim-cubes-diagonal',
+      'fs-anim-cubes-color-cycle',
+      'fs-anim-cubes-diagonal-color'
     ];
 
+    const bgOverlay = document.getElementById('fs-bg-overlay');
+    if (bgOverlay) bgOverlay.classList.remove('fs-anim-bg-color-cycle');
     if (bgImage) bgImage.classList.remove(...imgAnimClasses);
     if (bgCubes) bgCubes.classList.remove(...cubesAnimClasses);
 
@@ -2747,6 +2816,14 @@
     } else if (animation === 'diagonal') {
       if (bgImage) bgImage.classList.add('fs-anim-img-diagonal');
       if (bgCubes) bgCubes.classList.add('fs-anim-cubes-diagonal');
+    } else if (animation === 'color-cycle') {
+      if (bgImage) bgImage.classList.add('fs-anim-img-color-cycle');
+      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-color-cycle');
+      if (bgOverlay) bgOverlay.classList.add('fs-anim-bg-color-cycle');
+    } else if (animation === 'diagonal-color') {
+      if (bgImage) bgImage.classList.add('fs-anim-img-diagonal-color');
+      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-diagonal-color');
+      if (bgOverlay) bgOverlay.classList.add('fs-anim-bg-color-cycle');
     }
   }
 
@@ -2764,6 +2841,11 @@
         const opVal = Math.max(0, Math.min(100, Number(theme.opacity)));
         bgOverlay.style.opacity = opVal / 100;
       }
+    }
+
+    if (theme.blur !== undefined) {
+      const blurPx = Math.max(0, Math.min(30, parseInt(theme.blur, 10) || 0));
+      document.documentElement.style.setProperty('--fs-bg-blur', `${blurPx}px`);
     }
 
     if (bgImage && bgTint) {

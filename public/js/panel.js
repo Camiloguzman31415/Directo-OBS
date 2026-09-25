@@ -2401,6 +2401,7 @@ let currentFsTheme = {
   bgColor: '#0c4ea8',
   bgImage: null,
   opacity: 100,
+  blur: 0,
   animation: 'none',
   animSpeed: 'slow'
 };
@@ -2419,6 +2420,8 @@ function updateFsThemeUI() {
   const valLabel = document.getElementById('fs-color-val');
   const slider = document.getElementById('fs-opacity-slider');
   const opLabel = document.getElementById('fs-opacity-val');
+  const blurSlider = document.getElementById('fs-blur-slider');
+  const blurLabel = document.getElementById('fs-blur-val');
   const animSelect = document.getElementById('fs-anim-select');
   const speedSelect = document.getElementById('fs-speed-select');
   const statusLabel = document.getElementById('fs-image-status');
@@ -2428,6 +2431,7 @@ function updateFsThemeUI() {
 
   const curColor = (currentFsTheme.bgColor || '#0c4ea8').toLowerCase();
   const curOpacity = currentFsTheme.opacity !== undefined ? currentFsTheme.opacity : 100;
+  const curBlur = currentFsTheme.blur !== undefined ? currentFsTheme.blur : 0;
   const curAnim = currentFsTheme.animation || 'none';
   const curSpeed = currentFsTheme.animSpeed || 'slow';
 
@@ -2435,6 +2439,8 @@ function updateFsThemeUI() {
   if (valLabel) valLabel.textContent = curColor;
   if (slider) slider.value = curOpacity;
   if (opLabel) opLabel.textContent = `${curOpacity}%`;
+  if (blurSlider) blurSlider.value = curBlur;
+  if (blurLabel) blurLabel.textContent = `${curBlur}px`;
   if (animSelect) animSelect.value = curAnim;
   if (speedSelect) speedSelect.value = curSpeed;
 
@@ -2510,6 +2516,17 @@ function onFsOpacityChange(val) {
   });
 }
 
+function onFsBlurChange(val) {
+  const b = parseInt(val, 10);
+  currentFsTheme.blur = b;
+  const blurLabel = document.getElementById('fs-blur-val');
+  if (blurLabel) blurLabel.textContent = `${b}px`;
+  sendWS({
+    type: 'set_fs_theme',
+    data: { blur: b }
+  });
+}
+
 function onFsAnimationChange(anim) {
   currentFsTheme.animation = anim;
   sendWS({
@@ -2518,6 +2535,8 @@ function onFsAnimationChange(anim) {
   });
   const labelMap = {
     'none': 'Desactivada (Estático)',
+    'color-cycle': 'Cambio en Degradé 🌈',
+    'diagonal-color': 'Flujo Diagonal + Color 🌈',
     'ken-burns': 'Cinemático Ken Burns',
     'scroll-left': 'Flujo Izquierda ⬅️',
     'scroll-right': 'Flujo Derecha ➡️',
@@ -2612,6 +2631,7 @@ function resetFsTheme() {
     bgColor: '#0c4ea8',
     bgImage: null,
     opacity: 100,
+    blur: 0,
     animation: 'none',
     animSpeed: 'slow'
   };
@@ -2622,12 +2642,13 @@ function resetFsTheme() {
       bgColor: '#0c4ea8',
       bgImage: null,
       opacity: 100,
+      blur: 0,
       animation: 'none',
       animSpeed: 'slow'
     }
   });
   updateFsThemeUI();
-  showToast('Fondo restablecido por defecto (Azul WCA, 100%, Estático)', 'info');
+  showToast('Fondo restablecido por defecto (Azul WCA, 100%, Nítido, Estático)', 'info');
 }
 
 
