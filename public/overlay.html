@@ -1371,14 +1371,16 @@
     grid-template-columns: 48px 44px var(--fs-name-col-width, 340px) 550px 120px 120px;
     align-items: center;
     height: 48px;
-    background: #071836;
+    background: rgba(7, 24, 54, 0.75);
     border-bottom: 1px solid rgba(56, 189, 248, 0.28);
     box-sizing: border-box;
     transition: background 0.15s ease, grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 
   .fs-row:nth-child(even) {
-    background: #0a224a;
+    background: rgba(11, 36, 80, 0.80);
   }
 
   .fs-row:last-child {
@@ -1637,15 +1639,15 @@
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   }
 
-  /* Celda AVG */
+  /* Celda AVG (Color más claro distintivo) */
   .fs-col-avg {
     grid-column: 5 / 6;
     text-align: center;
     font-family: 'Barlow Semi Condensed', 'Inter', -apple-system, sans-serif;
     font-variant-numeric: tabular-nums;
     color: #FFFFFF;
-    border-left: 1.5px solid rgba(56, 189, 248, 0.45);
-    background: transparent;
+    border-left: 1.5px solid rgba(56, 189, 248, 0.55);
+    background: rgba(14, 76, 148, 0.86);
     height: 100%;
     display: flex;
     align-items: center;
@@ -1654,21 +1656,26 @@
     gap: 6px;
     padding: 0 6px;
     overflow: hidden;
+    transition: background 0.15s ease;
+  }
+
+  .fs-row:nth-child(even) .fs-col-avg {
+    background: rgba(18, 92, 172, 0.90);
   }
 
   .fs-col-avg.has-record {
-    background: rgba(56, 189, 248, 0.1);
+    background: rgba(2, 132, 199, 0.92);
   }
 
-  /* Celda BEST */
+  /* Celda BEST (Color más claro distintivo) */
   .fs-col-best {
     grid-column: 6 / 7;
     text-align: center;
     font-family: 'Barlow Semi Condensed', 'Inter', -apple-system, sans-serif;
     font-variant-numeric: tabular-nums;
     color: #FFFFFF;
-    border-left: 1.5px solid rgba(56, 189, 248, 0.45);
-    background: transparent;
+    border-left: 1.5px solid rgba(56, 189, 248, 0.55);
+    background: rgba(14, 76, 148, 0.86);
     height: 100%;
     display: flex;
     align-items: center;
@@ -1677,10 +1684,15 @@
     gap: 6px;
     padding: 0 6px;
     overflow: hidden;
+    transition: background 0.15s ease;
+  }
+
+  .fs-row:nth-child(even) .fs-col-best {
+    background: rgba(18, 92, 172, 0.90);
   }
 
   .fs-col-best.has-record {
-    background: rgba(34, 197, 94, 0.1);
+    background: rgba(16, 138, 90, 0.92);
   }
 
   /* Estilos para el texto de tiempo en AVG y BEST (Fiel al Original: blanco puro y negrita 900) */
