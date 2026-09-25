@@ -820,11 +820,9 @@
               <div style="padding-top:7px;border-top:1px dashed rgba(255,255,255,0.08);">
                 <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px;">
                   <div class="form-group" style="margin-bottom:0;">
-                    <label class="form-label" style="font-size:11px;margin-bottom:4px;">Animación de Fondo:</label>
+                    <label class="form-label" style="font-size:11px;margin-bottom:4px;">Movimiento del Fondo:</label>
                     <select class="select-filter" id="fs-anim-select" onchange="onFsAnimationChange(this.value)" style="width:100%;height:30px;font-size:11px;">
-                      <option value="none">Estático (Sin animación)</option>
-                      <option value="color-cycle">🌈 Cambio en Degradé (Bucle Suave)</option>
-                      <option value="diagonal-color">🌈 Flujo Diagonal + Cambio de Color</option>
+                      <option value="none">Estático (Sin movimiento)</option>
                       <option value="ken-burns">Cinemático Ken Burns (Zoom + Paneo)</option>
                       <option value="scroll-left">Flujo Infinito: Izquierda ⬅️</option>
                       <option value="scroll-right">Flujo Infinito: Derecha ➡️</option>
@@ -842,6 +840,17 @@
                     </select>
                   </div>
                 </div>
+              </div>
+
+              <!-- Efecto Independiente de Cambio en Degradé de Colores -->
+              <div style="padding-top:7px;border-top:1px dashed rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                  <label class="form-label" style="margin-bottom:0;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" for="fs-color-cycle-check">
+                    🌈 Transición en Degradé de Colores
+                  </label>
+                  <div style="font-size:10px;color:#94a3b8;">Rota suavemente los colores del fondo en bucle continuo</div>
+                </div>
+                <input type="checkbox" id="fs-color-cycle-check" onchange="onFsColorCycleChange(this.checked)" style="width:18px;height:18px;cursor:pointer;accent-color:#0284c7;">
               </div>
             </div>
 

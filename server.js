@@ -83,6 +83,7 @@ let fsTheme = {
   bgImage: null,
   opacity: 100,
   blur: 0,
+  colorCycle: false,
   animation: 'none',
   animSpeed: 'slow'
 };
@@ -134,6 +135,7 @@ function loadLiveState() {
           bgImage: state.fsTheme.bgImage || null,
           opacity: state.fsTheme.opacity !== undefined ? state.fsTheme.opacity : 100,
           blur: state.fsTheme.blur !== undefined ? state.fsTheme.blur : 0,
+          colorCycle: state.fsTheme.colorCycle !== undefined ? !!state.fsTheme.colorCycle : false,
           animation: state.fsTheme.animation || 'none',
           animSpeed: state.fsTheme.animSpeed || 'slow'
         };
@@ -1929,6 +1931,7 @@ function handleSocketConnection(ws, req) {
           if (msg.data.bgImage !== undefined) fsTheme.bgImage = msg.data.bgImage;
           if (msg.data.opacity !== undefined) fsTheme.opacity = parseInt(msg.data.opacity, 10);
           if (msg.data.blur !== undefined) fsTheme.blur = parseInt(msg.data.blur, 10);
+          if (msg.data.colorCycle !== undefined) fsTheme.colorCycle = !!msg.data.colorCycle;
           if (msg.data.animation !== undefined) fsTheme.animation = msg.data.animation;
           if (msg.data.animSpeed !== undefined) fsTheme.animSpeed = msg.data.animSpeed;
           saveLiveState();

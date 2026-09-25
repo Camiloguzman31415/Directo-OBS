@@ -2774,9 +2774,7 @@
       'fs-anim-img-scroll-right',
       'fs-anim-img-scroll-up',
       'fs-anim-img-scroll-down',
-      'fs-anim-img-diagonal',
-      'fs-anim-img-color-cycle',
-      'fs-anim-img-diagonal-color'
+      'fs-anim-img-diagonal'
     ];
     const cubesAnimClasses = [
       'fs-anim-cubes-ken-burns',
@@ -2784,13 +2782,9 @@
       'fs-anim-cubes-scroll-right',
       'fs-anim-cubes-scroll-up',
       'fs-anim-cubes-scroll-down',
-      'fs-anim-cubes-diagonal',
-      'fs-anim-cubes-color-cycle',
-      'fs-anim-cubes-diagonal-color'
+      'fs-anim-cubes-diagonal'
     ];
 
-    const bgOverlay = document.getElementById('fs-bg-overlay');
-    if (bgOverlay) bgOverlay.classList.remove('fs-anim-bg-color-cycle');
     if (bgImage) bgImage.classList.remove(...imgAnimClasses);
     if (bgCubes) bgCubes.classList.remove(...cubesAnimClasses);
 
@@ -2816,14 +2810,6 @@
     } else if (animation === 'diagonal') {
       if (bgImage) bgImage.classList.add('fs-anim-img-diagonal');
       if (bgCubes) bgCubes.classList.add('fs-anim-cubes-diagonal');
-    } else if (animation === 'color-cycle') {
-      if (bgImage) bgImage.classList.add('fs-anim-img-color-cycle');
-      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-color-cycle');
-      if (bgOverlay) bgOverlay.classList.add('fs-anim-bg-color-cycle');
-    } else if (animation === 'diagonal-color') {
-      if (bgImage) bgImage.classList.add('fs-anim-img-diagonal-color');
-      if (bgCubes) bgCubes.classList.add('fs-anim-cubes-diagonal-color');
-      if (bgOverlay) bgOverlay.classList.add('fs-anim-bg-color-cycle');
     }
   }
 
@@ -2840,6 +2826,11 @@
       if (theme.opacity !== undefined) {
         const opVal = Math.max(0, Math.min(100, Number(theme.opacity)));
         bgOverlay.style.opacity = opVal / 100;
+      }
+      if (theme.colorCycle) {
+        bgOverlay.classList.add('fs-anim-bg-color-cycle');
+      } else {
+        bgOverlay.classList.remove('fs-anim-bg-color-cycle');
       }
     }
 

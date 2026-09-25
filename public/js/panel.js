@@ -2402,6 +2402,7 @@ let currentFsTheme = {
   bgImage: null,
   opacity: 100,
   blur: 0,
+  colorCycle: false,
   animation: 'none',
   animSpeed: 'slow'
 };
@@ -2422,6 +2423,7 @@ function updateFsThemeUI() {
   const opLabel = document.getElementById('fs-opacity-val');
   const blurSlider = document.getElementById('fs-blur-slider');
   const blurLabel = document.getElementById('fs-blur-val');
+  const cycleCheck = document.getElementById('fs-color-cycle-check');
   const animSelect = document.getElementById('fs-anim-select');
   const speedSelect = document.getElementById('fs-speed-select');
   const statusLabel = document.getElementById('fs-image-status');
@@ -2432,6 +2434,7 @@ function updateFsThemeUI() {
   const curColor = (currentFsTheme.bgColor || '#0c4ea8').toLowerCase();
   const curOpacity = currentFsTheme.opacity !== undefined ? currentFsTheme.opacity : 100;
   const curBlur = currentFsTheme.blur !== undefined ? currentFsTheme.blur : 0;
+  const curCycle = !!currentFsTheme.colorCycle;
   const curAnim = currentFsTheme.animation || 'none';
   const curSpeed = currentFsTheme.animSpeed || 'slow';
 
@@ -2441,6 +2444,7 @@ function updateFsThemeUI() {
   if (opLabel) opLabel.textContent = `${curOpacity}%`;
   if (blurSlider) blurSlider.value = curBlur;
   if (blurLabel) blurLabel.textContent = `${curBlur}px`;
+  if (cycleCheck) cycleCheck.checked = curCycle;
   if (animSelect) animSelect.value = curAnim;
   if (speedSelect) speedSelect.value = curSpeed;
 
@@ -2527,6 +2531,15 @@ function onFsBlurChange(val) {
   });
 }
 
+function onFsColorCycleChange(checked) {
+  currentFsTheme.colorCycle = !!checked;
+  sendWS({
+    type: 'set_fs_theme',
+    data: { colorCycle: currentFsTheme.colorCycle }
+  });
+  showToast(`Transición de degradé: ${checked ? 'Activada' : 'Desactivada'}`, 'info');
+}
+
 function onFsAnimationChange(anim) {
   currentFsTheme.animation = anim;
   sendWS({
@@ -2534,9 +2547,7 @@ function onFsAnimationChange(anim) {
     data: { animation: anim }
   });
   const labelMap = {
-    'none': 'Desactivada (Estático)',
-    'color-cycle': 'Cambio en Degradé 🌈',
-    'diagonal-color': 'Flujo Diagonal + Color 🌈',
+    'none': 'Estático (Sin movimiento)',
     'ken-burns': 'Cinemático Ken Burns',
     'scroll-left': 'Flujo Izquierda ⬅️',
     'scroll-right': 'Flujo Derecha ➡️',
@@ -2544,7 +2555,7 @@ function onFsAnimationChange(anim) {
     'scroll-down': 'Flujo Abajo ⬇️',
     'diagonal': 'Flujo Diagonal ↗️'
   };
-  showToast(`Animación de fondo: ${labelMap[anim] || anim}`, 'info');
+  showToast(`Movimiento de fondo: ${labelMap[anim] || anim}`, 'info');
 }
 
 function onFsSpeedChange(speed) {
@@ -2632,6 +2643,7 @@ function resetFsTheme() {
     bgImage: null,
     opacity: 100,
     blur: 0,
+    colorCycle: false,
     animation: 'none',
     animSpeed: 'slow'
   };
@@ -2643,6 +2655,7 @@ function resetFsTheme() {
       bgImage: null,
       opacity: 100,
       blur: 0,
+      colorCycle: false,
       animation: 'none',
       animSpeed: 'slow'
     }
