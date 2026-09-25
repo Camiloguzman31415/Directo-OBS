@@ -1152,18 +1152,19 @@
     animation: fsBgRadialCycle var(--fs-anim-speed-img) linear infinite !important;
   }
 
-  /* Contenedor Principal Centrado */
+  /* Contenedor Principal Centrado con Márgenes de Pantalla Broadcast */
   .fs-content-container {
     position: relative;
     z-index: 2;
     width: 1920px;
     height: 1080px;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 65px;
-    padding: 40px 65px;
+    gap: 45px;
+    padding: 45px 65px;
     box-sizing: border-box;
+    overflow: hidden;
   }
 
   /* ━━━ Columna Izquierda: Branding ━━━ */
@@ -1171,19 +1172,19 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: 480px;
+    width: 400px;
     flex-shrink: 0;
   }
 
   .fs-tournament-name {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 64px;
+    font-size: 60px;
     font-weight: 900;
     color: #FFFFFF;
     line-height: 1.02;
     text-transform: uppercase;
     letter-spacing: -0.5px;
-    margin-bottom: 50px;
+    margin-bottom: 42px;
     text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85);
     white-space: pre-line;
     word-break: break-word;
@@ -1196,8 +1197,8 @@
   }
 
   .fs-event-icon-card {
-    width: 110px;
-    height: 110px;
+    width: 105px;
+    height: 105px;
     background: rgba(6, 16, 32, 0.94);
     border: 2px solid rgba(255, 255, 255, 0.28);
     border-radius: 14px;
@@ -1208,17 +1209,17 @@
   }
 
   .fs-event-icon {
-    width: 72px;
-    height: 72px;
+    width: 68px;
+    height: 68px;
     filter: brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
   }
 
   .fs-event-name {
     font-family: 'Inter', -apple-system, sans-serif;
-    font-size: 46px;
+    font-size: 44px;
     font-weight: 900;
     color: #FFFFFF;
-    margin-top: 18px;
+    margin-top: 16px;
     line-height: 1.05;
     text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
     letter-spacing: -0.3px;
@@ -1226,23 +1227,25 @@
 
   .fs-round-name {
     font-family: 'DM Sans', 'Inter', sans-serif;
-    font-size: 26px;
+    font-size: 25px;
     font-weight: 800;
     color: #FFFFFF;
-    margin-top: 6px;
+    margin-top: 5px;
     letter-spacing: 0.4px;
     text-transform: capitalize;
   }
 
-  /* ━━━ Columna Derecha: Tabla Completa de Resultados (Autoajuste Dinámico de Nombres) ━━━ */
+  /* ━━━ Columna Derecha: Tabla Completa de Resultados (Autoajuste y Sobredimensión Proporcional) ━━━ */
   .fs-table-col {
     display: flex;
     flex-direction: column;
     justify-content: center;
     width: calc(48px + 44px + var(--fs-name-col-width, 340px) + 550px + 120px + 120px);
-    max-width: 1350px;
+    max-width: 1400px;
     flex-shrink: 0;
-    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: center right;
+    transform: scale(var(--fs-table-scale, 1));
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* Header de la Tabla (Pegado a la tabla como etiqueta / hoja de cálculo) */
@@ -1251,12 +1254,12 @@
     grid-template-columns: 48px 44px var(--fs-name-col-width, 340px) 550px 120px 120px;
     align-items: flex-end;
     margin-bottom: -1.5px;
-    height: 32px;
+    height: var(--fs-header-height, 32px);
     width: 100%;
     box-sizing: border-box;
     position: relative;
     z-index: 5;
-    transition: grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s ease;
   }
 
   .fs-head-spacer {
@@ -1268,7 +1271,7 @@
     grid-column: 4 / 5;
     background: #16a34a;
     border-radius: 5px 5px 0 0;
-    height: 32px;
+    height: var(--fs-header-height, 32px);
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     align-items: center;
@@ -1278,8 +1281,9 @@
     border-bottom: none;
     width: 100%;
     box-sizing: border-box;
+    transition: height 0.25s ease;
   }
-
+ 
   .fs-head-num {
     font-family: 'Inter', -apple-system, sans-serif;
     font-size: 15.5px;
@@ -1299,7 +1303,7 @@
   }
 
   .fs-head-pill {
-    height: 32px;
+    height: var(--fs-header-height, 32px);
     width: 100%;
     margin: 0;
     border-radius: 5px 5px 0 0;
@@ -1314,6 +1318,7 @@
     border: 1.5px solid rgba(56, 189, 248, 0.7);
     border-bottom: none;
     box-sizing: border-box;
+    transition: height 0.25s ease;
   }
 
   .fs-head-pill.fs-head-avg {
@@ -1370,11 +1375,11 @@
     display: grid;
     grid-template-columns: 48px 44px var(--fs-name-col-width, 340px) 550px 120px 120px;
     align-items: center;
-    height: 48px;
+    height: var(--fs-row-height, 48px);
     background: rgba(7, 24, 54, 0.75);
     border-bottom: 1px solid rgba(56, 189, 248, 0.28);
     box-sizing: border-box;
-    transition: background 0.15s ease, grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background 0.15s ease, grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s ease;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
   }
@@ -1450,7 +1455,7 @@
   .fs-col-name {
     grid-column: 3 / 4;
     font-family: 'Inter', -apple-system, sans-serif;
-    font-size: 16.5px;
+    font-size: var(--fs-font-name-size, 16.5px);
     font-weight: 700;
     color: #FFFFFF;
     padding-left: 10px;
@@ -1550,7 +1555,7 @@
   .fs-solve-val {
     display: inline-block;
     white-space: nowrap;
-    font-size: 17.5px;
+    font-size: var(--fs-font-solve-size, 17.5px);
     font-weight: 700;
     line-height: 1;
     letter-spacing: 0.15px;
@@ -1700,7 +1705,7 @@
     display: inline-block;
     white-space: nowrap;
     font-family: 'Barlow Semi Condensed', 'Inter', -apple-system, sans-serif;
-    font-size: 19px;
+    font-size: var(--fs-font-val-size, 19px);
     font-weight: 900;
     color: #FFFFFF;
     line-height: 1;
@@ -2388,6 +2393,73 @@
     }
   }
 
+  function autoFitFullscreenTable(numRows, results) {
+    if (!fsRowsContainer) return;
+    const count = Math.max(1, numRows || (results && results.length) || 10);
+    
+    // 1. Altura y tamaños tipográficos dinámicos para llenar armónicamente el espacio vertical
+    let rowH = 48;
+    let headH = 32;
+    let nameSize = 16.5;
+    let solveSize = 17.5;
+    let valSize = 19;
+
+    if (count <= 9) {
+      rowH = 64;
+      headH = 38;
+      nameSize = 18.5;
+      solveSize = 20.5;
+      valSize = 22.5;
+    } else if (count <= 11) {
+      rowH = 58;
+      headH = 36;
+      nameSize = 17.5;
+      solveSize = 19;
+      valSize = 21;
+    } else if (count <= 13) {
+      rowH = 52;
+      headH = 34;
+      nameSize = 17;
+      solveSize = 18;
+      valSize = 20;
+    } else {
+      rowH = 47;
+      headH = 32;
+      nameSize = 16.5;
+      solveSize = 17.5;
+      valSize = 19;
+    }
+
+    document.documentElement.style.setProperty('--fs-row-height', `${rowH}px`);
+    document.documentElement.style.setProperty('--fs-header-height', `${headH}px`);
+    document.documentElement.style.setProperty('--fs-font-name-size', `${nameSize}px`);
+    document.documentElement.style.setProperty('--fs-font-solve-size', `${solveSize}px`);
+    document.documentElement.style.setProperty('--fs-font-val-size', `${valSize}px`);
+
+    // 2. Cálculo de escala proporcional respecto al espacio disponible en pantalla 1920x1080
+    // Márgenes definidos: superior/inferior 45px (990px útiles), izquierdo/derecho 65px (1790px útiles)
+    // Columna branding: 400px + gap 45px => Espacio útil horizontal para la tabla: 1345px
+    // Espacio útil vertical: 935px
+    requestAnimationFrame(() => {
+      const tableCol = document.querySelector('.fs-table-col');
+      if (!tableCol) return;
+      const curW = tableCol.offsetWidth || 1200;
+      const curH = tableCol.offsetHeight || 600;
+
+      const maxAvailableW = 1345;
+      const maxAvailableH = 935;
+
+      const scaleX = maxAvailableW / curW;
+      const scaleY = maxAvailableH / curH;
+
+      let targetScale = Math.min(scaleX, scaleY);
+      // Rango seguro: mínimo 1.0 (tamaño original) y máximo 1.25 (25% más grande si sobra espacio)
+      targetScale = Math.max(1.0, Math.min(1.25, Math.floor(targetScale * 100) / 100));
+
+      document.documentElement.style.setProperty('--fs-table-scale', `${targetScale}`);
+    });
+  }
+
   function calculateRankingPages(allResults, maxPageSize, autoBalance = true) {
     if (!allResults || allResults.length === 0) return [[]];
     const total = allResults.length;
@@ -2622,6 +2694,7 @@
           }).join('');
         }
         adjustFsNameColWidth(pageResults);
+        autoFitFullscreenTable(pageResults.length, pageResults);
       }
 
       // Actualizar indicadores de página
@@ -3006,6 +3079,12 @@
       }
     });
   }
+
+  window.addEventListener('resize', () => {
+    if (fsRowsContainer && currentRawRankingData) {
+      autoFitFullscreenTable();
+    }
+  });
 </script>
 </body>
 </html>
