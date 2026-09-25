@@ -1688,15 +1688,12 @@ function filterCompetitorList() {
   const allComps = tournamentData.competitors || [];
   const searchQ = (document.getElementById('competitor-list-search')?.value || '').toLowerCase();
   const eventF = document.getElementById('competitor-event-filter')?.value || '';
-  const typeF = document.getElementById('competitor-type-filter')?.value || '';
 
-  const isFiltered = !!(searchQ || eventF || typeF);
+  const isFiltered = !!(searchQ || eventF);
 
   const filtered = allComps.filter(c => {
     if (searchQ && !c.name.toLowerCase().includes(searchQ) && !(c.wca_id || '').toLowerCase().includes(searchQ)) return false;
     if (eventF && !c.events.includes(eventF)) return false;
-    if (typeF === 'new' && !c.is_new) return false;
-    if (typeF === 'veteran' && c.is_new) return false;
     return true;
   });
 
