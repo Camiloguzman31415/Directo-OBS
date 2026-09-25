@@ -11,7 +11,7 @@ let tournamentData = null;
 let currentEvent = null;
 let currentCompetitor = null;   // Mesa 1
 let currentCompetitor2 = null;  // Mesa 2
-let bannerMode = 'dual';        // 'single' | 'dual'
+let bannerMode = 'single';      // 'single' | 'dual'
 let bannerPosition = 'top';     // 'top' | 'bottom'
 let bannerAlign = 'center';     // siempre 'center' por defecto
 let bannerFont = 'barlow_slim'; // 'barlow_slim' | 'barlow_bold' | 'inter' | 'roboto'
@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const wcaInput = document.getElementById('wca-comp-id-input');
     if (wcaInput && !wcaInput.value) wcaInput.value = savedTourneyComp;
   }
+  setBannerMode('single', false);
   connectWebSocket();
   setupEventListeners();
   setupKeyboardShortcuts();

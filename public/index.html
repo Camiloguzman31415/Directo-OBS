@@ -397,10 +397,10 @@
             <div class="segmented-control-group">
               <span class="control-label">Modo:</span>
               <div class="segmented-control" id="mode-selector">
-                <button type="button" class="segment-btn active" data-mode="dual" onclick="setBannerMode('dual')">
+                <button type="button" class="segment-btn" data-mode="dual" onclick="setBannerMode('dual')">
                   👥 Dual
                 </button>
-                <button type="button" class="segment-btn" data-mode="single" onclick="setBannerMode('single')">
+                <button type="button" class="segment-btn active" data-mode="single" onclick="setBannerMode('single')">
                   👤 Individual
                 </button>
               </div>
@@ -448,7 +448,7 @@
           </div>
 
           <!-- MODO DUAL: MESA 1 Y MESA 2 -->
-          <div id="dual-selection-wrapper" class="dual-slots-container">
+          <div id="dual-selection-wrapper" class="dual-slots-container" style="display:none;">
             <!-- Slot Mesa 1 -->
             <div class="table-slot-card slot-1" id="slot-mesa-1">
               <div class="slot-header">
@@ -500,7 +500,7 @@
           </div>
 
           <!-- MODO INDIVIDUAL: 1 SOLO COMPETIDOR -->
-          <div id="single-selection-wrapper" class="single-slot-container" style="display:none;">
+          <div id="single-selection-wrapper" class="single-slot-container" style="display:block;">
             <div class="search-input-group">
               <span class="search-icon-decor">🔍</span>
               <input type="text" class="search-input" id="competitor-search-input" placeholder="Buscar por nombre o WCA ID..." autocomplete="off">
@@ -549,7 +549,7 @@
             </div>
 
             <!-- Fila Mesa 2 -->
-            <div class="sim-row row-2" id="sim-row-2">
+            <div class="sim-row row-2" id="sim-row-2" style="display:none;">
               <div class="sim-comp-info">
                 <div class="sim-flag" id="sim-flag-2"></div>
                 <span class="sim-name" id="sim-name-2">Competidor 2</span>
