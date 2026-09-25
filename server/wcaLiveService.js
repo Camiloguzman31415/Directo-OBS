@@ -227,7 +227,7 @@ function getAttemptsDetail(attempts, eventId, totalAttempts, recordIndex = -1, s
 /**
  * Obtiene los resultados y ranking en tiempo real de una ronda específica en WCA Live
  */
-async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 16) {
+async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
   const q = `query($id: ID!) {
     round(id: $id) {
       id
@@ -267,7 +267,7 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 16) {
   const eventName = round.competitionEvent?.event?.name || '3x3';
   const compName = round.competitionEvent?.competition?.name || '';
   const totalAttempts = round.format?.numberOfAttempts || 5;
-  const advancingCutoff = cutoffLevel > 0 ? cutoffLevel : 16;
+  const advancingCutoff = cutoffLevel !== undefined && cutoffLevel !== null ? Math.max(0, parseInt(cutoffLevel, 10) || 0) : 0;
 
   // Formatear resultados
   const rawResults = round.results || [];
@@ -279,9 +279,9 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 16) {
     const validAttempts = attempts.filter(a => a && typeof a.result === 'number' && a.result !== 0);
     const completedSolves = validAttempts.length;
 
-    // Calcular si está avanzando a la siguiente ronda
+    // Calcular si está avanzando a la siguiente ronda (solo si hay corte positivo)
     const rankPos = r.ranking !== null && r.ranking !== undefined ? r.ranking : (idx + 1);
-    const isAdvancing = advancingCutoff > 0 ? (rankPos <= advancingCutoff) : true;
+    const isAdvancing = advancingCutoff > 0 ? (rankPos <= advancingCutoff) : false;
 
     // Determinar si el promedio o mejor tiempo aplica según el tipo de evento
     const isAverageRanked = !['333bf', '444bf', '555bf', '333mbf'].includes(eventId);

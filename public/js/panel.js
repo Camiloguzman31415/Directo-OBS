@@ -29,7 +29,7 @@ let liveRankingCompId = '';
 let liveRankingRounds = [];
 let liveRankingSelectedRoundId = '';
 let liveRankingTop = 16;
-let liveRankingCutoff = 16;
+let liveRankingCutoff = 0;
 let liveRankingPollInterval = 15;
 let liveRankingDynamicPaging = true;
 let liveRankingAutoBalance = true;
@@ -2093,7 +2093,7 @@ function onLiveRoundChanged() {
 function onLiveParamsChanged() {
   const topInput = document.getElementById('live-top-input');
   const topSel = document.getElementById('live-top-select');
-  const cutSel = document.getElementById('live-cutoff-select');
+  const cutInput = document.getElementById('live-cutoff-input') || document.getElementById('live-cutoff-select');
   const modeSel = document.getElementById('live-paging-mode-select');
   const balSel = document.getElementById('live-balance-select');
   const durSel = document.getElementById('live-page-duration-select');
@@ -2101,7 +2101,10 @@ function onLiveParamsChanged() {
   if (topInput) liveRankingTop = Math.max(1, Math.min(60, parseInt(topInput.value, 10) || 16));
   else if (topSel) liveRankingTop = parseInt(topSel.value, 10) || 16;
 
-  if (cutSel) liveRankingCutoff = parseInt(cutSel.value, 10) || 16;
+  if (cutInput) {
+    const val = parseInt(cutInput.value, 10);
+    liveRankingCutoff = isNaN(val) || val < 0 ? 0 : val;
+  }
   if (modeSel) liveRankingDynamicPaging = modeSel.value === 'dynamic';
   if (balSel) liveRankingAutoBalance = balSel.value === 'balanced';
   if (durSel) liveRankingPageDuration = parseInt(durSel.value, 10) || 10;
@@ -2371,8 +2374,8 @@ function updateLiveRankingUI() {
   const topSel = document.getElementById('live-top-select');
   if (topSel && liveRankingTop) topSel.value = String(liveRankingTop);
 
-  const cutSel = document.getElementById('live-cutoff-select');
-  if (cutSel && liveRankingCutoff !== undefined) cutSel.value = String(liveRankingCutoff);
+  const cutInput = document.getElementById('live-cutoff-input') || document.getElementById('live-cutoff-select');
+  if (cutInput && liveRankingCutoff !== undefined) cutInput.value = String(liveRankingCutoff);
 
   const pollSel = document.getElementById('live-polling-select');
   if (pollSel && liveRankingPollInterval !== undefined) pollSel.value = String(liveRankingPollInterval);

@@ -67,7 +67,7 @@ let liveRankingVisible = false;
 let liveRankingRoundId = null;
 let liveRankingCompId = null;
 let liveRankingTop = 16;
-let liveRankingCutoff = 16;
+let liveRankingCutoff = 0;
 let liveRankingDynamicPaging = true;
 let liveRankingAutoBalance = true;
 let liveRankingPageSize = 16;
@@ -121,7 +121,10 @@ function loadLiveState() {
       if (state.roundId) liveRankingRoundId = state.roundId;
       if (state.rounds && Array.isArray(state.rounds)) liveRankingRounds = state.rounds;
       if (state.top !== undefined) liveRankingTop = state.top;
-      if (state.cutoff !== undefined) liveRankingCutoff = state.cutoff;
+      if (state.cutoff !== undefined) {
+        const c = parseInt(state.cutoff, 10);
+        liveRankingCutoff = isNaN(c) || c < 0 ? 0 : c;
+      }
       if (state.dynamicPaging !== undefined) liveRankingDynamicPaging = state.dynamicPaging;
       if (state.autoBalance !== undefined) liveRankingAutoBalance = state.autoBalance;
       if (state.pageSize !== undefined) liveRankingPageSize = state.pageSize;
@@ -537,7 +540,7 @@ app.get('/api/live/rounds/:roundId', async (req, res) => {
   try {
     const { roundId } = req.params;
     const top = parseInt(req.query.top || '16', 10);
-    const cutoff = parseInt(req.query.cutoff || '16', 10);
+    const cutoff = req.query.cutoff !== undefined ? (parseInt(req.query.cutoff, 10) || 0) : liveRankingCutoff;
     const ranking = await fetchLiveRoundRanking(roundId, top, cutoff);
     liveRankingRoundId = roundId;
     liveRankingData = ranking;
@@ -1789,7 +1792,10 @@ function handleSocketConnection(ws, req) {
         if (msg.roundId) liveRankingRoundId = msg.roundId;
         if (msg.compId) liveRankingCompId = msg.compId;
         if (msg.top !== undefined) liveRankingTop = parseInt(msg.top, 10) || 16;
-        if (msg.cutoff !== undefined) liveRankingCutoff = parseInt(msg.cutoff, 10) || 16;
+        if (msg.cutoff !== undefined) {
+          const c = parseInt(msg.cutoff, 10);
+          liveRankingCutoff = isNaN(c) || c < 0 ? 0 : c;
+        }
         if (msg.dynamicPaging !== undefined) liveRankingDynamicPaging = !!msg.dynamicPaging;
         if (msg.autoBalance !== undefined) liveRankingAutoBalance = !!msg.autoBalance;
         if (msg.pageSize !== undefined) liveRankingPageSize = parseInt(msg.pageSize, 10) || 16;
@@ -1899,12 +1905,31 @@ function handleSocketConnection(ws, req) {
 
       case 'live_ranking_params':
         if (msg.top !== undefined) liveRankingTop = parseInt(msg.top, 10) || 16;
-        if (msg.cutoff !== undefined) liveRankingCutoff = parseInt(msg.cutoff, 10) || 16;
+        if (msg.cutoff !== undefined) {
+          const c = parseInt(msg.cutoff, 10);
+          liveRankingCutoff = isNaN(c) || c < 0 ? 0 : c;
+        }
         if (msg.dynamicPaging !== undefined) liveRankingDynamicPaging = !!msg.dynamicPaging;
         if (msg.autoBalance !== undefined) liveRankingAutoBalance = !!msg.autoBalance;
         if (msg.pageDuration !== undefined) liveRankingPageDuration = parseInt(msg.pageDuration, 10) || 10;
         if (msg.pageSize !== undefined) liveRankingPageSize = parseInt(msg.pageSize, 10) || 16;
         saveLiveState();
+        if (liveRankingVisible) {
+          broadcastToOverlays({
+            type: 'live_ranking_update',
+            visible: true,
+            data: liveRankingData,
+            roundId: liveRankingRoundId,
+            compId: liveRankingCompId,
+            top: liveRankingTop,
+            cutoff: liveRankingCutoff,
+            dynamicPaging: liveRankingDynamicPaging,
+            autoBalance: liveRankingAutoBalance,
+            pageSize: liveRankingPageSize,
+            pageDuration: liveRankingPageDuration,
+            viewMode: liveRankingViewMode
+          });
+        }
         break;
 
       case 'live_ranking_poll_config':
