@@ -1388,13 +1388,23 @@ function selectCompetitorDirectly(c, targetSlot) {
 }
 
 function closeAndClearSearch(targetSlot) {
-  const menuId = targetSlot === 1
-    ? 'search-results-slot-1'
-    : (targetSlot === 2 ? 'search-results-slot-2' : 'search-results-menu');
+  let menuId = 'search-results-menu';
+  let inputId = 'competitor-search-input';
+
+  if (targetSlot === 2) {
+    menuId = 'search-results-slot-2';
+    inputId = 'search-slot-2';
+  } else if (targetSlot === 1 && bannerMode === 'dual') {
+    menuId = 'search-results-slot-1';
+    inputId = 'search-slot-1';
+  } else {
+    menuId = 'search-results-menu';
+    inputId = 'competitor-search-input';
+  }
+
   const resultsMenu = document.getElementById(menuId);
   if (resultsMenu) resultsMenu.classList.remove('open');
 
-  const inputId = targetSlot === 1 ? 'search-slot-1' : (targetSlot === 2 ? 'search-slot-2' : 'competitor-search-input');
   const inp = document.getElementById(inputId);
   if (inp) inp.value = '';
 }
@@ -1504,10 +1514,16 @@ function updatePreviewUI() {
   }
 }
 
-function handleSearchInput(query, targetSlot = 1) {
-  const menuId = targetSlot === 1
-    ? 'search-results-slot-1'
-    : (targetSlot === 2 ? 'search-results-slot-2' : 'search-results-menu');
+function handleSearchInput(query, targetSlot = 'single') {
+  let menuId = 'search-results-menu';
+  if (targetSlot === 'single') {
+    menuId = 'search-results-menu';
+  } else if (targetSlot === 2) {
+    menuId = 'search-results-slot-2';
+  } else if (targetSlot === 1) {
+    menuId = (bannerMode === 'dual') ? 'search-results-slot-1' : 'search-results-menu';
+  }
+
   const resultsMenu = document.getElementById(menuId);
   if (!resultsMenu) return;
 
@@ -1517,11 +1533,18 @@ function handleSearchInput(query, targetSlot = 1) {
     return;
   }
 
-  const matches = tournamentData.competitors.filter(c =>
-    c.name.toLowerCase().includes(q) || (c.wca_id || '').toLowerCase().includes(q)
+  const allComps = tournamentData.competitors || [];
+  const matches = allComps.filter(c =>
+    (c.name || '').toLowerCase().includes(q) || (c.wca_id || '').toLowerCase().includes(q)
   ).slice(0, 8);
 
   resultsMenu.innerHTML = '';
+
+  if (matches.length === 0 && q.length < 4) {
+    resultsMenu.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:13px;text-align:center;">Sin competidores encontrados</div>';
+    resultsMenu.classList.add('open');
+    return;
+  }
   matches.forEach((c, idx) => {
     const item = document.createElement('div');
     item.className = `search-result-item ${idx === 0 ? 'highlighted' : ''}`;
@@ -2181,12 +2204,21 @@ function setupEventListeners() {
 
   if (searchInput1) {
     searchInput1.addEventListener('input', (e) => handleSearchInput(e.target.value, 1));
+    searchInput1.addEventListener('focus', (e) => {
+      if (e.target.value.trim()) handleSearchInput(e.target.value, 1);
+    });
   }
   if (searchInput2) {
     searchInput2.addEventListener('input', (e) => handleSearchInput(e.target.value, 2));
+    searchInput2.addEventListener('focus', (e) => {
+      if (e.target.value.trim()) handleSearchInput(e.target.value, 2);
+    });
   }
   if (searchInputSingle) {
-    searchInputSingle.addEventListener('input', (e) => handleSearchInput(e.target.value, 1));
+    searchInputSingle.addEventListener('input', (e) => handleSearchInput(e.target.value, 'single'));
+    searchInputSingle.addEventListener('focus', (e) => {
+      if (e.target.value.trim()) handleSearchInput(e.target.value, 'single');
+    });
   }
 
   document.addEventListener('click', (e) => {
