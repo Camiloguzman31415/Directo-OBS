@@ -1564,7 +1564,7 @@ function handleSearchInput(query, targetSlot = 'single') {
       <div class="search-result-actions">
         <button type="button" class="btn-assign-mini m1" title="Asignar a Mesa 1">M1</button>
         <button type="button" class="btn-assign-mini m2" title="Asignar a Mesa 2">M2</button>
-        <button type="button" class="btn-assign-mini sel" title="Seleccionar">Sel</button>
+        <button type="button" class="btn-assign-mini sel" title="Elegir competidor">Elegir</button>
       </div>
     `;
 
@@ -1916,7 +1916,7 @@ function filterBannerCompetitorList() {
       <div class="search-result-actions">
         <button type="button" class="btn-assign-mini m1" title="Asignar a Mesa 1">M1</button>
         <button type="button" class="btn-assign-mini m2" title="Asignar a Mesa 2">M2</button>
-        <button type="button" class="btn-assign-mini sel" title="Seleccionar">Sel</button>
+        <button type="button" class="btn-assign-mini sel" title="Elegir competidor">Elegir</button>
       </div>
     `;
 
