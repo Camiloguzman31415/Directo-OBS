@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (wcaInput && !wcaInput.value) wcaInput.value = savedTourneyComp;
   }
   setBannerMode('single', false);
+  const savedMenu = localStorage.getItem('directoobs_active_menu') || 'banners';
+  switchMainMenu(savedMenu);
   connectWebSocket();
   setupEventListeners();
   setupKeyboardShortcuts();
@@ -1061,6 +1063,8 @@ function loadTournament(data) {
 
     const badgeEl = document.getElementById('tab-directory-count');
     if (badgeEl) badgeEl.textContent = '0';
+    const navBadge = document.getElementById('nav-db-count');
+    if (navBadge) navBadge.textContent = '0';
     const countTextEl = document.getElementById('directory-count-text');
     if (countTextEl) countTextEl.textContent = '0 competidores';
     const filterTag = document.getElementById('directory-filter-badge');
@@ -1699,6 +1703,8 @@ function filterCompetitorList() {
   });
 
   if (badgeEl) badgeEl.textContent = allComps.length;
+  const navBadge = document.getElementById('nav-db-count');
+  if (navBadge) navBadge.textContent = allComps.length;
   if (filterTag) filterTag.style.display = isFiltered ? 'inline-block' : 'none';
 
   if (countTextEl) {
@@ -1975,7 +1981,24 @@ function updateOverlayCount(count) {
   badge.textContent = `${count} overlay(s) OBS`;
 }
 
+function switchMainMenu(menuKey) {
+  document.querySelectorAll('.deck-nav-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.nav === menuKey);
+  });
+  document.querySelectorAll('.main-view-panel').forEach(view => {
+    view.classList.toggle('active', view.id === `view-${menuKey}`);
+  });
+  localStorage.setItem('directoobs_active_menu', menuKey);
+}
+
 function switchTab(tabId) {
+  if (['database', 'scenes', 'banners'].includes(tabId)) {
+    switchMainMenu(tabId);
+    return;
+  }
+  if (tabId === 'wca' || tabId === 'directory' || tabId === 'json' || tabId === 'live') {
+    switchMainMenu('database');
+  }
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabId);
   });

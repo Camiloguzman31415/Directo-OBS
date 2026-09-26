@@ -18,6 +18,7 @@ check_obs_temp.mjs
 navegador_screenshot.png
 navegador_test.png
 prueba_with_overlay.jpg
+live_state.json
 
 # Sistema operativo
 .DS_Store

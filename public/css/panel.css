@@ -662,31 +662,147 @@ header.broadcast-bar {
   letter-spacing: 0.5px;
 }
 
-/* ━━━ MAIN WORKSPACE LAYOUT ━━━ */
+/* ━━━ BARRA DE MENÚS PRINCIPALES (ADMIN DECK NAV) ━━━ */
+.main-deck-nav {
+  display: flex;
+  background: #0b0e17;
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  gap: 8px;
+  position: sticky;
+  top: 64px;
+  z-index: 95;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.deck-nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  outline: none;
+}
+
+.deck-nav-tab:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.deck-nav-tab.active {
+  color: #FFFFFF;
+  border-bottom-color: var(--accent);
+  background: linear-gradient(180deg, rgba(0, 200, 255, 0.04) 0%, rgba(0, 200, 255, 0.12) 100%);
+}
+
+.nav-tab-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.nav-tab-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-tab-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.deck-nav-tab.active .nav-tab-title {
+  color: var(--accent);
+}
+
+.nav-tab-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.nav-tab-count {
+  background: rgba(0, 200, 255, 0.2);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Space Mono', monospace;
+  margin-left: 6px;
+}
+
+/* ━━━ MAIN WORKSPACE LAYOUT & VISTAS ━━━ */
 main.deck-workspace {
   flex: 1;
-  padding: 24px;
-  display: grid;
-  grid-template-columns: 340px 1fr 380px;
-  gap: 20px;
+  padding: 20px 24px 36px;
+  display: flex;
+  flex-direction: column;
   max-width: 1920px;
   margin: 0 auto;
   width: 100%;
 }
 
-@media (max-width: 1400px) {
-  main.deck-workspace {
-    grid-template-columns: 300px 1fr 340px;
-    gap: 16px;
-    padding: 16px;
-  }
+.main-view-panel {
+  display: none;
+  width: 100%;
 }
 
-@media (max-width: 1100px) {
-  main.deck-workspace {
+.main-view-panel.active {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeInView 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInView {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Layout específico para Banners */
+.view-banners-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Layout específico para Base de Datos */
+.view-database-grid {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Layout específico para Escenas */
+.view-scenes-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.view-scenes-grid {
+  display: grid;
+  grid-template-columns: 360px 1.2fr 340px;
+  gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 1300px) {
+  .view-banners-grid,
+  .view-database-grid,
+  .view-scenes-grid {
     grid-template-columns: 1fr;
-    display: flex;
-    flex-direction: column;
   }
 }
 
