@@ -121,13 +121,26 @@
     flex-direction: column;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    transition: opacity 0.4s ease-in,
+                transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
                 left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 top 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 20;
+    will-change: transform, opacity;
+  }
+
+  /* Entrada fluida al hacerse visible (desciende desde arriba) */
+  #banner.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.35s ease-out,
+                transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+                left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                top 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* Posicionamiento Vertical */
@@ -144,33 +157,33 @@
   #banner.align-left {
     left: 40px;
     right: auto;
-    transform: translateY(-24px) scale(0.98);
+    transform: translateY(calc(-100% - 80px));
   }
   #banner.pos-bottom.align-left {
-    transform: translateY(24px) scale(0.98);
+    transform: translateY(-100vh);
   }
   #banner.align-left.visible {
     opacity: 1;
     pointer-events: auto;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 
   /* Alineación Horizontal: Centro */
   #banner.align-center {
     left: 50% !important;
     right: auto !important;
-    transform: translateX(-50%) translateY(-24px) scale(0.98) !important;
+    transform: translateX(-50%) translateY(calc(-100% - 80px)) !important;
   }
   #banner.pos-bottom.align-center {
     left: 50% !important;
     right: auto !important;
-    transform: translateX(-50%) translateY(24px) scale(0.98) !important;
+    transform: translateX(-50%) translateY(-100vh) !important;
   }
   #banner.align-center.visible {
     opacity: 1;
     pointer-events: auto;
     left: 50% !important;
-    transform: translateX(-50%) translateY(0) scale(1) !important;
+    transform: translateX(-50%) translateY(0) !important;
   }
 
   /* ━━━ CABECERA DEL BANNER ━━━ */
