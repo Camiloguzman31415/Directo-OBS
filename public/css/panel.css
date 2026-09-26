@@ -2537,30 +2537,119 @@ main.deck-workspace {
   font-weight: 900;
 }
 
-/* Botones de asignación rápida en lista de directorio */
+/* Botones de asignación rápida en lista y búsqueda de Banners */
+.search-result-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .btn-assign-mini {
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text-muted);
   font-family: 'Space Mono', monospace;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 3px 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-assign-mini:hover {
+  filter: brightness(1.15);
+}
+
+.btn-assign-mini.m1 {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: #38bdf8;
+  color: #38bdf8;
 }
 
 .btn-assign-mini.m1:hover {
   background: #38bdf8;
   color: #000;
-  border-color: #38bdf8;
+}
+
+.btn-assign-mini.m2 {
+  background: rgba(251, 146, 60, 0.12);
+  border-color: #fb923c;
+  color: #fb923c;
 }
 
 .btn-assign-mini.m2:hover {
   background: #fb923c;
   color: #000;
-  border-color: #fb923c;
+}
+
+.btn-assign-mini.sel {
+  background: rgba(0, 200, 255, 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-assign-mini.sel:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* Fila de competidor en Base de Datos (Solo lectura) */
+.comp-list-row.readonly {
+  cursor: default;
+}
+
+.comp-list-row.readonly:hover {
+  transform: none;
+  border-color: var(--border);
+  background: var(--surface-card);
+}
+
+/* Fila de competidor en lista rápida de Banners */
+.banner-comp-row {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all var(--transition-fast);
+}
+
+.banner-comp-row:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
+}
+
+.banner-comp-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  cursor: pointer;
+  flex: 1;
+}
+
+.banner-comp-info:hover .banner-comp-name {
+  color: var(--accent);
+}
+
+.banner-comp-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.banner-comp-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: 'Space Mono', monospace;
 }
 
 /* ══════════════════════════════════════════════════════════════════

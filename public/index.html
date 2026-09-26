@@ -304,6 +304,27 @@
                 </div>
               </div>
 
+              <!-- ASIGNACIÓN RÁPIDA DE COMPETIDORES EN BANNER (M1, M2, SELECCIÓN DIRECTA) -->
+              <div class="banner-comp-directory-box" style="margin-top:14px;border:1px solid var(--border);background:rgba(255,255,255,0.02);border-radius:var(--radius-sm);padding:10px 12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:13px;">👥</span>
+                    <span style="font-size:12px;font-weight:700;color:var(--text-main);letter-spacing:0.3px;">Asignación Rápida de Inscritos</span>
+                  </div>
+                  <button type="button" class="btn-tactile btn-secondary btn-sm" id="btn-toggle-banner-comp-list" onclick="toggleBannerCompList()" style="padding:4px 10px;font-size:11px;font-weight:700;">
+                    <span id="banner-comp-list-toggle-icon">▶</span> <span id="banner-comp-list-btn-text">Abrir Lista</span> (<span id="banner-comp-count">0</span>)
+                  </button>
+                </div>
+
+                <div id="banner-comp-list-drawer" style="display:none;margin-top:10px;">
+                  <div style="display:flex;gap:8px;margin-bottom:8px;">
+                    <input type="text" class="form-input" id="banner-comp-search-input" placeholder="Filtrar competidor..." oninput="filterBannerCompetitorList()" style="height:32px;font-size:12px;flex:1;">
+                    <select class="select-filter" id="banner-comp-event-filter" onchange="filterBannerCompetitorList()" style="height:32px;font-size:12px;max-width:140px;"></select>
+                  </div>
+                  <div id="banner-comp-scroll-list" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:2px;"></div>
+                </div>
+              </div>
+
               <!-- PREVISUALIZACIÓN BROADCAST SCOREBOARD -->
               <div class="card-preview-container" style="margin-top:16px;">
                 <div class="preview-header-bar">
@@ -1051,7 +1072,10 @@
               <div class="panel-title">
                 <span class="icon">👥</span> Directorio de Competidores Inscritos
               </div>
-              <span class="tab-badge" id="tab-directory-count" style="display:none;">0</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="badge-readonly" style="font-size:10px;font-family:'Space Mono',monospace;padding:3px 7px;border-radius:4px;background:rgba(255,255,255,0.06);color:var(--text-muted);border:1px solid var(--border);font-weight:700;">SOLO LECTURA</span>
+                <span class="tab-badge" id="tab-directory-count" style="display:none;">0</span>
+              </div>
             </div>
 
             <div class="panel-body" style="display:flex;flex-direction:column;gap:12px;flex:1;">

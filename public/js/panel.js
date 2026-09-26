@@ -1094,8 +1094,9 @@ function loadTournament(data) {
   // Renderizar selector de filtro de eventos
   renderEventFilterOptions(data.events || []);
 
-  // Renderizar lista de competidores en el panel derecho
+  // Renderizar lista de competidores en Base de Datos y en Banners
   filterCompetitorList();
+  filterBannerCompetitorList();
 
   // Actualizar evento activo al nuevo torneo
   if (data.events && data.events.length > 0) {
@@ -1361,14 +1362,41 @@ function swapTables() {
 }
 
 function selectCompetitor(c, slot = 1) {
+  if (slot === 2 && bannerMode === 'single') {
+    setBannerMode('dual');
+  }
   if (slot === 1) {
     currentCompetitor = c;
-    showToast(`Mesa 1: ${c.name}`);
+    showToast(`Mesa 1: ${c.name}`, 'info');
   } else if (slot === 2) {
     currentCompetitor2 = c;
-    showToast(`Mesa 2: ${c.name}`);
+    showToast(`Mesa 2: ${c.name}`, 'info');
   }
   updatePreviewUI();
+}
+
+function selectCompetitorDirectly(c, targetSlot) {
+  if (targetSlot === 1 || targetSlot === 2) {
+    selectCompetitor(c, targetSlot);
+  } else if (bannerMode === 'dual') {
+    if (!currentCompetitor) selectCompetitor(c, 1);
+    else if (!currentCompetitor2) selectCompetitor(c, 2);
+    else selectCompetitor(c, 1);
+  } else {
+    selectCompetitor(c, 1);
+  }
+}
+
+function closeAndClearSearch(targetSlot) {
+  const menuId = targetSlot === 1
+    ? 'search-results-slot-1'
+    : (targetSlot === 2 ? 'search-results-slot-2' : 'search-results-menu');
+  const resultsMenu = document.getElementById(menuId);
+  if (resultsMenu) resultsMenu.classList.remove('open');
+
+  const inputId = targetSlot === 1 ? 'search-slot-1' : (targetSlot === 2 ? 'search-slot-2' : 'competitor-search-input');
+  const inp = document.getElementById(inputId);
+  if (inp) inp.value = '';
 }
 
 function renderPill(slot, comp) {
@@ -1503,24 +1531,41 @@ function handleSearchInput(query, targetSlot = 1) {
       : '';
 
     item.innerHTML = `
-      <div class="search-result-left">
+      <div class="search-result-left" style="flex:1;min-width:0;">
         ${flagHtml}
-        <div>
-          <div class="search-result-name">${c.name}</div>
+        <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;">
+          <div class="search-result-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
           <div class="search-result-meta">${c.wca_id || 'NUEVO COMPETIDOR'} · ${c.country}</div>
         </div>
       </div>
-      <div>
-        ${c.is_new ? '<span class="comp-list-badge new">NUEVO</span>' : '<span class="comp-list-badge">WCA</span>'}
+      <div class="search-result-actions">
+        <button type="button" class="btn-assign-mini m1" title="Asignar a Mesa 1">M1</button>
+        <button type="button" class="btn-assign-mini m2" title="Asignar a Mesa 2">M2</button>
+        <button type="button" class="btn-assign-mini sel" title="Seleccionar">Sel</button>
       </div>
     `;
 
+    item.querySelector('.btn-assign-mini.m1')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectCompetitor(c, 1);
+      closeAndClearSearch(targetSlot);
+    });
+
+    item.querySelector('.btn-assign-mini.m2')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectCompetitor(c, 2);
+      closeAndClearSearch(targetSlot);
+    });
+
+    item.querySelector('.btn-assign-mini.sel')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectCompetitorDirectly(c, targetSlot);
+      closeAndClearSearch(targetSlot);
+    });
+
     item.onclick = () => {
-      selectCompetitor(c, targetSlot);
-      resultsMenu.classList.remove('open');
-      const inputId = targetSlot === 1 ? 'search-slot-1' : (targetSlot === 2 ? 'search-slot-2' : 'competitor-search-input');
-      const inp = document.getElementById(inputId);
-      if (inp) inp.value = '';
+      selectCompetitorDirectly(c, targetSlot);
+      closeAndClearSearch(targetSlot);
     };
 
     resultsMenu.appendChild(item);
@@ -1669,15 +1714,30 @@ function updateVisibilityStates(compVis, evVis) {
 // ── Lista y Filtros de Competidores ──
 function renderEventFilterOptions(events) {
   const sel = document.getElementById('competitor-event-filter');
-  sel.innerHTML = '<option value="">Todos los eventos</option>';
-  events.forEach(ev => {
-    const opt = document.createElement('option');
-    opt.value = ev.event_id;
-    opt.textContent = ev.name;
-    sel.appendChild(opt);
-  });
+  if (sel) {
+    sel.innerHTML = '<option value="">Todos los eventos</option>';
+    events.forEach(ev => {
+      const opt = document.createElement('option');
+      opt.value = ev.event_id;
+      opt.textContent = ev.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  const bannerSel = document.getElementById('banner-comp-event-filter');
+  if (bannerSel) {
+    bannerSel.innerHTML = '<option value="">Todos los eventos</option>';
+    events.forEach(ev => {
+      const opt = document.createElement('option');
+      opt.value = ev.event_id;
+      opt.textContent = ev.name;
+      bannerSel.appendChild(opt);
+    });
+    if (selectedEventId) bannerSel.value = selectedEventId;
+  }
 }
 
+// Directorio en Base de Datos: SOLO LECTURA
 function filterCompetitorList() {
   const badgeEl = document.getElementById('tab-directory-count');
   const countTextEl = document.getElementById('directory-count-text');
@@ -1716,6 +1776,7 @@ function filterCompetitorList() {
   }
 
   const listContainer = document.getElementById('competitors-scroll-list');
+  if (!listContainer) return;
   listContainer.innerHTML = '';
 
   if (filtered.length === 0) {
@@ -1725,23 +1786,114 @@ function filterCompetitorList() {
 
   filtered.forEach(c => {
     const row = document.createElement('div');
-    row.className = 'comp-list-row';
+    row.className = 'comp-list-row readonly';
 
     const flagHtml = c.country
       ? `<img src="https://flagcdn.com/w40/${c.country.toLowerCase()}.png" style="width:20px;height:14px;border-radius:2px;" onerror="this.style.display='none'">`
       : '';
 
+    const eventsCount = Array.isArray(c.events) ? c.events.length : 0;
+    const eventsBadges = Array.isArray(c.events)
+      ? c.events.slice(0, 4).map(ev => `<span style="font-size:10px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;color:var(--text-muted);">${ev}</span>`).join(' ')
+      : '';
+    const moreEvents = eventsCount > 4 ? `<span style="font-size:10px;color:var(--text-dim);font-weight:700;">+${eventsCount - 4}</span>` : '';
+
     row.innerHTML = `
-      <div class="comp-list-info">
+      <div class="comp-list-info" style="gap:12px;">
         ${flagHtml}
         <div>
-          <div class="comp-list-name">${c.name}</div>
-          <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace;">${c.wca_id || 'NUEVO'}</div>
+          <div class="comp-list-name" style="font-weight:600;">${c.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace;display:flex;align-items:center;gap:6px;">
+            <span>${c.wca_id || 'NUEVO'}</span>
+            <span>·</span>
+            <span>${c.country || ''}</span>
+          </div>
         </div>
       </div>
-      <div class="comp-list-actions" style="display:flex;gap:6px;align-items:center;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          ${eventsBadges} ${moreEvents}
+        </div>
+        ${c.is_new ? '<span class="comp-list-badge new">NUEVO</span>' : '<span class="comp-list-badge">WCA</span>'}
+      </div>
+    `;
+
+    listContainer.appendChild(row);
+  });
+}
+
+// ── Asignación Rápida de Competidores en Vista BANNERS ──
+let bannerCompListOpen = false;
+
+function toggleBannerCompList() {
+  bannerCompListOpen = !bannerCompListOpen;
+  const drawer = document.getElementById('banner-comp-list-drawer');
+  const icon = document.getElementById('banner-comp-list-toggle-icon');
+  const btnText = document.getElementById('banner-comp-list-btn-text');
+
+  if (drawer) {
+    drawer.style.display = bannerCompListOpen ? 'block' : 'none';
+  }
+  if (icon) {
+    icon.textContent = bannerCompListOpen ? '▼' : '▶';
+  }
+  if (btnText) {
+    btnText.textContent = bannerCompListOpen ? 'Cerrar Lista' : 'Abrir Lista';
+  }
+
+  if (bannerCompListOpen) {
+    filterBannerCompetitorList();
+  }
+}
+
+function filterBannerCompetitorList() {
+  const countBadge = document.getElementById('banner-comp-count');
+  if (!tournamentData) {
+    if (countBadge) countBadge.textContent = '0';
+    return;
+  }
+
+  const allComps = tournamentData.competitors || [];
+  if (countBadge) countBadge.textContent = allComps.length;
+
+  const searchQ = (document.getElementById('banner-comp-search-input')?.value || '').toLowerCase();
+  const eventF = document.getElementById('banner-comp-event-filter')?.value || '';
+
+  const filtered = allComps.filter(c => {
+    if (searchQ && !c.name.toLowerCase().includes(searchQ) && !(c.wca_id || '').toLowerCase().includes(searchQ)) return false;
+    if (eventF && !c.events.includes(eventF)) return false;
+    return true;
+  });
+
+  const listContainer = document.getElementById('banner-comp-scroll-list');
+  if (!listContainer) return;
+  listContainer.innerHTML = '';
+
+  if (filtered.length === 0) {
+    listContainer.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:10px;text-align:center;">Sin coincidencias</div>';
+    return;
+  }
+
+  filtered.slice(0, 60).forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'banner-comp-row';
+
+    const flagHtml = c.country
+      ? `<img src="https://flagcdn.com/w40/${c.country.toLowerCase()}.png" style="width:18px;height:12px;border-radius:2px;" onerror="this.style.display='none'">`
+      : '';
+
+    row.innerHTML = `
+      <div class="banner-comp-info" title="Haga clic para seleccionar">
+        ${flagHtml}
+        <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;">
+          <div class="banner-comp-name">${c.name}</div>
+          <div class="banner-comp-meta">${c.wca_id || 'NUEVO'} · ${c.country || ''}</div>
+        </div>
+      </div>
+      <div class="search-result-actions">
         <button type="button" class="btn-assign-mini m1" title="Asignar a Mesa 1">M1</button>
         <button type="button" class="btn-assign-mini m2" title="Asignar a Mesa 2">M2</button>
+        <button type="button" class="btn-assign-mini sel" title="Seleccionar">Sel</button>
       </div>
     `;
 
@@ -1755,20 +1907,19 @@ function filterCompetitorList() {
       selectCompetitor(c, 2);
     });
 
-    row.onclick = () => {
-      if (bannerMode === 'dual') {
-        if (!currentCompetitor) selectCompetitor(c, 1);
-        else if (!currentCompetitor2) selectCompetitor(c, 2);
-        else selectCompetitor(c, 1);
-      } else {
-        selectCompetitor(c, 1);
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    row.querySelector('.btn-assign-mini.sel')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectCompetitorDirectly(c);
+    });
+
+    row.querySelector('.banner-comp-info')?.addEventListener('click', () => {
+      selectCompetitorDirectly(c);
+    });
 
     listContainer.appendChild(row);
   });
 }
+
 
 // ── Ingesta WCA Directa y Refresco de Directorio ──
 async function refreshTournamentDirectory() {
