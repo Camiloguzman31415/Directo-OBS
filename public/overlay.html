@@ -920,6 +920,11 @@
     display: block !important;
   }
 
+  /* Si la página NO es la ruta dedicada /fullscreen, NUNCA mostrar el overlay de pantalla completa */
+  body:not(.is-fullscreen-page) #fullscreen-ranking-overlay {
+    display: none !important;
+  }
+
   /* Si la página es la ruta dedicada /fullscreen, ocultar banners de competidor y evento */
   body.is-fullscreen-page #banner,
   body.is-fullscreen-page #event-badge,
@@ -2819,14 +2824,19 @@
       fsRoundName.textContent = data.roundName || 'Final';
     }
 
-    // Determinar modo activo: si la URL es /fullscreen, forzar fullscreen; sino respetar viewMode
-    const activeMode = isDedicatedFullscreen ? 'fullscreen' : (liveRankingConfig.viewMode || 'fullscreen');
-    if (activeMode === 'fullscreen') {
+    // Determinar modo activo:
+    // La pantalla completa (fsOverlay) SOLO se muestra en la ruta dedicada /fullscreen.
+    // En la ruta /overlay normal NUNCA se muestra la pantalla completa gigante, solo el mini widget si viewMode es 'widget'.
+    if (isDedicatedFullscreen) {
       if (lrOverlay) lrOverlay.classList.remove('visible');
       if (fsOverlay) fsOverlay.classList.add('visible');
     } else {
       if (fsOverlay) fsOverlay.classList.remove('visible');
-      if (lrOverlay) lrOverlay.classList.add('visible');
+      if (liveRankingConfig.viewMode === 'widget') {
+        if (lrOverlay) lrOverlay.classList.add('visible');
+      } else {
+        if (lrOverlay) lrOverlay.classList.remove('visible');
+      }
     }
 
     renderCurrentPage(false);
@@ -3051,14 +3061,14 @@
         if (st.fsTheme) {
           applyFsTheme(st.fsTheme);
         }
-        if (st.data && (isDedicatedFullscreen || st.visible)) {
+        if (st.data && (isDedicatedFullscreen ? true : (st.visible && st.viewMode === 'widget'))) {
           renderLiveRanking({
             data: st.data,
             dynamicPaging: st.dynamicPaging,
             autoBalance: st.autoBalance,
             pageSize: st.pageSize,
             pageDuration: st.pageDuration,
-            viewMode: isDedicatedFullscreen ? 'fullscreen' : (st.viewMode || 'fullscreen')
+            viewMode: isDedicatedFullscreen ? 'fullscreen' : (st.viewMode || 'widget')
           });
         }
       }
