@@ -3157,8 +3157,9 @@ function renderLiveRankingPreview(rankingObj) {
     const isFinalSolve = (r.solvesCompleted === 4 && (r.totalSolves === 5 || !r.totalSolves));
     const solvesPillClass = isFinalSolve ? 'final-solve' : (r.inProgress ? 'in-progress' : 'completed');
     const flagIso = (r.countryIso2 || 'co').toLowerCase();
-    const recTag = r.recordTag ? `<span class="live-record-badge">${r.recordTag}</span>` : '';
-    const displayTime = r.displayTime || (r.solvesCompleted > 0 ? (r.averageFormatted !== '—' ? r.averageFormatted : r.bestFormatted) : '—');
+    const isProj = !!r.isProjected;
+    const displayTime = r.displayTime || (r.solvesCompleted > 0 ? (r.projectedAverageFormatted || r.averageFormatted || r.bestFormatted) : '—');
+    const timeStyle = isProj ? 'color:#38bdf8;font-style:italic;' : 'color:#f8fafc;';
 
     let targetsBadges = '';
     if (r.podiumTargets && Array.isArray(r.podiumTargets) && r.podiumTargets.length > 0) {
@@ -3183,7 +3184,7 @@ function renderLiveRankingPreview(rankingObj) {
         <td style="text-align:center;">
           <span class="live-solves-pill ${solvesPillClass}" style="${isFinalSolve ? 'color:#f87171;font-weight:800;' : ''}">${r.solvesText || `${r.solvesCompleted || 0}/${r.totalSolves || 5}`}</span>
         </td>
-        <td style="text-align:right;font-family:'Space Mono',monospace;font-weight:700;">
+        <td style="text-align:right;font-family:'Space Mono',monospace;font-weight:700;${timeStyle}" title="${isProj ? 'Promedio Proyectado' : 'Promedio Oficial'}">
           ${recTag}${displayTime}
         </td>
       </tr>

@@ -292,6 +292,11 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
     const avgFormatted = formatWcaTime(r.average, eventId);
     const bestFormatted = formatWcaTime(r.best, eventId);
 
+    const inProgress = completedSolves > 0 && completedSolves < totalAttempts;
+    const rawAttemptsList = attempts.map(a => (a && typeof a.result === 'number') ? a.result : 0);
+    const projAvg = completedSolves === totalAttempts ? r.average : calculateProjectedAverage(rawAttemptsList, eventId);
+    const projAvgFormatted = projAvg !== null ? (projAvg === -1 ? 'DNF' : formatWcaTime(projAvg, eventId)) : '—';
+
     return {
       ranking: rankPos,
       isAdvancing,
@@ -301,12 +306,16 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
       solvesCompleted: completedSolves,
       totalSolves: totalAttempts,
       solvesText: `${completedSolves}/${totalAttempts}`,
-      inProgress: completedSolves > 0 && completedSolves < totalAttempts,
+      inProgress,
+      isFinalSolve: totalAttempts === 5 && completedSolves === 4,
+      isProjected: inProgress,
+      projectedAverage: projAvg,
+      projectedAverageFormatted: projAvgFormatted,
       average: r.average,
       averageFormatted: avgFormatted,
       best: r.best,
       bestFormatted: bestFormatted,
-      displayTime: isAverageRanked ? avgFormatted : bestFormatted,
+      displayTime: isAverageRanked ? (inProgress ? projAvgFormatted : avgFormatted) : bestFormatted,
       singleRecordTag: r.singleRecordTag || null,
       averageRecordTag: r.averageRecordTag || null,
       recordTag: r.averageRecordTag || r.singleRecordTag || null,
@@ -323,6 +332,36 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
         : null
     };
   });
+
+  // Si la ronda está en curso, ordenar según el estándar oficial de WCA Live Forecast View
+  if (!round.finished) {
+    function toMonotonic(val) {
+      if (typeof val === 'number' && val > 0) return val;
+      return Infinity;
+    }
+
+    rankingList.sort((a, b) => {
+      if (a.solvesCompleted === 0 && b.solvesCompleted === 0) return (a.ranking || 999) - (b.ranking || 999);
+      if (a.solvesCompleted > 0 && b.solvesCompleted === 0) return -1;
+      if (a.solvesCompleted === 0 && b.solvesCompleted > 0) return 1;
+
+      const projA = toMonotonic(a.projectedAverage);
+      const projB = toMonotonic(b.projectedAverage);
+      if (projA !== projB) return projA - projB;
+
+      const bestA = toMonotonic(a.best);
+      const bestB = toMonotonic(b.best);
+      if (bestA !== bestB) return bestA - bestB;
+
+      return (b.solvesCompleted || 0) - (a.solvesCompleted || 0);
+    });
+
+    // Reasignar posiciones proyectadas
+    rankingList.forEach((r, idx) => {
+      r.ranking = idx + 1;
+      r.isAdvancing = advancingCutoff > 0 ? (r.ranking <= advancingCutoff) : false;
+    });
+  }
 
   return {
     roundId: round.id,
@@ -428,6 +467,52 @@ function calculateAo5Stats(attemptsRaw, eventId = '333') {
 }
 
 /**
+ * Calcula el promedio proyectado según la especificación oficial de WCA Live (Forecast View):
+ * - 1 o 2 solves: media aritmética de los intentos.
+ * - 3 solves: mediana (el intento intermedio).
+ * - 4 solves: media de los dos intentos centrales (descartando el mejor y el peor hasta ahora).
+ * - 5 solves: promedio oficial Ao5.
+ */
+function calculateProjectedAverage(rawAttempts, eventId = '333') {
+  const completeAttempts = (rawAttempts || []).filter(r => typeof r === 'number' && r !== 0);
+  if (completeAttempts.length === 0) return null;
+
+  const sorted = [...completeAttempts].sort((a, b) => {
+    const isCompA = a > 0;
+    const isCompB = b > 0;
+    if (!isCompA && !isCompB) return 0;
+    if (!isCompA && isCompB) return 1;
+    if (isCompA && !isCompB) return -1;
+    return a - b;
+  });
+
+  const count = completeAttempts.length;
+
+  if (count < 3) {
+    if (completeAttempts.some(x => x < 0)) return -1;
+    const sum = completeAttempts.reduce((acc, v) => acc + v, 0);
+    return Math.round(sum / count);
+  }
+
+  if (count === 3) {
+    return sorted[1];
+  }
+
+  if (count === 4) {
+    if (sorted[1] < 0 || sorted[2] < 0) return -1;
+    return Math.round((sorted[1] + sorted[2]) / 2);
+  }
+
+  if (count >= 5) {
+    const [, x, y, z] = sorted;
+    if (x < 0 || y < 0 || z < 0) return -1;
+    return Math.round((x + y + z) / 3);
+  }
+
+  return null;
+}
+
+/**
  * Calcula los tiempos de solve necesarios para alcanzar puestos de podio (1st, 2nd, 3rd)
  * en la última solve (cuando el competidor tiene 4/5 intentos completados en formato Ao5).
  */
@@ -455,10 +540,10 @@ function calculatePodiumTargets(attemptsRaw, otherResults, eventId = '333') {
     wpa = Math.round((sorted[1] + sorted[2] + sorted[3]) / 3);
   }
 
-  // Extraer los promedios válidos ya fijados por otros competidores en la ronda
+  // Extraer los promedios válidos (cerrados o proyectados) de otros competidores en la ronda
   const otherAverages = (otherResults || [])
-    .filter(other => typeof other.average === 'number' && other.average > 0)
-    .map(other => other.average)
+    .map(other => other.projectedAverage || other.average)
+    .filter(val => typeof val === 'number' && val > 0)
     .sort((a, b) => a - b);
 
   function getMaxSolveForTarget(T) {
@@ -622,6 +707,7 @@ export {
   fetchLiveCompetitionRounds,
   fetchLiveRoundRanking,
   calculateAo5Stats,
+  calculateProjectedAverage,
   calculatePodiumTargets,
   fetchLiveVersusData
 };

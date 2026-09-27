@@ -5,7 +5,7 @@
  * y cambios de liderazgo en tiempo real.
  */
 
-import { calculateAo5Stats, calculatePodiumTargets, formatWcaTime } from './wcaLiveService.js';
+import { calculateAo5Stats, calculateProjectedAverage, calculatePodiumTargets, formatWcaTime } from './wcaLiveService.js';
 
 let demoTimer = null;
 let currentStepIndex = 0;
@@ -91,6 +91,10 @@ function buildRankingState(stepProgress) {
     const inProgress = numDone > 0 && numDone < 5;
     const isFinalSolve = numDone === 4;
 
+    // Promedio proyectado oficial WCA Live Forecast
+    const projAvg = hasFinished ? stats.avg : calculateProjectedAverage(rawAttemptsList, eventId);
+    const projAvgFormatted = projAvg !== null ? (projAvg === -1 ? 'DNF' : formatWcaTime(projAvg, eventId)) : '—';
+
     // Mejor single
     const validRaw = rawAttemptsList.filter(r => r > 0);
     const bestRaw = validRaw.length > 0 ? Math.min(...validRaw) : null;
@@ -106,49 +110,54 @@ function buildRankingState(stepProgress) {
       inProgress,
       isFinalSolve,
       hasFinished,
+      isProjected: inProgress,
+      projectedAverage: projAvg,
+      projectedAverageFormatted: projAvgFormatted,
       average: hasFinished ? stats.avg : null,
       averageFormatted: hasFinished ? stats.avgFormatted : '—',
+      bpa: stats.bpa,
+      bpaFormatted: stats.bpaFormatted,
+      wpa: stats.wpa,
+      wpaFormatted: stats.wpaFormatted,
       best: bestRaw,
       bestFormatted: bestRaw ? formatWcaTime(bestRaw, eventId) : '—',
-      displayTime: hasFinished ? stats.avgFormatted : (bestRaw ? formatWcaTime(bestRaw, eventId) : '—'),
+      displayTime: hasFinished ? stats.avgFormatted : (inProgress ? projAvgFormatted : '—'),
       recordTag: hasFinished ? comp.finalRecord : null,
       attempts: attempts.map(a => formatWcaTime(a.result, eventId)),
       rawAttempts: attempts
     };
   });
 
-  // 2. Ordenar ranking según las reglas oficiales WCA:
-  // - Los que tienen promedio terminado (5/5) ordenados por promedio ascendente
-  // - Luego los que están en progreso ordenados por mejor tiempo o progreso
-  // - Luego los que no han empezado
+  // 2. Ordenar ranking según el estándar oficial de WCA Live (Forecast View):
+  // - Ordena por promedio proyectado (projectedAverage) ascendente
+  // - Desempata por mejor single (best)
+  // - Los competidores que no han empezado (0 solves) quedan al final
+  function toMonotonic(val) {
+    if (typeof val === 'number' && val > 0) return val;
+    return Infinity;
+  }
+
   rawList.sort((a, b) => {
-    // Si ambos terminaron con promedio
-    if (a.hasFinished && b.hasFinished) {
-      const avgA = a.average < 0 ? Infinity : (a.average || Infinity);
-      const avgB = b.average < 0 ? Infinity : (b.average || Infinity);
-      if (avgA !== avgB) return avgA - avgB;
-      // Desempate por mejor single
-      const bestA = a.best || Infinity;
-      const bestB = b.best || Infinity;
-      return bestA - bestB;
-    }
-    // El que terminó va por delante del que está en progreso (si su promedio es bueno)
-    if (a.hasFinished && !b.hasFinished) {
-      if (b.solvesCompleted === 0) return -1;
-      // Si el competidor b tiene BPA peor que el promedio de a, a va antes
-      return -1;
-    }
-    if (!a.hasFinished && b.hasFinished) {
-      if (a.solvesCompleted === 0) return 1;
-      return 1;
-    }
-    // Si ambos están en progreso o no han empezado
+    if (a.solvesCompleted === 0 && b.solvesCompleted === 0) return 0;
     if (a.solvesCompleted > 0 && b.solvesCompleted === 0) return -1;
     if (a.solvesCompleted === 0 && b.solvesCompleted > 0) return 1;
-    // Si ambos en progreso, ordenar por mejor tiempo
-    const bA = a.best || Infinity;
-    const bB = b.best || Infinity;
-    return bA - bB;
+
+    // 1. Promedio proyectado
+    const projA = toMonotonic(a.projectedAverage);
+    const projB = toMonotonic(b.projectedAverage);
+    if (projA !== projB) {
+      return projA - projB;
+    }
+
+    // 2. Desempate por mejor single
+    const bestA = toMonotonic(a.best);
+    const bestB = toMonotonic(b.best);
+    if (bestA !== bestB) {
+      return bestA - bestB;
+    }
+
+    // 3. Más solves completados primero
+    return (b.solvesCompleted || 0) - (a.solvesCompleted || 0);
   });
 
   // Asignar puestos numéricos

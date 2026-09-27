@@ -1040,6 +1040,12 @@
     letter-spacing: 0.3px;
   }
 
+  .time-value.projected-time {
+    color: #7dd3fc;
+    font-style: italic;
+    opacity: 0.95;
+  }
+
   /* Badges de Récords (Mini Widget) */
   .record-tag-badge {
     display: inline-flex;
@@ -3974,7 +3980,9 @@
 
             const rowClass = podiumPopoverHtml ? 'ranking-row has-podium-target' : 'ranking-row';
 
-            const displayTime = r.displayTime || (r.solvesCompleted > 0 ? (r.averageFormatted !== '—' ? r.averageFormatted : r.bestFormatted) : '—');
+            const isProj = !!r.isProjected;
+            const timeClass = isProj ? 'time-value projected-time' : 'time-value';
+            const displayTime = r.displayTime || (r.solvesCompleted > 0 ? (r.projectedAverageFormatted || r.averageFormatted || r.bestFormatted) : '—');
 
             return `
               <div class="${rowClass}">
@@ -3990,7 +3998,7 @@
                 </div>
                 <div class="avg-cell">
                   ${recBadge}
-                  <span class="time-value">${displayTime}</span>
+                  <span class="${timeClass}" title="${isProj ? 'Promedio Proyectado (WCA Forecast)' : 'Promedio Oficial'}">${displayTime}</span>
                 </div>
                 ${podiumPopoverHtml}
               </div>
