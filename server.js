@@ -127,6 +127,74 @@ let fsTheme = {
 
 const LIVE_STATE_FILE = path.join(__dirname, 'live_state.json');
 
+// ── Almacenamiento local persistente de fotos de perfil (Avatares WCA) ──
+const AVATARS_DIR = path.join(__dirname, 'public', 'uploads', 'avatars');
+if (!fs.existsSync(AVATARS_DIR)) {
+  fs.mkdirSync(AVATARS_DIR, { recursive: true });
+}
+
+function getLocalAvatarIfExists(wcaId) {
+  if (!wcaId) return null;
+  const cleanId = String(wcaId).trim().toUpperCase();
+  const filePath = path.join(AVATARS_DIR, `${cleanId}.jpg`);
+  if (fs.existsSync(filePath)) {
+    try {
+      const stats = fs.statSync(filePath);
+      if (stats.size > 500) {
+        return `/uploads/avatars/${cleanId}.jpg`;
+      }
+    } catch {}
+  }
+  return null;
+}
+
+async function downloadAvatarLocally(remoteUrl, wcaId, force = false) {
+  if (!remoteUrl || !wcaId || remoteUrl.includes('missing_avatar')) return null;
+  const cleanId = String(wcaId).trim().toUpperCase();
+  const filePath = path.join(AVATARS_DIR, `${cleanId}.jpg`);
+  const relativeUrl = `/uploads/avatars/${cleanId}.jpg`;
+
+  if (!force && fs.existsSync(filePath)) {
+    try {
+      const stats = fs.statSync(filePath);
+      if (stats.size > 500) {
+        return relativeUrl;
+      }
+    } catch {}
+  }
+
+  try {
+    const WCA_HEADERS = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
+    const res = await fetch(remoteUrl, { headers: WCA_HEADERS });
+    if (!res.ok) return fs.existsSync(filePath) ? relativeUrl : null;
+    const arrayBuffer = await res.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    if (buffer.length > 500) {
+      fs.writeFileSync(filePath, buffer);
+      console.log(`[Avatar] Foto guardada localmente para ${cleanId} (${Math.round(buffer.length / 1024)} KB)`);
+      return relativeUrl;
+    }
+    return fs.existsSync(filePath) ? relativeUrl : null;
+  } catch (err) {
+    console.warn(`[Avatar] Error descargando foto para ${cleanId}:`, err.message);
+    return fs.existsSync(filePath) ? relativeUrl : null;
+  }
+}
+
+function enrichCompetitorWithAvatar(comp) {
+  if (!comp || !comp.wca_id) return comp;
+  const local = getLocalAvatarIfExists(comp.wca_id);
+  if (local) comp.avatar_url = local;
+  return comp;
+}
+
+function enrichCompetitorsWithLocalAvatars(competitors) {
+  if (!Array.isArray(competitors)) return;
+  for (const comp of competitors) {
+    enrichCompetitorWithAvatar(comp);
+  }
+}
+
 function saveLiveState() {
   try {
     const state = {
@@ -238,6 +306,7 @@ if (specifiedDataFile) {
   if (fs.existsSync(customPath)) {
     try {
       tournamentData = JSON.parse(fs.readFileSync(customPath, 'utf8'));
+      if (tournamentData?.competitors) enrichCompetitorsWithLocalAvatars(tournamentData.competitors);
       console.log(`[Torneo] Cargado desde argumento: ${tournamentData.name} (${tournamentData.competitors?.length || 0} competidores)`);
     } catch (err) {
       console.error('[Torneo] Error al leer archivo especificado:', err.message);
@@ -254,6 +323,7 @@ if (specifiedDataFile) {
     if (fs.existsSync(p)) {
       try {
         tournamentData = JSON.parse(fs.readFileSync(p, 'utf8'));
+        if (tournamentData?.competitors) enrichCompetitorsWithLocalAvatars(tournamentData.competitors);
         console.log(`[Torneo] Auto-precargado: ${tournamentData.name} (${tournamentData.competitors?.length || 0} competidores)`);
         loadedFallback = true;
         break;
@@ -412,6 +482,7 @@ app.post('/api/tournament', (req, res) => {
     if (!data) return res.status(400).json({ error: 'Faltan los datos del torneo' });
 
     tournamentData = data;
+    if (tournamentData?.competitors) enrichCompetitorsWithLocalAvatars(tournamentData.competitors);
     const saveName = filename || `${data.competition_id || 'torneo'}_data.json`;
     const savePath = path.join(__dirname, saveName);
 
@@ -502,19 +573,23 @@ app.post('/api/wca/fetch', async (req, res) => {
       competitors.sort((a, b) => a.name.localeCompare(b.name));
 
       const veterans = competitors.filter(c => !c.is_new);
-      emitProgress(30, `Descargando récords de ${veterans.length} competidores veteranos...`);
+      emitProgress(30, `Descargando récords y fotos de ${veterans.length} competidores veteranos...`);
 
-      // Descargar PRs con pequeña pausa
+      // Descargar PRs y fotos con pequeña pausa
       const allPRs = {};
+      const allAvatars = {};
+      let avatarsSavedCount = 0;
+
       for (let i = 0; i < veterans.length; i++) {
         const c = veterans[i];
         const pct = 30 + Math.round((i / Math.max(veterans.length, 1)) * 60);
-        emitProgress(pct, `[${i + 1}/${veterans.length}] ${c.name} (${c.wca_id})`);
+        emitProgress(pct, `[${i + 1}/${veterans.length}] ${c.name} (${c.wca_id}) - Sincronizando datos y foto...`);
 
         try {
           const pRes = await fetch(`${WCA_API}/persons/${c.wca_id}`, { headers: WCA_HEADERS });
           if (pRes.ok) {
             const pData = await pRes.json();
+            const personObj = pData.person || (pData.persons && pData.persons[0]) || {};
             const rawRecords = pData.personal_records || (pData.persons && pData.persons[0]?.personal_records) || {};
             const prs = {};
             for (const [eid, rec] of Object.entries(rawRecords)) {
@@ -524,13 +599,28 @@ app.post('/api/wca/fetch', async (req, res) => {
               };
             }
             allPRs[c.wca_id] = prs;
+
+            // Foto oficial WCA -> descargar localmente
+            const remoteAvatar = (personObj.avatar && !personObj.avatar.is_default && personObj.avatar.url && !personObj.avatar.url.includes('missing_avatar')) ? personObj.avatar.url : null;
+            if (remoteAvatar) {
+              const localUrl = await downloadAvatarLocally(remoteAvatar, c.wca_id, true);
+              if (localUrl) {
+                allAvatars[c.wca_id] = localUrl;
+                avatarsSavedCount++;
+              } else {
+                allAvatars[c.wca_id] = getLocalAvatarIfExists(c.wca_id);
+              }
+            } else {
+              allAvatars[c.wca_id] = getLocalAvatarIfExists(c.wca_id);
+            }
           }
         } catch {
           allPRs[c.wca_id] = {};
+          allAvatars[c.wca_id] = getLocalAvatarIfExists(c.wca_id);
         }
 
-        // Pequeño retardo de 250ms para respetar la API WCA
-        await new Promise(r => setTimeout(r, 250));
+        // Pequeño retardo de 200ms para respetar la API WCA
+        await new Promise(r => setTimeout(r, 200));
       }
 
       emitProgress(95, 'Ensamblando estructura final...');
@@ -559,11 +649,14 @@ app.post('/api/wca/fetch', async (req, res) => {
           }
         }
 
+        const avatarLocal = allAvatars[c.wca_id] || getLocalAvatarIfExists(c.wca_id) || null;
+
         return {
           name: c.name,
           wca_id: c.wca_id,
           is_new: c.is_new,
           country: c.country,
+          avatar_url: avatarLocal,
           events: c.events,
           prs: prsDisplay
         };
@@ -585,7 +678,8 @@ app.post('/api/wca/fetch', async (req, res) => {
       const outPath = path.join(__dirname, `${competitionId}_data.json`);
       fs.writeFileSync(outPath, JSON.stringify(finalTournament, null, 2), 'utf8');
 
-      emitProgress(100, `¡Completado! Datos guardados en ${competitionId}_data.json`, 'ok');
+      const totalAvatars = competitorsFull.filter(c => c.avatar_url).length;
+      emitProgress(100, `¡Completado! ${competitorsFull.length} inscritos y ${totalAvatars} fotos guardadas localmente.`, 'ok');
       broadcastToPanels({ type: 'tournament_updated', data: tournamentData });
     } catch (err) {
       console.error('[WCA Fetch Error]', err);
@@ -624,14 +718,19 @@ app.get('/api/wca/person/:wcaId', async (req, res) => {
       };
     }
 
-    const avatarUrl = (personObj.avatar && !personObj.avatar.is_default && personObj.avatar.url && !personObj.avatar.url.includes('missing_avatar')) ? personObj.avatar.url : null;
+    const remoteAvatarUrl = (personObj.avatar && !personObj.avatar.is_default && personObj.avatar.url && !personObj.avatar.url.includes('missing_avatar')) ? personObj.avatar.url : null;
+    let localAvatarUrl = getLocalAvatarIfExists(cleanId);
+    if (remoteAvatarUrl) {
+      const downloaded = await downloadAvatarLocally(remoteAvatarUrl, cleanId, false);
+      if (downloaded) localAvatarUrl = downloaded;
+    }
 
     const competitor = {
       name: personObj.name || cleanId,
       wca_id: cleanId,
       is_new: false,
       country: personObj.country_iso2 || personObj.countryIso2 || '',
-      avatar_url: avatarUrl,
+      avatar_url: localAvatarUrl || remoteAvatarUrl || null,
       events: Object.keys(prsDisplay),
       prs: prsDisplay
     };
@@ -657,39 +756,59 @@ app.get('/api/wca/person/:wcaId', async (req, res) => {
 app.get('/api/wca/avatar/:wcaId', async (req, res) => {
   const { wcaId } = req.params;
   const cleanId = wcaId.trim().toUpperCase();
+  const existingLocal = getLocalAvatarIfExists(cleanId);
+
   try {
     const WCA_HEADERS = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
     const pRes = await fetch(`${WCA_API}/persons/${cleanId}`, { headers: WCA_HEADERS });
-    if (!pRes.ok) return res.status(404).json({ ok: false, avatar_url: null });
+    if (!pRes.ok) {
+      if (existingLocal) {
+        return res.json({ ok: true, wca_id: cleanId, avatar_url: existingLocal, personal_records: null });
+      }
+      return res.status(404).json({ ok: false, avatar_url: null });
+    }
 
     const pData = await pRes.json();
     const personObj = pData.person || (pData.persons && pData.persons[0]) || {};
-    const avatarUrl = (personObj.avatar && !personObj.avatar.is_default && personObj.avatar.url && !personObj.avatar.url.includes('missing_avatar')) ? personObj.avatar.url : null;
+    const remoteAvatarUrl = (personObj.avatar && !personObj.avatar.is_default && personObj.avatar.url && !personObj.avatar.url.includes('missing_avatar')) ? personObj.avatar.url : null;
+    let finalAvatarUrl = existingLocal;
+
+    if (remoteAvatarUrl) {
+      const downloaded = await downloadAvatarLocally(remoteAvatarUrl, cleanId, false);
+      if (downloaded) finalAvatarUrl = downloaded;
+    }
+    if (!finalAvatarUrl && remoteAvatarUrl) {
+      finalAvatarUrl = remoteAvatarUrl;
+    }
+
     const personalRecords = personObj.personal_records || null;
     
     // Si tenemos al competidor en memoria, enriquecer su objeto con avatar y récords/rankings WCA
     if (tournamentData && tournamentData.competitors) {
       const comp = tournamentData.competitors.find(c => (c.wca_id || '').toUpperCase() === cleanId);
       if (comp) {
-        comp.avatar_url = avatarUrl;
+        comp.avatar_url = finalAvatarUrl;
         if (personalRecords) comp.personal_records = personalRecords;
       }
     }
     if (currentCompetitor && (currentCompetitor.wca_id || '').toUpperCase() === cleanId) {
-      currentCompetitor.avatar_url = avatarUrl;
+      currentCompetitor.avatar_url = finalAvatarUrl;
       if (personalRecords) currentCompetitor.personal_records = personalRecords;
     }
     if (currentCompetitor2 && (currentCompetitor2.wca_id || '').toUpperCase() === cleanId) {
-      currentCompetitor2.avatar_url = avatarUrl;
+      currentCompetitor2.avatar_url = finalAvatarUrl;
       if (personalRecords) currentCompetitor2.personal_records = personalRecords;
     }
     if (showcaseCompetitor && (showcaseCompetitor.wca_id || '').toUpperCase() === cleanId) {
-      showcaseCompetitor.avatar_url = avatarUrl;
+      showcaseCompetitor.avatar_url = finalAvatarUrl;
       if (personalRecords) showcaseCompetitor.personal_records = personalRecords;
     }
 
-    res.json({ ok: true, wca_id: cleanId, avatar_url: avatarUrl, personal_records: personalRecords });
+    res.json({ ok: true, wca_id: cleanId, avatar_url: finalAvatarUrl, personal_records: personalRecords });
   } catch (err) {
+    if (existingLocal) {
+      return res.json({ ok: true, wca_id: cleanId, avatar_url: existingLocal, personal_records: null });
+    }
     res.json({ ok: false, avatar_url: null, error: err.message });
   }
 });
@@ -2373,7 +2492,10 @@ function handleSocketConnection(ws, req) {
         break;
 
       case 'show_competitor_showcase':
-        if (msg.competitor) showcaseCompetitor = msg.competitor;
+        if (msg.competitor) {
+          showcaseCompetitor = msg.competitor;
+          enrichCompetitorWithAvatar(showcaseCompetitor);
+        }
         showcaseVisible = true;
         broadcastToOverlays({
           type: 'show_competitor_showcase',
@@ -2454,6 +2576,8 @@ function handleSocketConnection(ws, req) {
         }
         if (msg.data) {
           headToHeadData = Object.assign(headToHeadData || {}, msg.data);
+          if (headToHeadData.competitor1) enrichCompetitorWithAvatar(headToHeadData.competitor1);
+          if (headToHeadData.competitor2) enrichCompetitorWithAvatar(headToHeadData.competitor2);
         }
         saveLiveState();
         broadcastToOverlays({

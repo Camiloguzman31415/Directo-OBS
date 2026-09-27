@@ -20,6 +20,8 @@ navegador_test.png
 prueba_with_overlay.jpg
 live_state.json
 scratch/
+public/uploads/avatars/*
+!public/uploads/avatars/.gitkeep
 
 # Sistema operativo
 .DS_Store

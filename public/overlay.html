@@ -4469,6 +4469,9 @@
     // 2. Avatar oficial de WCA (si no tiene o es missing_avatar, se oculta y queda la bandera)
     if (showcaseAvatarImg) {
       if (comp.avatar_url && !comp.avatar_url.includes('missing_avatar')) {
+        showcaseAvatarImg.onerror = () => {
+          showcaseAvatarImg.style.display = 'none';
+        };
         showcaseAvatarImg.src = comp.avatar_url;
         showcaseAvatarImg.style.display = 'block';
       } else {
@@ -4614,6 +4617,10 @@
     }
     if (h2hAvatar1 && h2hNoAvatar1) {
       if (comp1.avatar_url && !comp1.avatar_url.includes('missing_avatar')) {
+        h2hAvatar1.onerror = () => {
+          h2hAvatar1.style.display = 'none';
+          h2hNoAvatar1.style.display = 'block';
+        };
         h2hAvatar1.src = comp1.avatar_url;
         h2hAvatar1.style.display = 'block';
         h2hNoAvatar1.style.display = 'none';
@@ -4636,6 +4643,10 @@
     }
     if (h2hAvatar2 && h2hNoAvatar2) {
       if (comp2.avatar_url && !comp2.avatar_url.includes('missing_avatar')) {
+        h2hAvatar2.onerror = () => {
+          h2hAvatar2.style.display = 'none';
+          h2hNoAvatar2.style.display = 'block';
+        };
         h2hAvatar2.src = comp2.avatar_url;
         h2hAvatar2.style.display = 'block';
         h2hNoAvatar2.style.display = 'none';

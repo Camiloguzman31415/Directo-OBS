@@ -2285,8 +2285,13 @@ function filterCompetitorList() {
       : '';
     const moreEvents = eventsCount > 4 ? `<span style="font-size:10px;color:var(--text-dim);font-weight:700;">+${eventsCount - 4}</span>` : '';
 
+    const avatarHtml = c.avatar_url && !c.avatar_url.includes('missing_avatar')
+      ? `<img src="${c.avatar_url}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.18);flex-shrink:0;" onerror="this.style.display='none'">`
+      : '';
+
     row.innerHTML = `
-      <div class="comp-list-info" style="gap:12px;">
+      <div class="comp-list-info" style="gap:10px;align-items:center;">
+        ${avatarHtml}
         ${flagHtml}
         <div>
           <div class="comp-list-name" style="font-weight:600;">${c.name}</div>
@@ -3518,7 +3523,7 @@ function resetFsTheme() {
 
 async function fetchCompetitorAvatarIfNeeded(comp) {
   if (!comp || !comp.wca_id || comp.is_new) return;
-  if (comp.avatar_url !== undefined && comp.avatar_url !== null) return;
+  if (comp.avatar_url && !comp.avatar_url.includes('missing_avatar')) return;
   try {
     const res = await fetch(`/api/wca/avatar/${encodeURIComponent(comp.wca_id)}`);
     if (res.ok) {
