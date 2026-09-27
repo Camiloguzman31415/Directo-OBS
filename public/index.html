@@ -830,7 +830,7 @@
               </div>
 
               <!-- Selector y Carga de Logo -->
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
                 <input type="file" id="big-logo-file-input" accept="image/*" style="display:none;" onchange="handleBigLogoUpload(event)">
                 <button type="button" class="btn-tactile btn-secondary" onclick="document.getElementById('big-logo-file-input').click()" style="flex:1;font-size:12px;padding:8px 10px;">
                   📁 Subir Logo en Alta Resolución
@@ -838,6 +838,33 @@
                 <button type="button" class="btn-tactile btn-danger-outline" onclick="clearBigLogo()" style="font-size:12px;padding:8px 10px;" title="Restablecer al logo del torneo">
                   ✕ Restablecer
                 </button>
+              </div>
+
+              <!-- Control de Tamaño del Logo en Pantalla -->
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span style="font-size:11px;font-weight:700;color:var(--text-dim,#94a3b8);text-transform:uppercase;letter-spacing:0.5px;">Tamaño en Pantalla:</span>
+                  <span id="big-logo-size-val" style="font-family:'Space Mono',monospace;font-size:12.5px;font-weight:800;color:#38bdf8;">760px</span>
+                </div>
+                <input type="range" id="big-logo-size-slider" min="350" max="950" step="10" value="760" 
+                       style="width:100%;cursor:pointer;accent-color:#0284c7;margin-bottom:8px;"
+                       oninput="onBigLogoSizeInput(this.value)" onchange="onBigLogoSizeChange(this.value)">
+                
+                <!-- Chips de Tamaño Rápido -->
+                <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:4px;">
+                  <button type="button" class="btn-tactile btn-secondary" onclick="setBigLogoSizePreset(520)" style="font-size:10.5px;padding:4px 2px;">
+                    520px
+                  </button>
+                  <button type="button" class="btn-tactile btn-secondary" onclick="setBigLogoSizePreset(680)" style="font-size:10.5px;padding:4px 2px;">
+                    680px
+                  </button>
+                  <button type="button" class="btn-tactile btn-secondary" onclick="setBigLogoSizePreset(760)" style="font-size:10.5px;padding:4px 2px;">
+                    760px
+                  </button>
+                  <button type="button" class="btn-tactile btn-secondary" onclick="setBigLogoSizePreset(880)" style="font-size:10.5px;padding:4px 2px;">
+                    880px
+                  </button>
+                </div>
               </div>
 
               <!-- Botones de Transmisión en OBS -->

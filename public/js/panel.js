@@ -25,6 +25,7 @@ let showcaseCompetitor = null;
 let showcaseVisible = false;
 let bigLogoVisible = false;
 let bigLogoUrl = null;
+let bigLogoSize = 760;
 
 // ── Estado del Ticker de Noticias Broadcast (Lower-Third) ──
 let tickerTournamentLogo = localStorage.getItem('directoobs_ticker_logo') || '';
@@ -197,6 +198,9 @@ function handleServerMessage(msg) {
       if (msg.bigLogoUrl !== undefined) {
         bigLogoUrl = msg.bigLogoUrl;
       }
+      if (msg.bigLogoSize !== undefined) {
+        bigLogoSize = parseInt(msg.bigLogoSize, 10) || 760;
+      }
       if (msg.tournamentLogo !== undefined) {
         if (msg.tournamentLogo) {
           tickerTournamentLogo = msg.tournamentLogo;
@@ -360,6 +364,9 @@ function handleServerMessage(msg) {
       }
       if (msg.bigLogoUrl !== undefined) {
         bigLogoUrl = msg.bigLogoUrl;
+      }
+      if (msg.bigLogoSize !== undefined) {
+        bigLogoSize = parseInt(msg.bigLogoSize, 10) || 760;
       }
       updatePreviewUI();
       updateShowcaseUI();
@@ -3606,6 +3613,44 @@ function updateBigLogoUI() {
       emptyPlaceholder.style.display = 'block';
     }
   }
+
+  const sizeSlider = document.getElementById('big-logo-size-slider');
+  const sizeLabel = document.getElementById('big-logo-size-val');
+  if (sizeSlider) sizeSlider.value = bigLogoSize;
+  if (sizeLabel) sizeLabel.textContent = `${bigLogoSize}px`;
+}
+
+function onBigLogoSizeInput(val) {
+  const s = parseInt(val, 10);
+  if (!isNaN(s)) {
+    bigLogoSize = s;
+    const sizeLabel = document.getElementById('big-logo-size-val');
+    if (sizeLabel) sizeLabel.textContent = `${bigLogoSize}px`;
+    sendWS({ type: 'set_big_logo_size', size: bigLogoSize });
+  }
+}
+
+function onBigLogoSizeChange(val) {
+  const s = parseInt(val, 10);
+  if (!isNaN(s)) {
+    bigLogoSize = s;
+    const sizeLabel = document.getElementById('big-logo-size-val');
+    if (sizeLabel) sizeLabel.textContent = `${bigLogoSize}px`;
+    sendWS({ type: 'set_big_logo_size', size: bigLogoSize });
+  }
+}
+
+function setBigLogoSizePreset(val) {
+  const s = parseInt(val, 10);
+  if (!isNaN(s)) {
+    bigLogoSize = s;
+    const sizeSlider = document.getElementById('big-logo-size-slider');
+    const sizeLabel = document.getElementById('big-logo-size-val');
+    if (sizeSlider) sizeSlider.value = bigLogoSize;
+    if (sizeLabel) sizeLabel.textContent = `${bigLogoSize}px`;
+    sendWS({ type: 'set_big_logo_size', size: bigLogoSize });
+    showToast(`Tamaño del logo ajustado a ${bigLogoSize}px`, 'info');
+  }
 }
 
 function sendShowBigLogo() {
@@ -3613,7 +3658,8 @@ function sendShowBigLogo() {
   const activeUrl = bigLogoUrl || tickerTournamentLogo || null;
   sendWS({
     type: 'show_big_logo',
-    url: activeUrl
+    url: activeUrl,
+    size: bigLogoSize
   });
   updateBigLogoUI();
   showToast('Logo central activado en OBS', 'success');

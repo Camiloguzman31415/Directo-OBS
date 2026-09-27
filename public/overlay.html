@@ -1172,6 +1172,8 @@
      TOURNAMENT BIG LOGO OVERLAY (MOMENTOS MUERTOS / DESCANSO / PAUSAS)
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   #tournament-big-logo-overlay {
+    --logo-height: 760px;
+    --logo-width: 1050px;
     position: fixed;
     inset: 0;
     display: flex;
@@ -1217,15 +1219,15 @@
 
   /* Imagen del Logo con sombras multicapa Broadcast */
   .big-logo-img {
-    max-width: 1050px;
-    max-height: 760px;
+    max-width: var(--logo-width, 1050px);
+    max-height: var(--logo-height, 760px);
     width: auto;
     height: auto;
     object-fit: contain;
     filter: drop-shadow(0 24px 52px rgba(0, 0, 0, 0.92)) 
             drop-shadow(0 6px 18px rgba(0, 0, 0, 0.65))
             drop-shadow(0 0 65px rgba(14, 86, 190, 0.4));
-    transition: filter 0.3s ease;
+    transition: max-height 0.2s ease, max-width 0.2s ease, filter 0.3s ease;
   }
 
   /* Fallback de alta gama si no hay imagen de logo cargada */
@@ -3390,6 +3392,22 @@
   const bigLogoFallback = document.getElementById('big-logo-fallback');
   const bigLogoFallbackTitle = document.getElementById('big-logo-fallback-title');
   let currentBigLogoUrl = null;
+  let currentBigLogoSize = 760;
+
+  function setBigLogoSize(size) {
+    const s = parseInt(size, 10);
+    if (!isNaN(s) && s >= 250 && s <= 1200) {
+      currentBigLogoSize = s;
+      if (bigLogoOverlay) {
+        bigLogoOverlay.style.setProperty('--logo-height', `${s}px`);
+        bigLogoOverlay.style.setProperty('--logo-width', `${Math.round(s * 1.4)}px`);
+      }
+      if (bigLogoImg) {
+        bigLogoImg.style.maxHeight = `${s}px`;
+        bigLogoImg.style.maxWidth = `${Math.round(s * 1.4)}px`;
+      }
+    }
+  }
 
   function updateBigLogoVisuals(url) {
     const finalUrl = (url && typeof url === 'string' && url.trim() !== '') ? url.trim() : null;
@@ -3416,7 +3434,8 @@
     }
   }
 
-  function showBigLogo(url) {
+  function showBigLogo(url, size) {
+    if (size) setBigLogoSize(size);
     const targetUrl = url || currentBigLogoUrl || currentTournamentLogo;
     updateBigLogoVisuals(targetUrl);
     if (bigLogoOverlay) {
@@ -3483,9 +3502,11 @@
               updateBigLogoVisuals(msg.logo);
             }
           } else if (msg.type === 'show_big_logo') {
-            showBigLogo(msg.url);
+            showBigLogo(msg.url, msg.size);
           } else if (msg.type === 'hide_big_logo') {
             hideBigLogo();
+          } else if (msg.type === 'big_logo_size') {
+            setBigLogoSize(msg.size);
           } else if (msg.type === 'big_logo_updated') {
             updateBigLogoVisuals(msg.url);
           } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {

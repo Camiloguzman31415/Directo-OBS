@@ -65,6 +65,7 @@ let showcaseVisible = false;      // Visibilidad del Showcase en OBS
 let tournamentLogo = null;        // URL persistente del logo del torneo en servidor
 let bigLogoVisible = false;       // Visibilidad del Logo Central (Momentos Muertos)
 let bigLogoUrl = null;           // URL específica o personalizada del Logo Central
+let bigLogoSize = 760;           // Tamaño máximo en píxeles (altura) del Logo Central
 
 // ── Estado de Ranking en Vivo (WCA Live) ──
 let liveRankingData = null;
@@ -113,7 +114,8 @@ function saveLiveState() {
       fsTheme: fsTheme,
       tournamentLogo: tournamentLogo,
       bigLogoVisible: bigLogoVisible,
-      bigLogoUrl: bigLogoUrl
+      bigLogoUrl: bigLogoUrl,
+      bigLogoSize: bigLogoSize
     };
     fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
   } catch (err) {
@@ -143,6 +145,10 @@ function loadLiveState() {
       if (state.tournamentLogo !== undefined) tournamentLogo = state.tournamentLogo;
       if (state.bigLogoVisible !== undefined) bigLogoVisible = state.bigLogoVisible;
       if (state.bigLogoUrl !== undefined) bigLogoUrl = state.bigLogoUrl;
+      if (state.bigLogoSize !== undefined) {
+        const s = parseInt(state.bigLogoSize, 10);
+        if (!isNaN(s) && s >= 300 && s <= 1200) bigLogoSize = s;
+      }
       if (state.fsTheme) {
         fsTheme = {
           bgColor: state.fsTheme.bgColor || '#0c4ea8',
@@ -1812,6 +1818,10 @@ function handleSocketConnection(ws, req) {
 
     // Enviar estado de Logo Central (Momentos Muertos)
     const activeBigLogoUrl = bigLogoUrl || tournamentLogo;
+    socket.send(JSON.stringify({
+      type: 'big_logo_size',
+      size: bigLogoSize
+    }));
     if (activeBigLogoUrl) {
       socket.send(JSON.stringify({
         type: 'big_logo_updated',
@@ -1821,7 +1831,8 @@ function handleSocketConnection(ws, req) {
     if (bigLogoVisible) {
       socket.send(JSON.stringify({
         type: 'show_big_logo',
-        url: activeBigLogoUrl
+        url: activeBigLogoUrl,
+        size: bigLogoSize
       }));
     }
   }
@@ -1845,6 +1856,7 @@ function handleSocketConnection(ws, req) {
       tournamentLogo,
       bigLogoVisible,
       bigLogoUrl: bigLogoUrl || tournamentLogo,
+      bigLogoSize,
       liveRankingVisible,
       liveRankingRoundId,
       liveRankingCompId,
@@ -2067,17 +2079,23 @@ function handleSocketConnection(ws, req) {
 
       case 'show_big_logo':
         if (msg.url) bigLogoUrl = msg.url;
+        if (msg.size !== undefined) {
+          const s = parseInt(msg.size, 10);
+          if (!isNaN(s) && s >= 300 && s <= 1200) bigLogoSize = s;
+        }
         bigLogoVisible = true;
         saveLiveState();
         const activeUrl = bigLogoUrl || tournamentLogo;
         broadcastToOverlays({
           type: 'show_big_logo',
-          url: activeUrl
+          url: activeUrl,
+          size: bigLogoSize
         });
         broadcastToPanels({
           type: 'sync_state',
           bigLogoVisible: true,
-          bigLogoUrl: activeUrl
+          bigLogoUrl: activeUrl,
+          bigLogoSize: bigLogoSize
         });
         break;
 
@@ -2089,6 +2107,24 @@ function handleSocketConnection(ws, req) {
           type: 'sync_state',
           bigLogoVisible: false
         });
+        break;
+
+      case 'set_big_logo_size':
+        if (msg.size !== undefined) {
+          const s = parseInt(msg.size, 10);
+          if (!isNaN(s) && s >= 300 && s <= 1200) {
+            bigLogoSize = s;
+            saveLiveState();
+            broadcastToOverlays({
+              type: 'big_logo_size',
+              size: bigLogoSize
+            });
+            broadcastToPanels({
+              type: 'sync_state',
+              bigLogoSize: bigLogoSize
+            });
+          }
+        }
         break;
 
       case 'live_ranking_show':
