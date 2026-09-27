@@ -410,23 +410,21 @@
     height: 42px;
     background: #080c14;
     border-top: 1.5px solid #1d4ed8;
-    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.9);
     display: flex;
     align-items: center;
     z-index: 900;
-    opacity: 0;
     pointer-events: none;
     transform: translateY(100%);
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-                opacity 0.3s ease-out;
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
-    will-change: transform, opacity;
+    will-change: transform;
   }
 
   #event-badge.visible {
-    opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* 1. Slot Extremo Izquierdo para Logo del Torneo */
@@ -524,10 +522,10 @@
 
   .ticker-marquee-track {
     display: flex;
-    width: fit-content;
+    width: max-content;
     white-space: nowrap;
     will-change: transform;
-    animation: tickerInfiniteScroll 35s linear infinite;
+    animation: tickerInfiniteScroll 50s linear infinite;
   }
 
   @keyframes tickerInfiniteScroll {
@@ -1948,8 +1946,40 @@
         <span class="ticker-separator">|</span>
         <span class="ticker-item"><span class="ticker-label">INFO:</span> <span class="ticker-value">Transmisión Oficial en Vivo</span></span>
         <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">TORNEO:</span> <span class="ticker-value">Regionales Santander 2026</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">FECHA:</span> <span class="ticker-value">Sábado, 26 de Septiembre</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">LUGAR:</span> <span class="ticker-value">Floridablanca, Santander</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">INFO:</span> <span class="ticker-value">Transmisión Oficial en Vivo</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">TORNEO:</span> <span class="ticker-value">Regionales Santander 2026</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">FECHA:</span> <span class="ticker-value">Sábado, 26 de Septiembre</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">LUGAR:</span> <span class="ticker-value">Floridablanca, Santander</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">INFO:</span> <span class="ticker-value">Transmisión Oficial en Vivo</span></span>
+        <span class="ticker-separator">|</span>
       </div>
       <div class="ticker-marquee-content" id="ticker-content-2">
+        <span class="ticker-item"><span class="ticker-label">TORNEO:</span> <span class="ticker-value">Regionales Santander 2026</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">FECHA:</span> <span class="ticker-value">Sábado, 26 de Septiembre</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">LUGAR:</span> <span class="ticker-value">Floridablanca, Santander</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">INFO:</span> <span class="ticker-value">Transmisión Oficial en Vivo</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">TORNEO:</span> <span class="ticker-value">Regionales Santander 2026</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">FECHA:</span> <span class="ticker-value">Sábado, 26 de Septiembre</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">LUGAR:</span> <span class="ticker-value">Floridablanca, Santander</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">INFO:</span> <span class="ticker-value">Transmisión Oficial en Vivo</span></span>
+        <span class="ticker-separator">|</span>
         <span class="ticker-item"><span class="ticker-label">TORNEO:</span> <span class="ticker-value">Regionales Santander 2026</span></span>
         <span class="ticker-separator">|</span>
         <span class="ticker-item"><span class="ticker-label">FECHA:</span> <span class="ticker-value">Sábado, 26 de Septiembre</span></span>
@@ -2210,10 +2240,12 @@
       items.push(`<span class="ticker-item"><span class="ticker-label">INFO:</span> <span class="ticker-value">${escapeHtml(newsText)}</span></span>`);
     }
 
-    const tickerHtml = items.join('<span class="ticker-separator">|</span>') + '<span class="ticker-separator">|</span>';
+    const unitHtml = items.join('<span class="ticker-separator">|</span>') + '<span class="ticker-separator">|</span>';
+    // Repetir el patrón base 3 veces en cada mitad para garantizar un carril continuo infinito sin huecos
+    const loopHtml = unitHtml.repeat(3);
 
-    if (tickerContent1) tickerContent1.innerHTML = tickerHtml;
-    if (tickerContent2) tickerContent2.innerHTML = tickerHtml;
+    if (tickerContent1) tickerContent1.innerHTML = loopHtml;
+    if (tickerContent2) tickerContent2.innerHTML = loopHtml;
 
     adjustDynamicNameWidth();
   }
