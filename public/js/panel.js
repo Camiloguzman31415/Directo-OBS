@@ -21,6 +21,8 @@ let totalRounds = 3;
 
 let competitorVisible = false;
 let eventVisible = false;
+let showcaseCompetitor = null;
+let showcaseVisible = false;
 
 // ── Estado del Ticker de Noticias Broadcast (Lower-Third) ──
 let tickerTournamentLogo = localStorage.getItem('directoobs_ticker_logo') || '';
@@ -181,7 +183,14 @@ function handleServerMessage(msg) {
       if (msg.currentCompetitor2) {
         currentCompetitor2 = msg.currentCompetitor2;
       }
+      if (msg.showcaseCompetitor !== undefined) {
+        showcaseCompetitor = msg.showcaseCompetitor;
+      }
+      if (msg.showcaseVisible !== undefined) {
+        showcaseVisible = !!msg.showcaseVisible;
+      }
       updatePreviewUI();
+      updateShowcaseUI();
       updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
 
       if (msg.liveRankingVisible !== undefined) liveRankingVisible = !!msg.liveRankingVisible;
@@ -324,7 +333,14 @@ function handleServerMessage(msg) {
         currentRound = currentEvent.round_number;
         updateEventUI();
       }
+      if (msg.showcaseCompetitor !== undefined) {
+        showcaseCompetitor = msg.showcaseCompetitor;
+      }
+      if (msg.showcaseVisible !== undefined) {
+        showcaseVisible = !!msg.showcaseVisible;
+      }
       updatePreviewUI();
+      updateShowcaseUI();
       if (msg.competitorVisible !== undefined || msg.eventVisible !== undefined) {
         updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
       }
@@ -1783,6 +1799,8 @@ function updatePreviewUI() {
   if (simRow2) {
     simRow2.style.display = (bannerMode === 'dual') ? 'grid' : 'none';
   }
+
+  updateShowcaseUI();
 }
 
 function handleSearchInput(query, targetSlot = 'single') {
@@ -3266,5 +3284,227 @@ function resetFsTheme() {
   updateFsThemeUI();
   showToast('Fondo restablecido por defecto (Azul WCA, 100%, Nítido, Estático)', 'info');
 }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ── GESTIÓN DE TARJETA DE COMPETIDOR EN VIVO (SHOWCASE ESQUINA DERECHA) ──
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+async function fetchCompetitorAvatarIfNeeded(comp) {
+  if (!comp || !comp.wca_id || comp.is_new) return;
+  if (comp.avatar_url !== undefined && comp.avatar_url !== null) return;
+  try {
+    const res = await fetch(`/api/wca/avatar/${encodeURIComponent(comp.wca_id)}`);
+    if (res.ok) {
+      const data = await res.json();
+      comp.avatar_url = data.avatar_url || null;
+      if (tournamentData && tournamentData.competitors) {
+        const found = tournamentData.competitors.find(c => (c.wca_id || '').toUpperCase() === comp.wca_id.toUpperCase());
+        if (found) found.avatar_url = comp.avatar_url;
+      }
+      updateShowcaseUI();
+      if (showcaseVisible && showcaseCompetitor && showcaseCompetitor.wca_id === comp.wca_id) {
+        sendShowCompetitorShowcase();
+      }
+    }
+  } catch (err) {
+    console.warn('[Showcase] Error obteniendo avatar WCA:', err.message);
+  }
+}
+
+function loadShowcaseFromSlot(slot) {
+  const comp = slot === 1 ? currentCompetitor : currentCompetitor2;
+  if (!comp) {
+    showToast(`Mesa ${slot} no tiene un competidor seleccionado`, 'warning');
+    return;
+  }
+  setShowcaseCompetitor(comp);
+  showToast(`Competidor de Mesa ${slot} (${comp.name}) cargado al Showcase`, 'info');
+}
+
+function setShowcaseCompetitor(comp) {
+  showcaseCompetitor = comp;
+  updateShowcaseUI();
+  if (comp && comp.wca_id && !comp.avatar_url) {
+    fetchCompetitorAvatarIfNeeded(comp);
+  }
+}
+
+function updateShowcaseUI() {
+  const badge = document.getElementById('showcase-status-badge');
+  const btnShow = document.getElementById('btn-show-showcase');
+  const btnHide = document.getElementById('btn-hide-showcase');
+
+  // 1. Estado en Vivo
+  if (badge) {
+    if (showcaseVisible) {
+      badge.textContent = 'AL AIRE';
+      badge.className = 'live-status-pill online';
+    } else {
+      badge.textContent = 'EN ESPERA';
+      badge.className = 'live-status-pill offline';
+    }
+  }
+
+  if (btnShow) {
+    if (showcaseVisible) {
+      btnShow.classList.remove('btn-primary');
+      btnShow.classList.add('btn-tactile-active');
+      btnShow.innerHTML = '● AL AIRE EN OBS';
+    } else {
+      btnShow.classList.add('btn-primary');
+      btnShow.classList.remove('btn-tactile-active');
+      btnShow.innerHTML = '▲ MOSTRAR EN OBS';
+    }
+  }
+
+  // 2. Previsualización de la tarjeta
+  const elFlag = document.getElementById('panel-showcase-bg-flag');
+  const elAvatar = document.getElementById('panel-showcase-avatar');
+  const elEmpty = document.getElementById('panel-showcase-empty');
+  const elName = document.getElementById('panel-showcase-name');
+  const elSingle = document.getElementById('panel-showcase-single');
+  const elAvg = document.getElementById('panel-showcase-average');
+
+  if (!elName) return;
+
+  if (!showcaseCompetitor) {
+    if (elFlag) elFlag.style.display = 'none';
+    if (elAvatar) elAvatar.style.display = 'none';
+    if (elEmpty) elEmpty.style.display = 'block';
+    elName.textContent = '—';
+    if (elSingle) elSingle.textContent = '—';
+    if (elAvg) elAvg.textContent = '—';
+    return;
+  }
+
+  if (elEmpty) elEmpty.style.display = 'none';
+
+  // Bandera
+  if (elFlag) {
+    if (showcaseCompetitor.country) {
+      elFlag.src = `https://flagcdn.com/w640/${showcaseCompetitor.country.toLowerCase()}.png`;
+      elFlag.style.display = 'block';
+    } else {
+      elFlag.style.display = 'none';
+    }
+  }
+
+  // Avatar WCA
+  if (elAvatar) {
+    if (showcaseCompetitor.avatar_url && !showcaseCompetitor.avatar_url.includes('missing_avatar')) {
+      elAvatar.src = showcaseCompetitor.avatar_url;
+      elAvatar.style.display = 'block';
+    } else {
+      elAvatar.style.display = 'none';
+      elAvatar.src = '';
+    }
+  }
+
+  // Nombre
+  elName.textContent = (showcaseCompetitor.name || 'COMPETIDOR').toUpperCase();
+
+  // Récords de la categoría actual
+  const eid = selectedEventId || (currentEvent && currentEvent.event_id) || '333';
+  const pr = (showcaseCompetitor.prs && showcaseCompetitor.prs[eid]) || null;
+  if (elSingle) elSingle.textContent = (pr && pr.single_fmt) ? pr.single_fmt : '—';
+  if (elAvg) elAvg.textContent = (pr && pr.average_fmt) ? pr.average_fmt : '—';
+}
+
+function onShowcaseSearchInput(query) {
+  const resultsDropdown = document.getElementById('showcase-search-results');
+  if (!resultsDropdown) return;
+
+  const q = (query || '').trim().toLowerCase();
+  if (!q) {
+    resultsDropdown.style.display = 'none';
+    resultsDropdown.innerHTML = '';
+    return;
+  }
+
+  const allComps = (tournamentData && tournamentData.competitors) || [];
+  const filtered = allComps.filter(c => {
+    return (c.name || '').toLowerCase().includes(q) || (c.wca_id || '').toLowerCase().includes(q);
+  }).slice(0, 10);
+
+  if (filtered.length === 0) {
+    const isWcaId = /^[0-9]{4}[A-Za-z]{4}[0-9]{2}$/.test(q);
+    resultsDropdown.innerHTML = `
+      <div style="padding:10px;font-size:12px;color:var(--text-dim);text-align:center;">
+        No encontrado en lista de inscritos.
+        ${isWcaId ? `<button type="button" class="btn-tactile btn-primary" style="margin-top:6px;width:100%;font-size:11px;padding:4px;" onclick="fetchAndSelectShowcaseWCA('${q.toUpperCase()}')">🔍 Buscar WCA ID ${q.toUpperCase()}</button>` : ''}
+      </div>
+    `;
+    resultsDropdown.style.display = 'block';
+    return;
+  }
+
+  resultsDropdown.innerHTML = filtered.map(c => `
+    <div class="search-item" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'" onclick="selectShowcaseFromSearch('${escapeHtml(c.wca_id || c.name)}')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${c.country ? `<img src="https://flagcdn.com/w40/${c.country.toLowerCase()}.png" style="width:20px;height:14px;border-radius:2px;" onerror="this.style.display='none'">` : ''}
+        <span style="font-size:12px;font-weight:700;color:var(--text-main);">${escapeHtml(c.name)}</span>
+      </div>
+      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text-dim);">${escapeHtml(c.wca_id || 'NUEVO')}</span>
+    </div>
+  `).join('');
+  resultsDropdown.style.display = 'block';
+}
+
+function selectShowcaseFromSearch(idOrName) {
+  const allComps = (tournamentData && tournamentData.competitors) || [];
+  const comp = allComps.find(c => (c.wca_id && c.wca_id.toUpperCase() === idOrName.toUpperCase()) || c.name === idOrName);
+  if (comp) {
+    setShowcaseCompetitor(comp);
+    const searchInp = document.getElementById('showcase-search-input');
+    const resultsDropdown = document.getElementById('showcase-search-results');
+    if (searchInp) searchInp.value = '';
+    if (resultsDropdown) resultsDropdown.style.display = 'none';
+    showToast(`Competidor seleccionado: ${comp.name}`, 'info');
+  }
+}
+
+async function fetchAndSelectShowcaseWCA(wcaId) {
+  showToast(`Buscando ${wcaId} en WCA...`, 'info');
+  try {
+    const res = await fetch(`/api/wca/person/${encodeURIComponent(wcaId)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.competitor) {
+        setShowcaseCompetitor(data.competitor);
+        const searchInp = document.getElementById('showcase-search-input');
+        const resultsDropdown = document.getElementById('showcase-search-results');
+        if (searchInp) searchInp.value = '';
+        if (resultsDropdown) resultsDropdown.style.display = 'none';
+        showToast(`Competidor cargado de WCA: ${data.competitor.name}`, 'success');
+      }
+    } else {
+      showToast(`No se encontró ${wcaId} en la WCA`, 'error');
+    }
+  } catch (err) {
+    showToast(`Error al consultar WCA: ${err.message}`, 'error');
+  }
+}
+
+function sendShowCompetitorShowcase() {
+  if (!showcaseCompetitor) {
+    showToast('Selecciona primero un competidor para mostrar su tarjeta', 'warning');
+    return;
+  }
+  showcaseVisible = true;
+  sendWS({
+    type: 'show_competitor_showcase',
+    competitor: showcaseCompetitor
+  });
+  updateShowcaseUI();
+  showToast(`Tarjeta de ${showcaseCompetitor.name} mostrada en OBS`, 'success');
+}
+
+function sendHideCompetitorShowcase() {
+  showcaseVisible = false;
+  sendWS({ type: 'hide_competitor_showcase' });
+  updateShowcaseUI();
+  showToast('Tarjeta de competidor ocultada de OBS');
+}
+
 
 

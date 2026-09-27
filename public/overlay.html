@@ -976,8 +976,171 @@
   /* Si la página es la ruta dedicada /fullscreen, ocultar banners de competidor y evento */
   body.is-fullscreen-page #banner,
   body.is-fullscreen-page #event-badge,
-  body.is-fullscreen-page #live-ranking-overlay {
+  body.is-fullscreen-page #live-ranking-overlay,
+  body.is-fullscreen-page #competitor-showcase-card {
     display: none !important;
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     COMPETITOR SHOWCASE CARD OVERLAY (ESQUINA SUPERIOR DERECHA)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  #competitor-showcase-card {
+    position: absolute;
+    right: 40px;
+    top: 40px;
+    width: 340px;
+    background: #060e19;
+    border-radius: 8px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(calc(100% + 60px));
+    transition: opacity 0.4s ease-in, transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+  }
+
+  #competitor-showcase-card.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+    transition: opacity 0.35s ease-out, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Contenedor de Foto y Bandera */
+  .showcase-media-box {
+    position: relative;
+    width: 100%;
+    height: 270px;
+    overflow: hidden;
+    background: #040912;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .showcase-bg-flag {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.85) saturate(1.1);
+    transform: scale(1.05);
+  }
+
+  .showcase-flag-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(4, 9, 18, 0.15) 0%, rgba(4, 9, 18, 0.35) 50%, rgba(4, 9, 18, 0.85) 90%, #040912 100%);
+    pointer-events: none;
+  }
+
+  .showcase-avatar-img {
+    position: relative;
+    z-index: 2;
+    max-height: 255px;
+    max-width: 92%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.75));
+    user-select: none;
+  }
+
+  /* Barra de Nombre del Competidor */
+  .showcase-name-bar {
+    background: #17426e;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+    padding: 11px 16px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .showcase-name-bar span {
+    display: block;
+    font-family: var(--font-accent, 'Barlow', 'Inter', sans-serif);
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    line-height: 1.1;
+  }
+
+  /* Caja Inferior de Récords Personales */
+  .showcase-records-box {
+    background: rgba(7, 16, 29, 0.98);
+    padding: 12px 18px 14px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .showcase-records-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #7eb3f0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+
+  .showcase-records-values {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .showcase-val {
+    font-family: var(--font-numbers, 'Space Mono', 'Barlow', monospace);
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+    min-width: 90px;
+    text-align: center;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  }
+
+  .showcase-slash {
+    font-size: 26px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.35);
+    user-select: none;
+  }
+
+  .showcase-records-labels {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 3px;
+  }
+
+  .showcase-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 1.5px;
+    min-width: 90px;
+    text-align: center;
+  }
+
+  .showcase-lbl-spacer {
+    width: 22px;
   }
 
   /* Fondo Broadcast Degradado y Patrón Geométrico de Cubos */
@@ -1975,6 +2138,31 @@
   </div>
 </div>
 
+<!-- Competitor Showcase Card (Top-Right Broadcast Widget) -->
+<div id="competitor-showcase-card">
+  <div class="showcase-media-box">
+    <img id="showcase-bg-flag" class="showcase-bg-flag" src="" alt="Bandera">
+    <div class="showcase-flag-gradient"></div>
+    <img id="showcase-avatar-img" class="showcase-avatar-img" src="" alt="Avatar" style="display:none;">
+  </div>
+  <div class="showcase-name-bar">
+    <span id="showcase-name-text">COMPETIDOR</span>
+  </div>
+  <div class="showcase-records-box">
+    <div class="showcase-records-title">PERSONAL RECORDS</div>
+    <div class="showcase-records-values">
+      <span id="showcase-pr-single" class="showcase-val">—</span>
+      <span class="showcase-slash">/</span>
+      <span id="showcase-pr-average" class="showcase-val">—</span>
+    </div>
+    <div class="showcase-records-labels">
+      <span class="showcase-lbl">SINGLE</span>
+      <span class="showcase-lbl-spacer"></span>
+      <span class="showcase-lbl">AVERAGE</span>
+    </div>
+  </div>
+</div>
+
 <!-- Standalone Live Ranking Overlay (Broadcast Style) -->
 <div id="live-ranking-overlay">
   <div class="ranking-header">
@@ -2245,6 +2433,10 @@
 
     if (tickerContent1) tickerContent1.innerHTML = loopHtml;
     if (tickerContent2) tickerContent2.innerHTML = loopHtml;
+
+    if (typeof renderCompetitorShowcase === 'function' && currentShowcaseCompetitor) {
+      renderCompetitorShowcase(currentShowcaseCompetitor, eventData);
+    }
 
     adjustDynamicNameWidth();
   }
@@ -2965,6 +3157,72 @@
     if (fsOverlay) fsOverlay.classList.remove('visible');
   }
 
+  // ── Competitor Showcase Overlay (Esquina Superior Derecha) ──
+  const showcaseCard = document.getElementById('competitor-showcase-card');
+  const showcaseBgFlag = document.getElementById('showcase-bg-flag');
+  const showcaseAvatarImg = document.getElementById('showcase-avatar-img');
+  const showcaseNameText = document.getElementById('showcase-name-text');
+  const showcasePrSingle = document.getElementById('showcase-pr-single');
+  const showcasePrAverage = document.getElementById('showcase-pr-average');
+  let currentShowcaseCompetitor = null;
+
+  function renderCompetitorShowcase(comp, eventData) {
+    if (!comp) return;
+    currentShowcaseCompetitor = comp;
+    const evt = eventData || currentEventData;
+    const eid = (evt && evt.event_id) || '333';
+
+    // 1. Bandera de fondo
+    if (showcaseBgFlag) {
+      if (comp.country) {
+        showcaseBgFlag.src = `https://flagcdn.com/w640/${comp.country.toLowerCase()}.png`;
+        showcaseBgFlag.style.display = 'block';
+      } else {
+        showcaseBgFlag.style.display = 'none';
+      }
+    }
+
+    // 2. Avatar oficial de WCA (si no tiene o es missing_avatar, se oculta y queda la bandera)
+    if (showcaseAvatarImg) {
+      if (comp.avatar_url && !comp.avatar_url.includes('missing_avatar')) {
+        showcaseAvatarImg.src = comp.avatar_url;
+        showcaseAvatarImg.style.display = 'block';
+      } else {
+        showcaseAvatarImg.style.display = 'none';
+        showcaseAvatarImg.src = '';
+      }
+    }
+
+    // 3. Nombre del competidor en mayúsculas
+    if (showcaseNameText) {
+      showcaseNameText.textContent = (comp.name || 'COMPETIDOR').toUpperCase();
+    }
+
+    // 4. Récords Personales (Single y Average de la disciplina activa)
+    const pr = (comp.prs && comp.prs[eid]) || null;
+    if (showcasePrSingle) {
+      showcasePrSingle.textContent = (pr && pr.single_fmt) ? pr.single_fmt : '—';
+    }
+    if (showcasePrAverage) {
+      showcasePrAverage.textContent = (pr && pr.average_fmt) ? pr.average_fmt : '—';
+    }
+  }
+
+  function showCompetitorShowcase(comp, eventData) {
+    if (comp) {
+      renderCompetitorShowcase(comp, eventData);
+    }
+    if (showcaseCard) {
+      showcaseCard.classList.add('visible');
+    }
+  }
+
+  function hideCompetitorShowcase() {
+    if (showcaseCard) {
+      showcaseCard.classList.remove('visible');
+    }
+  }
+
   function connect() {
     let wsUrl = 'ws://localhost:8765';
     if (window.location.protocol.startsWith('http')) {
@@ -3008,6 +3266,10 @@
             hideLiveRanking();
           } else if (msg.type === 'fs_theme_updated') {
             applyFsTheme(msg.data);
+          } else if (msg.type === 'show_competitor_showcase') {
+            showCompetitorShowcase(msg.competitor, msg.event);
+          } else if (msg.type === 'hide_competitor_showcase') {
+            hideCompetitorShowcase();
           } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {
             banner.classList.remove('visible');
           } else if (msg.type === 'hide_event') {

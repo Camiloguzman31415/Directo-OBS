@@ -60,6 +60,8 @@ let bannerAlign = 'center';     // 'center' por defecto
 let bannerFont = 'barlow_slim'; // 'barlow_slim' | 'barlow_bold' | 'inter' | 'roboto'
 let competitorVisible = false;
 let eventVisible = false;
+let showcaseCompetitor = null;   // Competidor asignado al Showcase (esquina superior derecha)
+let showcaseVisible = false;      // Visibilidad del Showcase en OBS
 
 // ── Estado de Ranking en Vivo (WCA Live) ──
 let liveRankingData = null;
@@ -493,11 +495,14 @@ app.get('/api/wca/person/:wcaId', async (req, res) => {
       };
     }
 
+    const avatarUrl = (personObj.avatar && !personObj.avatar.is_default && personObj.avatar.url && !personObj.avatar.url.includes('missing_avatar')) ? personObj.avatar.url : null;
+
     const competitor = {
       name: personObj.name || cleanId,
       wca_id: cleanId,
       is_new: false,
       country: personObj.country_iso2 || personObj.countryIso2 || '',
+      avatar_url: avatarUrl,
       events: Object.keys(prsDisplay),
       prs: prsDisplay
     };
@@ -516,6 +521,40 @@ app.get('/api/wca/person/:wcaId', async (req, res) => {
     res.json({ ok: true, competitor });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Obtener avatar oficial de un competidor por su WCA ID
+app.get('/api/wca/avatar/:wcaId', async (req, res) => {
+  const { wcaId } = req.params;
+  const cleanId = wcaId.trim().toUpperCase();
+  try {
+    const WCA_HEADERS = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
+    const pRes = await fetch(`${WCA_API}/persons/${cleanId}`, { headers: WCA_HEADERS });
+    if (!pRes.ok) return res.status(404).json({ ok: false, avatar_url: null });
+
+    const pData = await pRes.json();
+    const personObj = pData.person || (pData.persons && pData.persons[0]) || {};
+    const avatarUrl = (personObj.avatar && !personObj.avatar.is_default && personObj.avatar.url && !personObj.avatar.url.includes('missing_avatar')) ? personObj.avatar.url : null;
+    
+    // Si tenemos al competidor en memoria, enriquecer su objeto con el avatar
+    if (tournamentData && tournamentData.competitors) {
+      const comp = tournamentData.competitors.find(c => (c.wca_id || '').toUpperCase() === cleanId);
+      if (comp) comp.avatar_url = avatarUrl;
+    }
+    if (currentCompetitor && (currentCompetitor.wca_id || '').toUpperCase() === cleanId) {
+      currentCompetitor.avatar_url = avatarUrl;
+    }
+    if (currentCompetitor2 && (currentCompetitor2.wca_id || '').toUpperCase() === cleanId) {
+      currentCompetitor2.avatar_url = avatarUrl;
+    }
+    if (showcaseCompetitor && (showcaseCompetitor.wca_id || '').toUpperCase() === cleanId) {
+      showcaseCompetitor.avatar_url = avatarUrl;
+    }
+
+    res.json({ ok: true, wca_id: cleanId, avatar_url: avatarUrl });
+  } catch (err) {
+    res.json({ ok: false, avatar_url: null, error: err.message });
   }
 });
 
@@ -1602,6 +1641,15 @@ function handleSocketConnection(ws, req) {
         viewMode: liveRankingViewMode
       }));
     }
+
+    // Si el showcase de competidor está activo, enviarlo al nuevo overlay
+    if (showcaseVisible && showcaseCompetitor) {
+      socket.send(JSON.stringify({
+        type: 'show_competitor_showcase',
+        competitor: showcaseCompetitor,
+        event: currentEvent
+      }));
+    }
   }
 
   function initPanel(socket) {
@@ -1618,6 +1666,8 @@ function handleSocketConnection(ws, req) {
       bannerFont,
       competitorVisible,
       eventVisible,
+      showcaseCompetitor,
+      showcaseVisible,
       liveRankingVisible,
       liveRankingRoundId,
       liveRankingCompId,
@@ -1766,15 +1816,18 @@ function handleSocketConnection(ws, req) {
         competitorVisible = false;
         eventVisible = false;
         liveRankingVisible = false;
+        showcaseVisible = false;
         stopLiveRankingPolling();
         broadcastToOverlays({ type: 'hide_competitor' });
         broadcastToOverlays({ type: 'hide_banner' });
         broadcastToOverlays({ type: 'hide_event' });
         broadcastToOverlays({ type: 'live_ranking_hide' });
+        broadcastToOverlays({ type: 'hide_competitor_showcase' });
         broadcastToPanels({
           type: 'sync_state',
           competitorVisible: false,
-          eventVisible: false
+          eventVisible: false,
+          showcaseVisible: false
         });
         broadcastToPanels({
           type: 'sync_live_ranking',
@@ -1785,6 +1838,30 @@ function handleSocketConnection(ws, req) {
           pollInterval: liveRankingPollInterval,
           top: liveRankingTop,
           cutoff: liveRankingCutoff
+        });
+        break;
+
+      case 'show_competitor_showcase':
+        if (msg.competitor) showcaseCompetitor = msg.competitor;
+        showcaseVisible = true;
+        broadcastToOverlays({
+          type: 'show_competitor_showcase',
+          competitor: showcaseCompetitor,
+          event: currentEvent
+        });
+        broadcastToPanels({
+          type: 'sync_state',
+          showcaseCompetitor,
+          showcaseVisible: true
+        });
+        break;
+
+      case 'hide_competitor_showcase':
+        showcaseVisible = false;
+        broadcastToOverlays({ type: 'hide_competitor_showcase' });
+        broadcastToPanels({
+          type: 'sync_state',
+          showcaseVisible: false
         });
         break;
 
