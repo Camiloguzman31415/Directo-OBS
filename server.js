@@ -70,11 +70,7 @@ let headToHeadVisible = false;   // Visibilidad del banner Head to Head
 let headToHeadData = {           // Datos del enfrentamiento Head to Head
   competitor1: null,
   competitor2: null,
-  event: null,
-  nr_single1: '',
-  nr_avg1: '',
-  nr_single2: '',
-  nr_avg2: ''
+  event: null
 };
 
 // ── Estado de Ranking en Vivo (WCA Live) ──
@@ -163,7 +159,7 @@ function loadLiveState() {
       }
       if (state.headToHeadVisible !== undefined) headToHeadVisible = state.headToHeadVisible;
       if (state.headToHeadData !== undefined && typeof state.headToHeadData === 'object') {
-        headToHeadData = Object.assign({ competitor1: null, competitor2: null, event: null, nr_single1: '', nr_avg1: '', nr_single2: '', nr_avg2: '' }, state.headToHeadData);
+        headToHeadData = Object.assign({ competitor1: null, competitor2: null, event: null }, state.headToHeadData);
       }
       if (state.fsTheme) {
         fsTheme = {

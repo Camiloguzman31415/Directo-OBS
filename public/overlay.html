@@ -1315,7 +1315,7 @@
   /* ── Tarjetas de Competidor Lateral ── */
   .h2h-player-card {
     width: 370px;
-    height: 330px;
+    height: 275px;
     background: #060c18;
     border: 4px solid #ffffff;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
@@ -1379,9 +1379,9 @@
   .h2h-noavatar-placeholder {
     position: relative;
     z-index: 3;
-    font-size: 72px;
+    font-size: 68px;
     color: rgba(255, 255, 255, 0.35);
-    margin-bottom: 25px;
+    margin-bottom: 20px;
   }
 
   /* Placa de Nombre con diseño Broadcast Deportivo */
@@ -1421,7 +1421,7 @@
   /* ── Tarjeta Central (Comparación Head to Head en Dark Glass Obsidian) ── */
   .h2h-center-card {
     width: 450px;
-    height: 330px;
+    height: 275px;
     background: #091322;
     border: 4px solid #ffffff;
     border-radius: 12px;
@@ -1436,9 +1436,9 @@
   }
 
   .h2h-center-header {
-    height: 58px;
+    height: 62px;
     background: linear-gradient(180deg, #1d4ed8 0%, #173887 100%);
-    padding: 10px 16px 6px;
+    padding: 12px 16px 8px;
     text-align: center;
     position: relative;
     border-bottom: 2.5px solid rgba(255, 255, 255, 0.35);
@@ -1470,14 +1470,14 @@
   }
 
   .h2h-title-banner {
-    margin-top: 10px;
+    margin-top: 12px;
   }
 
   .h2h-title-banner span {
     font-family: 'Barlow Condensed', 'Arial Black', sans-serif;
     font-weight: 900;
-    font-size: 26px;
-    letter-spacing: 2.5px;
+    font-size: 28px;
+    letter-spacing: 2.8px;
     color: #ffffff;
     text-transform: uppercase;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
@@ -1496,14 +1496,10 @@
   .h2h-stat-row {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 116px 1fr;
+    grid-template-columns: 1fr 115px 1fr;
     align-items: center;
-    padding: 0 16px;
+    padding: 0 20px;
     border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .h2h-stat-row:nth-child(even) {
-    background: rgba(255, 255, 255, 0.025);
   }
 
   .h2h-stat-row:last-child {
@@ -1513,7 +1509,7 @@
   .h2h-val {
     font-family: 'Space Mono', monospace;
     font-weight: 800;
-    font-size: 26px;
+    font-size: 33px;
     color: #e2e8f0;
     text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
     transition: color 0.25s ease, text-shadow 0.25s ease;
@@ -1521,12 +1517,12 @@
 
   .h2h-val.h2h-val-left {
     text-align: right;
-    padding-right: 16px;
+    padding-right: 20px;
   }
 
   .h2h-val.h2h-val-right {
     text-align: left;
-    padding-left: 16px;
+    padding-left: 20px;
   }
 
   /* Resaltado del mejor tiempo en dorado oro puro radiante */
@@ -1542,10 +1538,10 @@
     color: #f8fafc;
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 800;
-    font-size: 13px;
-    letter-spacing: 1.5px;
+    font-size: 14px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    padding: 5px 6px;
+    padding: 7px 10px;
     border-radius: 6px;
     text-align: center;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 3px 6px rgba(0, 0, 0, 0.5);
@@ -2626,29 +2622,15 @@
         <!-- Fila PR Single -->
         <div class="h2h-stat-row">
           <div class="h2h-val h2h-val-left" id="h2h-stat-single-1">—</div>
-          <div class="h2h-stat-label">PR SINGLE</div>
+          <div class="h2h-stat-label">SINGLE</div>
           <div class="h2h-val h2h-val-right" id="h2h-stat-single-2">—</div>
-        </div>
-
-        <!-- Fila NR Single -->
-        <div class="h2h-stat-row">
-          <div class="h2h-val h2h-val-left" id="h2h-stat-nrsingle-1">—</div>
-          <div class="h2h-stat-label">NR SINGLE</div>
-          <div class="h2h-val h2h-val-right" id="h2h-stat-nrsingle-2">—</div>
         </div>
 
         <!-- Fila PR Average -->
         <div class="h2h-stat-row">
           <div class="h2h-val h2h-val-left" id="h2h-stat-avg-1">—</div>
-          <div class="h2h-stat-label">PR AVG</div>
+          <div class="h2h-stat-label">AVERAGE</div>
           <div class="h2h-val h2h-val-right" id="h2h-stat-avg-2">—</div>
-        </div>
-
-        <!-- Fila NR Average -->
-        <div class="h2h-stat-row">
-          <div class="h2h-val h2h-val-left" id="h2h-stat-nravg-1">—</div>
-          <div class="h2h-stat-label">NR AVG</div>
-          <div class="h2h-val h2h-val-right" id="h2h-stat-nravg-2">—</div>
         </div>
       </div>
     </div>
@@ -3840,15 +3822,10 @@
   const h2hP2Avg = document.getElementById('h2h-p2-avg');
 
   const h2hEventIcon = document.getElementById('h2h-event-icon');
-  const h2hRowWins = document.getElementById('h2h-row-wins');
   const h2hStatSingle1 = document.getElementById('h2h-stat-single-1');
   const h2hStatSingle2 = document.getElementById('h2h-stat-single-2');
-  const h2hStatNrSingle1 = document.getElementById('h2h-stat-nrsingle-1');
-  const h2hStatNrSingle2 = document.getElementById('h2h-stat-nrsingle-2');
   const h2hStatAvg1 = document.getElementById('h2h-stat-avg-1');
   const h2hStatAvg2 = document.getElementById('h2h-stat-avg-2');
-  const h2hStatNrAvg1 = document.getElementById('h2h-stat-nravg-1');
-  const h2hStatNrAvg2 = document.getElementById('h2h-stat-nravg-2');
 
   function parseH2HTimeToSeconds(str) {
     if (!str || typeof str !== 'string') return Infinity;
@@ -3862,13 +3839,6 @@
     }
     const val = parseFloat(str);
     return isNaN(val) ? Infinity : val;
-  }
-
-  function parseH2HRank(val) {
-    if (val === undefined || val === null || val === '' || val === '—' || val === '-') return Infinity;
-    const clean = String(val).replace(/[^0-9]/g, '');
-    const num = parseInt(clean, 10);
-    return isNaN(num) || num <= 0 ? Infinity : num;
   }
 
   function renderHeadToHead(data) {
@@ -3948,25 +3918,6 @@
     if (h2hStatAvg1) h2hStatAvg1.textContent = a1;
     if (h2hStatAvg2) h2hStatAvg2.textContent = a2;
 
-    // ── Obtener Rankings Nacionales (NR) ──
-    const wcaRec1 = comp1.personal_records && comp1.personal_records[eventId];
-    const wcaRec2 = comp2.personal_records && comp2.personal_records[eventId];
-
-    const rawNrS1 = data.nr_single1 !== undefined && data.nr_single1 !== '' ? data.nr_single1 : (wcaRec1?.single?.country_rank || pr1?.national_rank_single);
-    const rawNrS2 = data.nr_single2 !== undefined && data.nr_single2 !== '' ? data.nr_single2 : (wcaRec2?.single?.country_rank || pr2?.national_rank_single);
-    const rawNrA1 = data.nr_avg1 !== undefined && data.nr_avg1 !== '' ? data.nr_avg1 : (wcaRec1?.average?.country_rank || pr1?.national_rank_average);
-    const rawNrA2 = data.nr_avg2 !== undefined && data.nr_avg2 !== '' ? data.nr_avg2 : (wcaRec2?.average?.country_rank || pr2?.national_rank_average);
-
-    const numNrS1 = parseH2HRank(rawNrS1);
-    const numNrS2 = parseH2HRank(rawNrS2);
-    const numNrA1 = parseH2HRank(rawNrA1);
-    const numNrA2 = parseH2HRank(rawNrA2);
-
-    if (h2hStatNrSingle1) h2hStatNrSingle1.textContent = numNrS1 !== Infinity ? `#${numNrS1}` : '—';
-    if (h2hStatNrSingle2) h2hStatNrSingle2.textContent = numNrS2 !== Infinity ? `#${numNrS2}` : '—';
-    if (h2hStatNrAvg1) h2hStatNrAvg1.textContent = numNrA1 !== Infinity ? `#${numNrA1}` : '—';
-    if (h2hStatNrAvg2) h2hStatNrAvg2.textContent = numNrA2 !== Infinity ? `#${numNrA2}` : '—';
-
     // Resaltado inteligente del mejor tiempo (Single)
     if (h2hStatSingle1 && h2hStatSingle2) {
       h2hStatSingle1.classList.remove('best-val');
@@ -3990,28 +3941,6 @@
         h2hStatAvg1.classList.add('best-val');
       } else if (numA2 < numA1) {
         h2hStatAvg2.classList.add('best-val');
-      }
-    }
-
-    // Resaltado inteligente del mejor ranking nacional (NR Single: menor número es mejor)
-    if (h2hStatNrSingle1 && h2hStatNrSingle2) {
-      h2hStatNrSingle1.classList.remove('best-val');
-      h2hStatNrSingle2.classList.remove('best-val');
-      if (numNrS1 < numNrS2) {
-        h2hStatNrSingle1.classList.add('best-val');
-      } else if (numNrS2 < numNrS1) {
-        h2hStatNrSingle2.classList.add('best-val');
-      }
-    }
-
-    // Resaltado inteligente del mejor ranking nacional (NR Average: menor número es mejor)
-    if (h2hStatNrAvg1 && h2hStatNrAvg2) {
-      h2hStatNrAvg1.classList.remove('best-val');
-      h2hStatNrAvg2.classList.remove('best-val');
-      if (numNrA1 < numNrA2) {
-        h2hStatNrAvg1.classList.add('best-val');
-      } else if (numNrA2 < numNrA1) {
-        h2hStatNrAvg2.classList.add('best-val');
       }
     }
   }
