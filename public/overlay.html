@@ -1278,19 +1278,20 @@
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      HEAD TO HEAD BANNER OVERLAY (FINALES DE EVENTOS SPEEDCUBING)
+     Diseño Broadcast de Campeonato Mundial (Impeccable Visual Quality)
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   #head-to-head-overlay {
     position: fixed;
-    top: 48%;
+    top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) translateY(35px) scale(0.95);
+    transform: translate(-50%, -50%) translateY(30px) scale(0.96);
     z-index: 900;
     pointer-events: none;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
-                transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
-                visibility 0.45s ease;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
+                visibility 0.4s ease;
     will-change: transform, opacity;
   }
 
@@ -1299,23 +1300,25 @@
     visibility: visible;
     transform: translate(-50%, -50%) translateY(0) scale(1);
     transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
-                transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .h2h-container {
     display: flex;
-    align-items: flex-end;
+    align-items: stretch;
     justify-content: center;
     gap: 0px;
-    filter: drop-shadow(0 25px 55px rgba(0, 0, 0, 0.95));
+    filter: drop-shadow(0 25px 60px rgba(0, 0, 0, 0.95)) drop-shadow(0 4px 15px rgba(0, 0, 0, 0.8));
+    position: relative;
   }
 
   /* ── Tarjetas de Competidor Lateral ── */
   .h2h-player-card {
-    width: 380px;
-    background: #060e19;
+    width: 370px;
+    height: 320px;
+    background: #060c18;
     border: 4px solid #ffffff;
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -1324,22 +1327,23 @@
   }
 
   .h2h-player-card.left {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
     border-right: none;
   }
 
   .h2h-player-card.right {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
     border-left: none;
   }
 
   .h2h-media-box {
     position: relative;
     width: 100%;
-    height: 240px;
-    background: #040912;
+    flex: 1;
+    min-height: 0;
+    background: #040812;
     overflow: hidden;
     display: flex;
     align-items: flex-end;
@@ -1352,171 +1356,154 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: brightness(0.9) saturate(1.1);
+    filter: brightness(0.9) saturate(1.15);
     z-index: 1;
   }
 
   .h2h-flag-gradient {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(4,9,18,0.1) 0%, rgba(4,9,18,0.7) 100%);
+    background: linear-gradient(180deg, rgba(4,8,18,0.1) 0%, rgba(4,8,18,0.45) 50%, rgba(4,8,18,0.9) 100%);
     z-index: 2;
   }
 
   .h2h-avatar-img {
     position: relative;
     z-index: 3;
-    max-height: 230px;
+    max-height: 94%;
     max-width: 90%;
     object-fit: contain;
-    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.85));
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.9));
   }
 
   .h2h-noavatar-placeholder {
     position: relative;
     z-index: 3;
-    font-size: 65px;
-    color: rgba(255, 255, 255, 0.4);
-    margin-bottom: 30px;
+    font-size: 72px;
+    color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 25px;
   }
 
-  /* Placa de Nombre con diseño Broadcast */
+  /* Placa de Nombre con diseño Broadcast Deportivo */
   .h2h-name-bar {
-    background: linear-gradient(90deg, #103b68 0%, #175294 50%, #103b68 100%);
-    padding: 9px 14px;
+    height: 54px;
+    background: linear-gradient(90deg, #0c2b52 0%, #15467e 50%, #0c2b52 100%);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     border-top: 2.5px solid rgba(255, 255, 255, 0.4);
-    border-bottom: 2.5px solid rgba(255, 255, 255, 0.25);
     position: relative;
     z-index: 4;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
 
   .h2h-name-bar span {
     font-family: 'Barlow Condensed', 'Arial Black', sans-serif;
     font-weight: 800;
-    font-size: 23px;
-    letter-spacing: 1.2px;
+    font-size: 24px;
+    letter-spacing: 1.5px;
     color: #ffffff;
     text-transform: uppercase;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     display: block;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
   }
 
-  /* Bloque Inferior de PRs en cada competidor */
+  /* Barra redundante oculta para evitar duplicación y lograr simetría absoluta */
   .h2h-prs-bar {
-    background: #000000;
-    padding: 10px 14px 8px;
-    text-align: center;
-    position: relative;
-    z-index: 4;
+    display: none !important;
   }
 
-  .h2h-prs-val {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 8px;
-    font-family: 'Space Mono', monospace;
-    font-weight: 800;
-    font-size: 25px;
-    color: #ffffff;
-    line-height: 1.1;
-  }
-
-  .h2h-prs-slash {
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 22px;
-  }
-
-  .h2h-prs-labels {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 12px;
-    margin-top: 4px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 1.2px;
-    color: #94a3b8;
-  }
-
-  /* ── Tarjeta Central (Comparación Head to Head) ── */
+  /* ── Tarjeta Central (Comparación Head to Head en Dark Glass Obsidian) ── */
   .h2h-center-card {
-    width: 440px;
-    background: #cbd5e1;
+    width: 450px;
+    height: 320px;
+    background: #091322;
     border: 4px solid #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.92);
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 30px rgba(29, 78, 216, 0.2);
     position: relative;
     z-index: 10;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    margin-bottom: -2px;
+    overflow: visible; /* Nunca cortar el icono superior */
+    margin-left: -1px;
+    margin-right: -1px;
   }
 
   .h2h-center-header {
-    background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
-    padding: 12px 16px 10px;
+    height: 66px;
+    background: linear-gradient(180deg, #1d4ed8 0%, #173887 100%);
+    padding: 14px 16px 8px;
     text-align: center;
     position: relative;
     border-bottom: 2.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px 8px 0 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
 
   .h2h-event-icon-box {
     position: absolute;
-    top: -28px;
+    top: -27px;
     left: 50%;
     transform: translateX(-50%);
-    width: 52px;
-    height: 52px;
+    width: 54px;
+    height: 54px;
     background: #ffffff;
-    border: 3px solid #1e40af;
-    border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+    border: 3px solid #1d4ed8;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.9);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 12;
+    z-index: 20;
   }
 
   .h2h-event-icon-box img {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
   }
 
   .h2h-title-banner {
-    margin-top: 12px;
+    margin-top: 14px;
   }
 
   .h2h-title-banner span {
     font-family: 'Barlow Condensed', 'Arial Black', sans-serif;
     font-weight: 900;
-    font-size: 30px;
-    letter-spacing: 2.5px;
+    font-size: 28px;
+    letter-spacing: 2.8px;
     color: #ffffff;
     text-transform: uppercase;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
   }
 
-  /* Cuerpo de la Tarjeta Central */
+  /* Cuerpo de la Tarjeta Central (Dark Glass Obsidian Broadcast) */
   .h2h-comparison-body {
-    background: #e2e8f0;
+    flex: 1;
+    background: linear-gradient(180deg, #0b172a 0%, #050b14 100%);
     display: flex;
     flex-direction: column;
-    padding: 8px 0;
+    padding: 0;
+    border-radius: 0 0 8px 8px;
   }
 
   .h2h-stat-row {
+    flex: 1;
     display: grid;
-    grid-template-columns: 1fr 100px 1fr;
+    grid-template-columns: 1fr 108px 1fr;
     align-items: center;
-    padding: 10px 16px;
-    border-bottom: 1.5px solid rgba(148, 163, 184, 0.35);
+    padding: 0 18px;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .h2h-stat-row:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
   }
 
   .h2h-stat-row:last-child {
@@ -1526,41 +1513,47 @@
   .h2h-val {
     font-family: 'Space Mono', monospace;
     font-weight: 800;
-    font-size: 29px;
-    color: #1e293b;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-    transition: color 0.2s ease, text-shadow 0.2s ease;
+    font-size: 28px;
+    color: #e2e8f0;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+    transition: color 0.25s ease, text-shadow 0.25s ease;
+  }
+
+  .h2h-stat-row#h2h-row-wins .h2h-val {
+    font-size: 32px;
+    font-weight: 900;
   }
 
   .h2h-val.h2h-val-left {
     text-align: right;
-    padding-right: 16px;
+    padding-right: 18px;
   }
 
   .h2h-val.h2h-val-right {
     text-align: left;
-    padding-left: 16px;
+    padding-left: 18px;
   }
 
-  /* Resaltado del mejor tiempo en dorado brillante */
+  /* Resaltado del mejor tiempo en dorado oro puro radiante */
   .h2h-val.best-val {
-    color: #d97706 !important;
-    text-shadow: 0 0 14px rgba(245, 158, 11, 0.65), 0 1px 2px rgba(0, 0, 0, 0.4);
+    color: #fbbf24 !important;
+    text-shadow: 0 0 18px rgba(251, 191, 36, 0.75), 0 2px 6px rgba(0, 0, 0, 0.95);
     font-weight: 900;
   }
 
   .h2h-stat-label {
-    background: #64748b;
-    color: #ffffff;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.22);
+    color: #f8fafc;
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 800;
     font-size: 14px;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    padding: 5px 8px;
-    border-radius: 4px;
+    padding: 6px 8px;
+    border-radius: 6px;
     text-align: center;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 3px 6px rgba(0, 0, 0, 0.5);
   }
 
   /* Fondo Broadcast Degradado y Patrón Geométrico de Cubos */
