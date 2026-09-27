@@ -189,6 +189,13 @@ function handleServerMessage(msg) {
       if (msg.showcaseVisible !== undefined) {
         showcaseVisible = !!msg.showcaseVisible;
       }
+      if (msg.tournamentLogo !== undefined) {
+        if (msg.tournamentLogo) {
+          tickerTournamentLogo = msg.tournamentLogo;
+          try { localStorage.setItem('directoobs_ticker_logo', tickerTournamentLogo); } catch(e){}
+        }
+        updateTickerLogoPreview();
+      }
       updatePreviewUI();
       updateShowcaseUI();
       updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
@@ -344,6 +351,16 @@ function handleServerMessage(msg) {
       if (msg.competitorVisible !== undefined || msg.eventVisible !== undefined) {
         updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
       }
+      break;
+
+    case 'tournament_logo_updated':
+      tickerTournamentLogo = msg.logo || '';
+      if (msg.logo) {
+        try { localStorage.setItem('directoobs_ticker_logo', msg.logo); } catch(e){}
+      } else {
+        localStorage.removeItem('directoobs_ticker_logo');
+      }
+      updateTickerLogoPreview();
       break;
 
     case 'sync_live_ranking':
@@ -1469,17 +1486,35 @@ function handleTickerLogoUpload(event) {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = (e) => {
-    tickerTournamentLogo = e.target.result;
+  reader.onload = async (e) => {
+    const base64Data = e.target.result;
     try {
-      localStorage.setItem('directoobs_ticker_logo', tickerTournamentLogo);
+      showToast('Guardando logo en el servidor...', 'info');
+      const resp = await fetch('/api/tournament-logo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64Data })
+      });
+      const result = await resp.json();
+      if (result.ok && result.url) {
+        tickerTournamentLogo = result.url;
+        try {
+          localStorage.setItem('directoobs_ticker_logo', result.url);
+        } catch (err) {}
+        updateTickerLogoPreview();
+        showToast('Logo del torneo guardado con éxito', 'success');
+        if (eventVisible) {
+          sendShowEvent();
+        }
+      } else {
+        throw new Error(result.error || 'Error al guardar');
+      }
     } catch (err) {
-      console.warn('No se pudo guardar el logo en localStorage (límite excedido):', err);
-    }
-    updateTickerLogoPreview();
-    showToast('Logo del torneo cargado con éxito', 'success');
-    if (eventVisible) {
-      sendShowEvent();
+      console.warn('Error subiendo logo al servidor, usando fallback local:', err);
+      tickerTournamentLogo = base64Data;
+      updateTickerLogoPreview();
+      showToast('Logo cargado localmente', 'info');
+      if (eventVisible) sendShowEvent();
     }
   };
   reader.readAsDataURL(file);
@@ -1488,6 +1523,7 @@ function handleTickerLogoUpload(event) {
 function clearTickerLogo() {
   tickerTournamentLogo = '';
   localStorage.removeItem('directoobs_ticker_logo');
+  fetch('/api/tournament-logo/delete', { method: 'POST' }).catch(() => {});
   const fileInput = document.getElementById('ticker-logo-file-input');
   if (fileInput) fileInput.value = '';
   updateTickerLogoPreview();
@@ -1942,7 +1978,11 @@ function sendShowCompetitor() {
     round_number: currentRound,
     total_rounds: totalRounds,
     tournament_name: tournamentData?.name || 'Regionales Santander 2026',
-    city: tournamentData?.city || 'Floridablanca, Santander'
+    city: tickerVenue || tournamentData?.city || 'Floridablanca, Santander',
+    day: tickerDay || '',
+    venue: tickerVenue || '',
+    news_list: (Array.isArray(tickerNewsList) && tickerNewsList.length > 0) ? tickerNewsList : ['Sigue los resultados en directo por WCA Live'],
+    tournament_logo: tickerTournamentLogo || ''
   };
 
   const payload = {

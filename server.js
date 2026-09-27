@@ -62,6 +62,7 @@ let competitorVisible = false;
 let eventVisible = false;
 let showcaseCompetitor = null;   // Competidor asignado al Showcase (esquina superior derecha)
 let showcaseVisible = false;      // Visibilidad del Showcase en OBS
+let tournamentLogo = null;        // URL persistente del logo del torneo en servidor
 
 // ── Estado de Ranking en Vivo (WCA Live) ──
 let liveRankingData = null;
@@ -107,7 +108,8 @@ function saveLiveState() {
       pollInterval: liveRankingPollInterval,
       visible: liveRankingVisible,
       viewMode: liveRankingViewMode,
-      fsTheme: fsTheme
+      fsTheme: fsTheme,
+      tournamentLogo: tournamentLogo
     };
     fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
   } catch (err) {
@@ -134,6 +136,7 @@ function loadLiveState() {
       if (state.pollInterval !== undefined) liveRankingPollInterval = state.pollInterval;
       if (state.visible !== undefined) liveRankingVisible = state.visible;
       if (state.viewMode) liveRankingViewMode = state.viewMode;
+      if (state.tournamentLogo !== undefined) tournamentLogo = state.tournamentLogo;
       if (state.fsTheme) {
         fsTheme = {
           bgColor: state.fsTheme.bgColor || '#0c4ea8',
@@ -669,6 +672,74 @@ app.post('/api/fs-background/delete', (req, res) => {
     broadcastToPanels({ type: 'fs_theme_updated', data: fsTheme });
 
     res.json({ ok: true, theme: fsTheme });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Subir logo del torneo para el ticker inferior y overlays
+app.post('/api/tournament-logo', (req, res) => {
+  try {
+    const { imageBase64 } = req.body;
+    if (!imageBase64) {
+      return res.status(400).json({ error: 'Falta la imagen' });
+    }
+
+    const uploadsDir = path.join(__dirname, 'public', 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const matches = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    let ext = 'png';
+    let buffer;
+
+    if (matches && matches.length === 3) {
+      const mime = matches[1];
+      if (mime.includes('png')) ext = 'png';
+      else if (mime.includes('webp')) ext = 'webp';
+      else if (mime.includes('svg')) ext = 'svg';
+      else if (mime.includes('gif')) ext = 'gif';
+      else if (mime.includes('jpeg') || mime.includes('jpg')) ext = 'jpg';
+      buffer = Buffer.from(matches[2], 'base64');
+    } else {
+      buffer = Buffer.from(imageBase64, 'base64');
+    }
+
+    const savedFilename = `tournament_logo_${Date.now()}.${ext}`;
+    const filePath = path.join(uploadsDir, savedFilename);
+    fs.writeFileSync(filePath, buffer);
+
+    const publicUrl = `/uploads/${savedFilename}`;
+    tournamentLogo = publicUrl;
+    if (currentEvent) {
+      currentEvent.tournament_logo = publicUrl;
+    }
+    saveLiveState();
+
+    broadcastToOverlays({ type: 'tournament_logo_updated', logo: publicUrl });
+    broadcastToPanels({ type: 'tournament_logo_updated', logo: publicUrl });
+
+    res.json({ ok: true, url: publicUrl });
+  } catch (err) {
+    console.error('[Upload Tournament Logo Error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Eliminar logo del torneo
+app.post('/api/tournament-logo/delete', (req, res) => {
+  try {
+    tournamentLogo = null;
+    if (currentEvent) {
+      currentEvent.tournament_logo = null;
+    }
+    saveLiveState();
+
+    broadcastToOverlays({ type: 'tournament_logo_updated', logo: null });
+    broadcastToPanels({ type: 'tournament_logo_updated', logo: null });
+
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1650,6 +1721,14 @@ function handleSocketConnection(ws, req) {
         event: currentEvent
       }));
     }
+
+    // Enviar logo persistente del torneo
+    if (tournamentLogo) {
+      socket.send(JSON.stringify({
+        type: 'tournament_logo_updated',
+        logo: tournamentLogo
+      }));
+    }
   }
 
   function initPanel(socket) {
@@ -1668,6 +1747,7 @@ function handleSocketConnection(ws, req) {
       eventVisible,
       showcaseCompetitor,
       showcaseVisible,
+      tournamentLogo,
       liveRankingVisible,
       liveRankingRoundId,
       liveRankingCompId,
@@ -1701,7 +1781,18 @@ function handleSocketConnection(ws, req) {
           if (msg.data.mode) bannerMode = msg.data.mode;
           if (msg.data.position) bannerPosition = msg.data.position;
           if (msg.data.align) bannerAlign = msg.data.align;
-          if (msg.data.event) currentEvent = msg.data.event;
+          if (msg.data.event) {
+            if (tournamentLogo && !msg.data.event.tournament_logo) {
+              msg.data.event.tournament_logo = tournamentLogo;
+            } else if (currentEvent?.tournament_logo && !msg.data.event.tournament_logo) {
+              msg.data.event.tournament_logo = currentEvent.tournament_logo;
+            }
+            if (currentEvent) {
+              currentEvent = Object.assign({}, currentEvent, msg.data.event);
+            } else {
+              currentEvent = msg.data.event;
+            }
+          }
           if (msg.data.visible !== undefined) competitorVisible = !!msg.data.visible;
           else competitorVisible = true;
         }
@@ -1788,7 +1879,15 @@ function handleSocketConnection(ws, req) {
         break;
 
       case 'event':
-        currentEvent = msg.data;
+        if (msg.data) {
+          if (tournamentLogo && !msg.data.tournament_logo) {
+            msg.data.tournament_logo = tournamentLogo;
+          } else if (msg.data.tournament_logo) {
+            tournamentLogo = msg.data.tournament_logo;
+            saveLiveState();
+          }
+          currentEvent = Object.assign({}, currentEvent || {}, msg.data);
+        }
         eventVisible = true;
         broadcastToOverlays(msg);
         broadcastToOverlays({

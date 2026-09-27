@@ -2306,6 +2306,25 @@
   const tickerLogoDefault = document.getElementById('ticker-default-logo');
   const tickerContent1 = document.getElementById('ticker-content-1');
   const tickerContent2 = document.getElementById('ticker-content-2');
+  let currentTournamentLogo = null;
+
+  function applyTournamentLogo(url) {
+    if (url && typeof url === 'string' && url.trim() !== '') {
+      currentTournamentLogo = url.trim();
+      if (tickerLogoImg && tickerLogoDefault) {
+        tickerLogoImg.src = currentTournamentLogo;
+        tickerLogoImg.style.display = 'block';
+        tickerLogoDefault.style.display = 'none';
+      }
+    } else if (url === '' || url === false) {
+      currentTournamentLogo = null;
+      if (tickerLogoImg && tickerLogoDefault) {
+        tickerLogoImg.src = '';
+        tickerLogoImg.style.display = 'none';
+        tickerLogoDefault.style.display = 'flex';
+      }
+    }
+  }
 
   function renderFlag(containerId, iso2) {
     const container = document.getElementById(containerId);
@@ -2378,17 +2397,13 @@
       elIconBadge.style.display = 'block';
     }
 
-    // Actualizar Logo del Torneo
-    const logoUrl = eventData.tournament_logo || eventData.logo || null;
-    if (tickerLogoImg && tickerLogoDefault) {
-      if (logoUrl) {
-        tickerLogoImg.src = logoUrl;
-        tickerLogoImg.style.display = 'block';
-        tickerLogoDefault.style.display = 'none';
-      } else {
-        tickerLogoImg.style.display = 'none';
-        tickerLogoDefault.style.display = 'flex';
-      }
+    // Actualizar Logo del Torneo con persistencia
+    if (eventData.tournament_logo !== undefined && eventData.tournament_logo !== null) {
+      applyTournamentLogo(eventData.tournament_logo);
+    } else if (eventData.logo !== undefined && eventData.logo !== null) {
+      applyTournamentLogo(eventData.logo);
+    } else if (currentTournamentLogo) {
+      applyTournamentLogo(currentTournamentLogo);
     }
 
     // Actualizar contenido del ticker deslizante
@@ -3270,6 +3285,8 @@
             showCompetitorShowcase(msg.competitor, msg.event);
           } else if (msg.type === 'hide_competitor_showcase') {
             hideCompetitorShowcase();
+          } else if (msg.type === 'tournament_logo_updated') {
+            applyTournamentLogo(msg.logo);
           } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {
             banner.classList.remove('visible');
           } else if (msg.type === 'hide_event') {
