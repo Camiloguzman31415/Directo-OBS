@@ -1357,7 +1357,7 @@
   .showcase-lbl {
     font-size: 10px;
     font-weight: 700;
-    color: #94a3b8;
+    color: #ffffff;
     letter-spacing: 1.5px;
     min-width: 90px;
     text-align: center;
@@ -1365,6 +1365,34 @@
 
   .showcase-lbl-spacer {
     width: 22px;
+  }
+
+  .showcase-event-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .showcase-event-icon {
+    width: 14px;
+    height: 14px;
+    filter: brightness(0) invert(1);
+    object-fit: contain;
+  }
+
+  .showcase-event-name {
+    font-size: 11px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3194,6 +3222,10 @@
       <span class="showcase-lbl-spacer"></span>
       <span class="showcase-lbl">AVERAGE</span>
     </div>
+    <div class="showcase-event-row">
+      <img id="showcase-event-icon" class="showcase-event-icon" src="icons/333.svg" alt="" onerror="this.style.display='none'">
+      <span id="showcase-event-name" class="showcase-event-name">3X3</span>
+    </div>
   </div>
 </div>
 
@@ -4448,6 +4480,8 @@
   const showcaseNameText = document.getElementById('showcase-name-text');
   const showcasePrSingle = document.getElementById('showcase-pr-single');
   const showcasePrAverage = document.getElementById('showcase-pr-average');
+  const showcaseEventName = document.getElementById('showcase-event-name');
+  const showcaseEventIcon = document.getElementById('showcase-event-icon');
   let currentShowcaseCompetitor = null;
 
   function renderCompetitorShowcase(comp, eventData) {
@@ -4492,6 +4526,17 @@
     }
     if (showcasePrAverage) {
       showcasePrAverage.textContent = (pr && pr.average_fmt) ? pr.average_fmt : '—';
+    }
+
+    // 5. Nombre e icono del evento abajo alineado al centro
+    if (showcaseEventName) {
+      let evDisplayName = (evt && (evt.event_name || evt.name)) || (typeof EVENT_SHORT_NAMES !== 'undefined' && EVENT_SHORT_NAMES[eid]) || eid;
+      evDisplayName = String(evDisplayName).replace(/(\d+)x\1x\1(\s*Cube)?/gi, '$1x$1');
+      showcaseEventName.textContent = evDisplayName.toUpperCase();
+    }
+    if (showcaseEventIcon) {
+      showcaseEventIcon.src = `icons/${eid}.svg`;
+      showcaseEventIcon.style.display = 'block';
     }
   }
 

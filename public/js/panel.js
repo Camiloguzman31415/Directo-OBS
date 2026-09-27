@@ -3587,7 +3587,16 @@ function updateShowcaseUI() {
   const elSingle = document.getElementById('panel-showcase-single');
   const elAvg = document.getElementById('panel-showcase-average');
 
-  if (!elName) return;
+  const eid = selectedEventId || (currentEvent && currentEvent.event_id) || '333';
+  const elEventName = document.getElementById('panel-showcase-event-name');
+  const elEventIcon = document.getElementById('panel-showcase-event-icon');
+  if (elEventName) {
+    const rawEvName = (currentEvent && (currentEvent.event_name || currentEvent.name)) || (typeof EVENT_NAMES !== 'undefined' && EVENT_NAMES[eid]) || eid;
+    elEventName.textContent = String(rawEvName).replace(/(\d+)x\1x\1(\s*Cube)?/gi, '$1x$1').toUpperCase();
+  }
+  if (elEventIcon) {
+    elEventIcon.src = `icons/${eid}.svg`;
+  }
 
   if (!showcaseCompetitor) {
     if (elFlag) elFlag.style.display = 'none';
@@ -3626,7 +3635,6 @@ function updateShowcaseUI() {
   elName.textContent = (showcaseCompetitor.name || 'COMPETIDOR').toUpperCase();
 
   // Récords de la categoría actual
-  const eid = selectedEventId || (currentEvent && currentEvent.event_id) || '333';
   const pr = (showcaseCompetitor.prs && showcaseCompetitor.prs[eid]) || null;
   if (elSingle) elSingle.textContent = (pr && pr.single_fmt) ? pr.single_fmt : '—';
   if (elAvg) elAvg.textContent = (pr && pr.average_fmt) ? pr.average_fmt : '—';
