@@ -3351,16 +3351,6 @@ async function fetchCompetitorAvatarIfNeeded(comp) {
   }
 }
 
-function loadShowcaseFromSlot(slot) {
-  const comp = slot === 1 ? currentCompetitor : currentCompetitor2;
-  if (!comp) {
-    showToast(`Mesa ${slot} no tiene un competidor seleccionado`, 'warning');
-    return;
-  }
-  setShowcaseCompetitor(comp);
-  showToast(`Competidor de Mesa ${slot} (${comp.name}) cargado al Showcase`, 'info');
-}
-
 function setShowcaseCompetitor(comp) {
   showcaseCompetitor = comp;
   updateShowcaseUI();

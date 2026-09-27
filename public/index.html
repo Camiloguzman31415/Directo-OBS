@@ -754,21 +754,11 @@
             </div>
 
             <div class="panel-body">
-              <!-- Selector Rápido de Competidor -->
+              <!-- Selector de Competidor -->
               <div style="margin-bottom:12px;">
-                <label class="form-label">Selección Rápida de Competidor:</label>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-                  <button type="button" class="btn-tactile btn-secondary" onclick="loadShowcaseFromSlot(1)" style="padding:6px 10px;font-size:12px;font-weight:700;">
-                    🪑 Cargar Mesa 1
-                  </button>
-                  <button type="button" class="btn-tactile btn-secondary" onclick="loadShowcaseFromSlot(2)" style="padding:6px 10px;font-size:12px;font-weight:700;">
-                    🪑 Cargar Mesa 2
-                  </button>
-                </div>
-
-                <!-- Buscador de Competidores del Torneo / WCA -->
+                <label class="form-label">Competidor a Mostrar:</label>
                 <div style="position:relative;">
-                  <input type="text" class="form-input" id="showcase-search-input" placeholder="Buscar otro competidor del torneo o WCA ID..." oninput="onShowcaseSearchInput(this.value)" autocomplete="off">
+                  <input type="text" class="form-input" id="showcase-search-input" placeholder="Buscar competidor por nombre o WCA ID..." oninput="onShowcaseSearchInput(this.value)" autocomplete="off">
                   <div class="search-results-dropdown" id="showcase-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;background:var(--surface, #1e293b);border:1px solid var(--border);border-radius:6px;z-index:100;box-shadow:0 8px 20px rgba(0,0,0,0.6);"></div>
                 </div>
               </div>
