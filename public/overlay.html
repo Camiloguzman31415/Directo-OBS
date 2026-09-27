@@ -555,6 +555,34 @@
     white-space: nowrap;
   }
 
+  .ticker-tourney-text {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  /* Sección de Noticias / Avisos Especiales seccionados */
+  .ticker-item.ticker-news-item {
+    gap: 6px;
+    background: rgba(2, 132, 199, 0.16);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    padding: 2px 10px;
+    border-radius: 4px;
+  }
+
+  .ticker-news-tag {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+
+  .ticker-news-text {
+    color: #f8fafc;
+    font-weight: 500;
+  }
+
   .ticker-separator {
     color: rgba(255, 255, 255, 0.35);
     font-size: 14px;
@@ -1924,23 +1952,23 @@
   <div class="ticker-marquee-wrapper">
     <div class="ticker-marquee-track" id="ticker-marquee-track">
       <div class="ticker-marquee-content" id="ticker-content-1">
-        <span class="ticker-item">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span>
+        <span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span></span>
         <span class="ticker-separator">|</span>
-        <span class="ticker-item">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span>
+        <span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA:</span> <span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
         <span class="ticker-separator">|</span>
-        <span class="ticker-item">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span>
+        <span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span></span>
         <span class="ticker-separator">|</span>
-        <span class="ticker-item">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span>
+        <span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA:</span> <span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
         <span class="ticker-separator">|</span>
       </div>
       <div class="ticker-marquee-content" id="ticker-content-2">
-        <span class="ticker-item">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span>
+        <span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span></span>
         <span class="ticker-separator">|</span>
-        <span class="ticker-item">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span>
+        <span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA:</span> <span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
         <span class="ticker-separator">|</span>
-        <span class="ticker-item">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span>
+        <span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span></span>
         <span class="ticker-separator">|</span>
-        <span class="ticker-item">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span>
+        <span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA:</span> <span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
         <span class="ticker-separator">|</span>
       </div>
     </div>
@@ -2175,21 +2203,45 @@
       }
     }
 
-    // Actualizar contenido del ticker deslizante (Formato directo: Nombre del torneo, Fecha, Lugar)
+    // Actualizar contenido del ticker deslizante
+    // 1. Datos del Torneo: Nombre del torneo, Fecha, Lugar
     const dayText = eventData.day || eventData.event_day || '';
     const venueText = eventData.venue || eventData.city || eventData.location || '';
-    const newsText = eventData.news || eventData.announcement || '';
 
-    const parts = [];
-    if (tourney) parts.push(tourney);
-    if (dayText) parts.push(dayText);
-    if (venueText) parts.push(venueText);
-    if (newsText) parts.push(newsText);
+    const tourneyParts = [];
+    if (tourney) tourneyParts.push(tourney);
+    if (dayText) tourneyParts.push(dayText);
+    if (venueText) tourneyParts.push(venueText);
+    const tourneyInfo = tourneyParts.join(', ');
 
-    const infoString = parts.join(', ');
-    const unitHtml = `<span class="ticker-item">${escapeHtml(infoString)}</span><span class="ticker-separator">|</span>`;
-    // Repetir el patrón base 4 veces en cada mitad para garantizar un carril continuo infinito sin huecos
-    const loopHtml = unitHtml.repeat(4);
+    // 2. Noticias / Avisos Especiales (seccionados aparte)
+    let rawNews = [];
+    if (Array.isArray(eventData.news_list) && eventData.news_list.length > 0) {
+      rawNews = eventData.news_list;
+    } else if (eventData.news) {
+      rawNews = eventData.news.split('•').map(s => s.trim()).filter(Boolean);
+    }
+
+    let segmentHtml = '';
+    if (tourneyInfo) {
+      segmentHtml += `<span class="ticker-item"><span class="ticker-tourney-text">${escapeHtml(tourneyInfo)}</span></span><span class="ticker-separator">|</span>`;
+    }
+
+    if (rawNews.length > 0) {
+      rawNews.forEach(item => {
+        const cleanItem = (item || '').trim();
+        if (cleanItem) {
+          segmentHtml += `<span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA:</span> <span class="ticker-news-text">${escapeHtml(cleanItem)}</span></span><span class="ticker-separator">|</span>`;
+        }
+      });
+    }
+
+    if (!segmentHtml) {
+      segmentHtml = `<span class="ticker-item">Regionales Santander 2026</span><span class="ticker-separator">|</span>`;
+    }
+
+    // Repetir el bloque 4 veces en cada mitad para garantizar continuidad infinita sin cortes
+    const loopHtml = segmentHtml.repeat(4);
 
     if (tickerContent1) tickerContent1.innerHTML = loopHtml;
     if (tickerContent2) tickerContent2.innerHTML = loopHtml;

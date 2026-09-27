@@ -27,6 +27,16 @@ let tickerTournamentLogo = localStorage.getItem('directoobs_ticker_logo') || '';
 let tickerDay = localStorage.getItem('directoobs_ticker_day') || '';
 let tickerVenue = localStorage.getItem('directoobs_ticker_venue') || '';
 let tickerNews = localStorage.getItem('directoobs_ticker_news') || '';
+let tickerNewsList = [];
+try {
+  const savedNews = localStorage.getItem('directoobs_ticker_news_list');
+  if (savedNews) tickerNewsList = JSON.parse(savedNews);
+} catch (e) {
+  tickerNewsList = [];
+}
+if (!tickerNewsList || !Array.isArray(tickerNewsList) || tickerNewsList.length === 0) {
+  tickerNewsList = ['Sigue los resultados en directo por WCA Live'];
+}
 
 // ── Estado de Ranking en Vivo (WCA Live) ──
 let liveRankingData = null;
@@ -1315,7 +1325,6 @@ function autoDetectTickerInfo(force = false) {
 function initTickerUI() {
   const dayInput = document.getElementById('ticker-day-input');
   const venueInput = document.getElementById('ticker-venue-input');
-  const newsInput = document.getElementById('ticker-news-input');
 
   if (!tickerDay) {
     tickerDay = getAutoDayAndDate();
@@ -1328,9 +1337,99 @@ function initTickerUI() {
 
   if (dayInput) dayInput.value = tickerDay;
   if (venueInput) venueInput.value = tickerVenue;
-  if (newsInput) newsInput.value = tickerNews || '';
 
   updateTickerLogoPreview();
+  renderTickerNewsList();
+}
+
+function renderTickerNewsList() {
+  const container = document.getElementById('ticker-news-list');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (tickerNewsList.length === 0) {
+    container.innerHTML = `
+      <div style="font-size:11px;color:var(--text-muted);font-style:italic;padding:6px 0;">
+        Sin avisos especiales. Presiona <b>+ Agregar Noticia</b> para añadir uno.
+      </div>`;
+    return;
+  }
+
+  tickerNewsList.forEach((text, index) => {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.gap = '6px';
+    row.style.alignItems = 'center';
+
+    row.innerHTML = `
+      <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--text-muted);width:16px;text-align:center;">${index + 1}.</span>
+      <input type="text" class="search-input news-item-input" value="${escapeHtml(text)}" placeholder="Escribe un aviso especial (ej: Próxima ronda a las 14:00)..." style="height:30px;font-size:12px;padding:3px 8px;flex:1;">
+      <button type="button" class="btn-tactile btn-secondary btn-sm remove-news-btn" title="Quitar este aviso" style="height:30px;width:30px;padding:0;color:var(--danger);display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
+    `;
+
+    const input = row.querySelector('.news-item-input');
+    input.addEventListener('input', (e) => {
+      onTickerNewsItemChange(index, e.target.value);
+    });
+
+    const removeBtn = row.querySelector('.remove-news-btn');
+    removeBtn.addEventListener('click', () => {
+      removeTickerNewsItem(index);
+    });
+
+    container.appendChild(row);
+  });
+}
+
+function addTickerNewsItem(defaultVal = '') {
+  tickerNewsList.push(defaultVal);
+  saveTickerNewsList();
+  renderTickerNewsList();
+
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.news-item-input');
+    if (inputs.length > 0) {
+      const last = inputs[inputs.length - 1];
+      last.focus();
+    }
+  }, 50);
+
+  if (eventVisible) {
+    sendShowEvent();
+  }
+}
+
+function removeTickerNewsItem(index) {
+  tickerNewsList.splice(index, 1);
+  saveTickerNewsList();
+  renderTickerNewsList();
+  if (eventVisible) {
+    sendShowEvent();
+  }
+}
+
+let tickerNewsDebounce = null;
+function onTickerNewsItemChange(index, value) {
+  if (index >= 0 && index < tickerNewsList.length) {
+    tickerNewsList[index] = value;
+    saveTickerNewsList();
+
+    if (eventVisible) {
+      clearTimeout(tickerNewsDebounce);
+      tickerNewsDebounce = setTimeout(() => {
+        sendShowEvent();
+      }, 300);
+    }
+  }
+}
+
+function saveTickerNewsList() {
+  try {
+    localStorage.setItem('directoobs_ticker_news_list', JSON.stringify(tickerNewsList));
+  } catch (e) {
+    console.warn('Error guardando tickerNewsList:', e);
+  }
 }
 
 function updateTickerLogoPreview() {
@@ -1386,15 +1485,12 @@ let tickerInputDebounce = null;
 function onTickerInputChange() {
   const dayInput = document.getElementById('ticker-day-input');
   const venueInput = document.getElementById('ticker-venue-input');
-  const newsInput = document.getElementById('ticker-news-input');
 
   tickerDay = dayInput ? dayInput.value.trim() : '';
   tickerVenue = venueInput ? venueInput.value.trim() : '';
-  tickerNews = newsInput ? newsInput.value.trim() : '';
 
   localStorage.setItem('directoobs_ticker_day', tickerDay);
   localStorage.setItem('directoobs_ticker_venue', tickerVenue);
-  localStorage.setItem('directoobs_ticker_news', tickerNews);
 
   if (eventVisible) {
     clearTimeout(tickerInputDebounce);
@@ -1410,6 +1506,7 @@ function sendShowEvent() {
 
   const venueValue = tickerVenue || getAutoVenue();
   const dayValue = tickerDay || getAutoDayAndDate();
+  const activeNews = tickerNewsList.map(n => (n || '').trim()).filter(n => n.length > 0);
 
   const data = {
     event_id: selectedEventId,
@@ -1420,7 +1517,8 @@ function sendShowEvent() {
     city: venueValue,
     venue: venueValue,
     day: dayValue,
-    news: tickerNews || '',
+    news: activeNews.join(' • '),
+    news_list: activeNews,
     tournament_logo: tickerTournamentLogo || ''
   };
 

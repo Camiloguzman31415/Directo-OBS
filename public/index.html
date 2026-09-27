@@ -207,9 +207,21 @@
                     </div>
                   </div>
 
-                  <div>
-                    <label style="display:block;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">Noticias / Anuncios en Pantalla (Deslizante)</label>
-                    <input type="text" id="ticker-news-input" class="search-input" style="height:32px;font-size:12px;padding:4px 10px;" placeholder="Ej: Sigue los resultados en directo por WCA Live | Próxima ronda a las 15:30" oninput="onTickerInputChange()">
+                  <!-- SECCIÓN SEPARADA: NOTICIAS / AVISOS ESPECIALES -->
+                  <div class="ticker-news-manager" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                      <label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">
+                        Noticias / Avisos Especiales (Seccionados)
+                      </label>
+                      <button type="button" class="btn-tactile btn-secondary btn-sm" onclick="addTickerNewsItem()" style="height:24px;padding:0 8px;font-size:11px;font-weight:700;color:#38bdf8;border-color:rgba(56,189,248,0.4);" title="Agregar nuevo aviso especial">
+                        + Agregar Noticia
+                      </button>
+                    </div>
+
+                    <!-- Lista dinámica de avisos -->
+                    <div id="ticker-news-list" style="display:flex;flex-direction:column;gap:6px;">
+                      <!-- Filas de noticias generadas dinámicamente -->
+                    </div>
                   </div>
                 </div>
 
