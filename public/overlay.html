@@ -622,7 +622,9 @@
     position: absolute;
     left: 40px;
     top: 40px;
-    width: 420px;
+    width: var(--lr-widget-width, 340px);
+    min-width: 300px;
+    max-width: 440px;
     background: rgba(6, 14, 25, 0.98);
     backdrop-filter: blur(14px);
     border-radius: 8px;
@@ -728,17 +730,17 @@
   /* Encabezados de columnas (Alto Contraste) */
   .ranking-cols-header {
     display: grid;
-    grid-template-columns: 36px 30px 1fr 56px 74px;
+    grid-template-columns: 30px 24px 1fr 48px 64px;
     align-items: center;
     background: rgba(10, 22, 38, 0.98);
-    padding: 7px 12px;
+    padding: 6px 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.14);
     font-family: var(--font-display);
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 800;
     color: #E2E8F0;
     text-transform: uppercase;
-    letter-spacing: 0.9px;
+    letter-spacing: 0.8px;
   }
 
   .col-r-pos { text-align: center; }
@@ -797,9 +799,9 @@
 
   .ranking-row {
     display: grid;
-    grid-template-columns: 36px 30px 1fr 56px 74px;
+    grid-template-columns: 30px 24px 1fr 48px 64px;
     align-items: center;
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     transition: background 0.2s ease;
     position: relative;
@@ -822,31 +824,34 @@
     box-shadow: inset 3px 0 0 #38bdf8;
   }
 
+  /* Popover ultracompacto (altura 25px en fila de 32-34px: NUNCA se solapa con filas adyacentes) */
   .lr-podium-popover {
     position: absolute;
-    left: calc(100% + 10px);
+    left: calc(100% + 8px);
     top: 50%;
     transform: translateY(-50%);
     background: rgba(6, 14, 25, 0.98);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 7px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0, 0, 0, 0.6);
-    padding: 5px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 6px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(0, 0, 0, 0.5);
+    padding: 2px 5px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
     z-index: 1050;
     pointer-events: none;
     white-space: nowrap;
-    animation: lrPodiumPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    height: 25px;
+    box-sizing: border-box;
+    animation: lrPodiumPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   @keyframes lrPodiumPopIn {
     0% {
       opacity: 0;
-      transform: translateY(-50%) translateX(-8px) scale(0.95);
+      transform: translateY(-50%) translateX(-6px) scale(0.95);
     }
     100% {
       opacity: 1;
@@ -860,65 +865,73 @@
     right: 100%;
     top: 50%;
     transform: translateY(-50%);
-    border-width: 5px;
+    border-width: 4px;
     border-style: solid;
-    border-color: transparent rgba(255, 255, 255, 0.22) transparent transparent;
+    border-color: transparent rgba(255, 255, 255, 0.24) transparent transparent;
   }
 
-  .lr-target-col {
-    display: flex;
-    flex-direction: column;
+  .lr-target-pill {
+    display: inline-flex;
     align-items: center;
-    gap: 3px;
-    min-width: 62px;
+    gap: 4px;
+    padding: 1.5px 5.5px;
+    border-radius: 4px;
+    line-height: 1;
+    height: 19px;
+    box-sizing: border-box;
+  }
+
+  .lr-target-pill.pill-gold {
+    background: rgba(245, 158, 11, 0.18);
+    border: 1px solid rgba(245, 158, 11, 0.55);
+  }
+
+  .lr-target-pill.pill-gold .lr-target-badge {
+    color: #ffd000;
+  }
+
+  .lr-target-pill.pill-silver {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .lr-target-pill.pill-silver .lr-target-badge {
+    color: #f1f5f9;
+  }
+
+  .lr-target-pill.pill-bronze {
+    background: rgba(234, 88, 12, 0.22);
+    border: 1px solid rgba(251, 146, 60, 0.55);
+  }
+
+  .lr-target-pill.pill-bronze .lr-target-badge {
+    color: #fdba74;
   }
 
   .lr-target-badge {
     font-family: var(--font-display);
-    font-size: 10.5px;
+    font-size: 9.5px;
     font-weight: 800;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.6px;
     text-transform: uppercase;
-    padding: 2px 7px;
-    border-radius: 4px;
-    line-height: 1.15;
+    line-height: 1;
     white-space: nowrap;
-  }
-
-  .lr-target-badge.badge-gold {
-    background: rgba(245, 158, 11, 0.25);
-    color: #ffd000;
-    border: 1px solid rgba(245, 158, 11, 0.6);
-    box-shadow: 0 1px 4px rgba(245, 158, 11, 0.2);
-  }
-
-  .lr-target-badge.badge-silver {
-    background: rgba(255, 255, 255, 0.12);
-    color: #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 1px 4px rgba(255, 255, 255, 0.15);
-  }
-
-  .lr-target-badge.badge-bronze {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-    color: #FFFFFF;
-    border: 1px solid #f97316;
-    box-shadow: 0 1px 6px rgba(234, 88, 12, 0.35);
   }
 
   .lr-target-time {
     font-family: var(--font-display);
     font-weight: var(--weight-num, 700);
-    font-size: 16px;
+    font-size: 13px;
     color: #FFFFFF;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.4px;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+    letter-spacing: 0.2px;
+    line-height: 1;
   }
 
   .lr-target-time.time-safe {
-    color: #34d399;
-    font-size: 13.5px;
+    color: #4ade80;
+    font-size: 10.5px;
+    font-weight: 800;
   }
 
   .solves-pill.final-solve {
@@ -3832,6 +3845,60 @@
     }
   }
 
+  // ── Autoajuste del ancho del Mini Widget según el nombre más largo ──
+  let lrMeasureEl = null;
+  function getLrNameWidth(text) {
+    if (!lrMeasureEl) {
+      lrMeasureEl = document.createElement('span');
+      lrMeasureEl.style.position = 'fixed';
+      lrMeasureEl.style.left = '-9999px';
+      lrMeasureEl.style.top = '-9999px';
+      lrMeasureEl.style.visibility = 'hidden';
+      lrMeasureEl.style.whiteSpace = 'nowrap';
+      lrMeasureEl.style.fontFamily = "var(--font-text), 'Barlow', 'Inter', -apple-system, sans-serif";
+      lrMeasureEl.style.fontSize = '13.5px';
+      lrMeasureEl.style.fontWeight = '600';
+      document.body.appendChild(lrMeasureEl);
+    }
+    lrMeasureEl.textContent = text;
+    return lrMeasureEl.getBoundingClientRect().width;
+  }
+
+  function autoFitWidgetWidth(results) {
+    if (!lrOverlay) return;
+    if (!results || results.length === 0) {
+      lrOverlay.style.setProperty('--lr-widget-width', '320px');
+      return;
+    }
+    try {
+      let maxNameW = 0;
+      for (const item of results) {
+        const name = (item && item.name) ? String(item.name).trim() : '';
+        if (!name) continue;
+        const w = getLrNameWidth(name);
+        if (w > maxNameW) maxNameW = w;
+      }
+
+      // Medir también los elementos renderizados en el DOM si existen
+      if (lrRowsContainer) {
+        const names = lrRowsContainer.querySelectorAll('.name-cell');
+        names.forEach(nc => {
+          const sw = nc.scrollWidth || 0;
+          if (sw > maxNameW) maxNameW = sw;
+        });
+      }
+
+      // Nombre: ancho exacto + 10px de holgura
+      const nameColWidth = Math.max(110, Math.min(220, Math.ceil(maxNameW + 10)));
+      // Columnas: pos (30px) + flag (24px) + nameColWidth + solves (48px) + avg (64px) + paddings (20px) = 186px + nameColWidth
+      const totalWidgetWidth = Math.max(300, 186 + nameColWidth);
+
+      lrOverlay.style.setProperty('--lr-widget-width', `${totalWidgetWidth}px`);
+    } catch (e) {
+      console.warn('[autoFitWidgetWidth error]', e);
+    }
+  }
+
   function autoFitFullscreenTable(numRows, results) {
     if (!fsRowsContainer) return;
     const count = Math.max(1, numRows || (results && results.length) || 10);
@@ -3959,21 +4026,21 @@
             // Generar el popover de proyección de podio cuando el competidor está en 4/5
             let podiumPopoverHtml = '';
             if (r.podiumTargets && Array.isArray(r.podiumTargets) && r.podiumTargets.length > 0) {
-              const targetsCols = r.podiumTargets.map(t => {
-                const badgeClass = `badge-${t.color || 'silver'}`;
+              const targetsPills = r.podiumTargets.map(t => {
+                const pillClass = `pill-${t.color || 'silver'}`;
                 const isSafe = t.maxSolve === 'SAFE' || t.maxSolveFormatted === 'SEGURO';
                 const timeClass = isSafe ? 'time-safe' : '';
                 return `
-                  <div class="lr-target-col">
-                    <div class="lr-target-badge ${badgeClass}">${t.label}</div>
-                    <div class="lr-target-time ${timeClass}">${t.maxSolveFormatted}</div>
+                  <div class="lr-target-pill ${pillClass}">
+                    <span class="lr-target-badge">${t.label}</span>
+                    <span class="lr-target-time ${timeClass}">${t.maxSolveFormatted}</span>
                   </div>
                 `;
               }).join('');
 
               podiumPopoverHtml = `
                 <div class="lr-podium-popover">
-                  ${targetsCols}
+                  ${targetsPills}
                 </div>
               `;
             }
@@ -4004,6 +4071,7 @@
               </div>
             `;
           }).join('');
+          autoFitWidgetWidth(pageResults);
         }
       }
 
