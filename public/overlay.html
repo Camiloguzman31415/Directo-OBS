@@ -150,7 +150,7 @@
   }
   #banner.pos-bottom {
     top: auto;
-    bottom: 40px;
+    bottom: 60px;
   }
 
   /* Alineación Horizontal: Izquierda */
@@ -400,162 +400,206 @@
     display: none !important;
   }
 
-  /* ━━━ BADGE / BANNER DE EVENTO STANDALONE (ESTILO BROADCAST 4 NIVELES AUTOAJUSTABLE) ━━━ */
+  /* ━━━ BARRA INFERIOR DE NOTICIAS TICKER (BROADCAST NEWS TICKER STYLE) ━━━ */
   #event-badge {
     position: absolute;
-    top: 36px;
-    right: 40px;
-    width: fit-content;
-    width: -moz-fit-content;
-    width: max-content;
-    min-width: 0;
-    max-width: min(840px, calc(100vw - 80px));
-    background: var(--banner-bg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-radius: 6px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.16);
-    overflow: hidden;
-    display: inline-flex;
-    flex-direction: column;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    height: 48px;
+    background: rgba(4, 9, 18, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1.5px solid rgba(2, 132, 199, 0.6);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    z-index: 900;
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-20px) scale(0.98);
-    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 10;
+    transform: translateY(100%);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.35s ease-out;
+    overflow: hidden;
+    will-change: transform, opacity;
   }
 
   #event-badge.visible {
     opacity: 1;
     pointer-events: auto;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 
-  /* Fila 1: Logo Evento + Nombre de Evento + Ronda */
-  .event-banner-header {
-    background: var(--header-green-grad);
+  /* 1. Slot Extremo Izquierdo para Logo del Torneo */
+  .ticker-logo-slot {
+    width: 76px;
+    height: 48px;
+    background: #020610;
+    border-right: 1.5px solid rgba(255, 255, 255, 0.12);
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
-    height: 38px;
-    padding: 0 14px;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.45);
-    box-sizing: border-box;
-    width: 100%;
-  }
-
-  .event-header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
+    justify-content: center;
     flex-shrink: 0;
+    padding: 3px 8px;
+    position: relative;
+    z-index: 2;
   }
 
-  .event-banner-header .header-event-icon {
+  #ticker-tournament-logo {
+    max-height: 40px;
+    max-width: 64px;
+    object-fit: contain;
+  }
+
+  .ticker-cube-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
+  }
+
+  /* 2. Bloque Destacado de Evento y Ronda */
+  .ticker-event-pill {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    flex-shrink: 0;
+    border-right: 2px solid #38bdf8;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.4);
+    position: relative;
+    z-index: 2;
+  }
+
+  .ticker-event-icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+  }
+
+  .ticker-event-icon {
     width: 22px;
     height: 22px;
     filter: brightness(0) invert(1);
-    flex-shrink: 0;
   }
 
-  .event-banner-header .header-event-title {
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: var(--weight-header-title);
-    color: #FFFFFF;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .event-header-right {
+  .ticker-event-text {
     display: flex;
     align-items: center;
-    flex-shrink: 0;
-  }
-
-  .event-round-badge {
-    background: var(--header-blue-grad);
-    color: #FFFFFF;
-    font-family: var(--font-display);
-    font-size: 11px;
+    gap: 7px;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 800;
-    letter-spacing: 1px;
+    font-size: 13.5px;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
     text-transform: uppercase;
-    padding: 3px 10px;
+  }
+
+  .ticker-event-separator {
+    color: #bae6fd;
+    font-weight: 900;
+  }
+
+  .ticker-event-round {
+    color: #f0f9ff;
+    background: rgba(0, 0, 0, 0.28);
+    padding: 2px 8px;
     border-radius: 4px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    white-space: nowrap;
-    user-select: none;
-  }
-
-  /* Fila 2: Nombre del Torneo */
-  .event-banner-tourney-row {
-    background: rgba(13, 27, 44, 0.96);
-    padding: 9px 14px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    box-sizing: border-box;
-    width: 100%;
-  }
-
-  .event-tournament-title {
-    font-family: var(--font-display);
-    font-weight: var(--weight-head);
-    font-size: 15px;
-    color: #FFFFFF;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1.25;
-    white-space: nowrap;
-  }
-
-  /* Fila 3: Lugar del Torneo */
-  .event-banner-location-row {
-    background: rgba(10, 22, 37, 0.96);
-    padding: 7px 14px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    box-sizing: border-box;
-    width: 100%;
-  }
-
-  .event-location-text {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 13px;
-    color: #FFFFFF;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1.25;
-    white-space: nowrap;
-  }
-
-  /* Fila 4: World Cube Association */
-  .event-banner-wca-row {
-    background: rgba(6, 14, 24, 0.98);
-    padding: 6px 14px;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    width: 100%;
-  }
-
-  .event-wca-brand {
-    font-family: var(--font-display);
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 700;
-    color: #CBD5E1;
-    letter-spacing: 0.9px;
-    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  /* 3. Cinta Deslizante de Noticias / Ticker (Marquee de derecha a izquierda) */
+  .ticker-marquee-wrapper {
+    flex: 1;
+    height: 48px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: transparent;
+  }
+
+  .ticker-marquee-track {
+    display: flex;
+    width: fit-content;
     white-space: nowrap;
+    will-change: transform;
+    animation: tickerInfiniteScroll 35s linear infinite;
+  }
+
+  @keyframes tickerInfiniteScroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .ticker-marquee-content {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding-right: 24px;
+  }
+
+  .ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    letter-spacing: 0.3px;
+  }
+
+  .ticker-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ticker-tag.day {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+  }
+
+  .ticker-tag.venue {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+  }
+
+  .ticker-tag.news {
+    background: rgba(56, 189, 248, 0.2);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+  }
+
+  .ticker-tag.tourney {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+  }
+
+  .ticker-separator {
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 10px;
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -1889,32 +1933,52 @@
   </div>
 </div>
 
-<!-- Standalone Event Badge (Broadcast Scoreboard - 4 Filas Autoajustable) -->
-<div id="event-badge">
-  <!-- Fila 1: Logo evento + Nombre de evento + Ronda -->
-  <div class="event-banner-header">
-    <div class="event-header-left">
-      <img id="event-icon-badge" class="header-event-icon" src="icons/333.svg" alt="Evento" onerror="this.style.display='none'">
-      <span class="header-event-title" id="event-badge-title">3x3</span>
-    </div>
-    <div class="event-header-right">
-      <span class="event-round-badge" id="event-stat-round-num">RONDA 1 / 3</span>
+<!-- Standalone Event Ticker Banner (Broadcast Lower-Third News Ticker) -->
+<div id="event-badge" class="event-ticker-bar">
+  <!-- Espacio Extremo Izquierdo: Logo del Torneo -->
+  <div class="ticker-logo-slot" id="ticker-logo-slot">
+    <img id="ticker-tournament-logo" src="" alt="Logo" style="display:none;">
+    <div id="ticker-default-logo" class="ticker-cube-badge">
+      <span class="cube-icon">🧊</span>
     </div>
   </div>
 
-  <!-- Fila 2: Nombre del Torneo -->
-  <div class="event-banner-tourney-row">
-    <span class="event-tournament-title" id="event-tournament-name">Regionales Santander 2026</span>
+  <!-- Bloque Destacado: Nombre del Evento y Ronda -->
+  <div class="ticker-event-pill">
+    <div class="ticker-event-icon-box">
+      <img id="event-icon-badge" class="ticker-event-icon" src="icons/333.svg" alt="Evento" onerror="this.style.display='none'">
+    </div>
+    <div class="ticker-event-text">
+      <span class="ticker-event-name" id="event-badge-title">3x3</span>
+      <span class="ticker-event-separator">-</span>
+      <span class="ticker-event-round" id="event-stat-round-num">RONDA 1</span>
+    </div>
   </div>
 
-  <!-- Fila 3: Lugar del Torneo -->
-  <div class="event-banner-location-row">
-    <span class="event-location-text" id="event-tournament-location">Floridablanca, Santander</span>
-  </div>
-
-  <!-- Fila 4: World Cube Association -->
-  <div class="event-banner-wca-row">
-    <span class="event-wca-brand">WORLD CUBE ASSOCIATION</span>
+  <!-- Cinta Deslizante de Noticias / Ticker Continuo (Marquee) -->
+  <div class="ticker-marquee-wrapper">
+    <div class="ticker-marquee-track" id="ticker-marquee-track">
+      <div class="ticker-marquee-content" id="ticker-content-1">
+        <span class="ticker-item"><span class="ticker-tag tourney">🏆 TORNEO</span> <span>Regionales Santander 2026</span></span>
+        <span class="ticker-separator">◆</span>
+        <span class="ticker-item"><span class="ticker-tag day">📅 DÍA</span> <span>Día 1</span></span>
+        <span class="ticker-separator">◆</span>
+        <span class="ticker-item"><span class="ticker-tag venue">📍 LUGAR</span> <span>Floridablanca, Santander</span></span>
+        <span class="ticker-separator">◆</span>
+        <span class="ticker-item"><span class="ticker-tag news">📢 NOTICIAS</span> <span>Transmisión Oficial en Vivo</span></span>
+        <span class="ticker-separator">◆</span>
+      </div>
+      <div class="ticker-marquee-content" id="ticker-content-2">
+        <span class="ticker-item"><span class="ticker-tag tourney">🏆 TORNEO</span> <span>Regionales Santander 2026</span></span>
+        <span class="ticker-separator">◆</span>
+        <span class="ticker-item"><span class="ticker-tag day">📅 DÍA</span> <span>Día 1</span></span>
+        <span class="ticker-separator">◆</span>
+        <span class="ticker-item"><span class="ticker-tag venue">📍 LUGAR</span> <span>Floridablanca, Santander</span></span>
+        <span class="ticker-separator">◆</span>
+        <span class="ticker-item"><span class="ticker-tag news">📢 NOTICIAS</span> <span>Transmisión Oficial en Vivo</span></span>
+        <span class="ticker-separator">◆</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2056,9 +2120,11 @@
   const eventBadge = document.getElementById('event-badge');
   const elEventBadgeTitle = document.getElementById('event-badge-title');
   const elIconBadge = document.getElementById('event-icon-badge');
-  const elTourneyName = document.getElementById('event-tournament-name');
-  const elTourneyLocation = document.getElementById('event-tournament-location');
   const elStatRoundNum = document.getElementById('event-stat-round-num');
+  const tickerLogoImg = document.getElementById('ticker-tournament-logo');
+  const tickerLogoDefault = document.getElementById('ticker-default-logo');
+  const tickerContent1 = document.getElementById('ticker-content-1');
+  const tickerContent2 = document.getElementById('ticker-content-2');
 
   function renderFlag(containerId, iso2) {
     const container = document.getElementById(containerId);
@@ -2115,7 +2181,7 @@
     }
     tourney = tourney.toUpperCase();
 
-    const roundText = formatRound(rnum, total);
+    const roundText = eventData.round_name || formatRound(rnum, total);
 
     // Actualizar encabezado del banner de mesa
     if (bannerEventTitle) bannerEventTitle.textContent = shortName;
@@ -2125,26 +2191,46 @@
       bannerEventIcon.style.display = 'block';
     }
 
-    // Actualizar banner standalone de evento (4 Filas)
-    if (elEventBadgeTitle) elEventBadgeTitle.textContent = fullEventName;
-    if (elTourneyName) elTourneyName.textContent = tourney;
-    if (elTourneyLocation) {
-      const loc = eventData.city || eventData.location || 'Floridablanca, Santander';
-      elTourneyLocation.textContent = loc.toUpperCase();
-    }
+    // Actualizar Ticker Inferior de Noticias (Broadcast)
+    if (elEventBadgeTitle) elEventBadgeTitle.textContent = shortName;
+    if (elStatRoundNum) elStatRoundNum.textContent = roundText;
     if (elIconBadge) {
       elIconBadge.src = `icons/${eid}.svg`;
       elIconBadge.style.display = 'block';
     }
-    if (elStatRoundNum) {
-      if (rnum === total) {
-        elStatRoundNum.textContent = 'FINAL';
-      } else if (rnum === total - 1 && total >= 3) {
-        elStatRoundNum.textContent = 'SEMI FINAL';
+
+    // Actualizar Logo del Torneo
+    const logoUrl = eventData.tournament_logo || eventData.logo || null;
+    if (tickerLogoImg && tickerLogoDefault) {
+      if (logoUrl) {
+        tickerLogoImg.src = logoUrl;
+        tickerLogoImg.style.display = 'block';
+        tickerLogoDefault.style.display = 'none';
       } else {
-        elStatRoundNum.textContent = `RONDA ${rnum} / ${total}`;
+        tickerLogoImg.style.display = 'none';
+        tickerLogoDefault.style.display = 'flex';
       }
     }
+
+    // Actualizar contenido del ticker deslizante
+    const dayText = eventData.day || eventData.event_day || 'Día 1';
+    const venueText = eventData.venue || eventData.city || eventData.location || 'Floridablanca, Santander';
+    const newsText = eventData.news || eventData.announcement || 'Transmisión Oficial en Vivo';
+
+    const tickerHtml = `
+      <span class="ticker-item"><span class="ticker-tag tourney">🏆 TORNEO</span> <span>${escapeHtml(tourney)}</span></span>
+      <span class="ticker-separator">◆</span>
+      <span class="ticker-item"><span class="ticker-tag day">📅 DÍA</span> <span>${escapeHtml(dayText)}</span></span>
+      <span class="ticker-separator">◆</span>
+      <span class="ticker-item"><span class="ticker-tag venue">📍 LUGAR</span> <span>${escapeHtml(venueText)}</span></span>
+      <span class="ticker-separator">◆</span>
+      <span class="ticker-item"><span class="ticker-tag news">📢 NOTICIAS</span> <span>${escapeHtml(newsText)}</span></span>
+      <span class="ticker-separator">◆</span>
+    `;
+
+    if (tickerContent1) tickerContent1.innerHTML = tickerHtml;
+    if (tickerContent2) tickerContent2.innerHTML = tickerHtml;
+
     adjustDynamicNameWidth();
   }
 

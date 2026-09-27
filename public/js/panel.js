@@ -22,6 +22,12 @@ let totalRounds = 3;
 let competitorVisible = false;
 let eventVisible = false;
 
+// ── Estado del Ticker de Noticias Broadcast (Lower-Third) ──
+let tickerTournamentLogo = localStorage.getItem('directoobs_ticker_logo') || '';
+let tickerDay = localStorage.getItem('directoobs_ticker_day') || '';
+let tickerVenue = localStorage.getItem('directoobs_ticker_venue') || '';
+let tickerNews = localStorage.getItem('directoobs_ticker_news') || '';
+
 // ── Estado de Ranking en Vivo (WCA Live) ──
 let liveRankingData = null;
 let liveRankingVisible = false;
@@ -87,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
   connectWebSocket();
   setupEventListeners();
   setupKeyboardShortcuts();
+  initTickerUI();
   updateFsThemeUI();
 });
 
@@ -1088,6 +1095,12 @@ function loadTournament(data) {
     }
   }
 
+  if (!tickerVenue && (data.city || data.venue)) {
+    tickerVenue = data.venue || data.city || '';
+    const vInput = document.getElementById('ticker-venue-input');
+    if (vInput && !vInput.value) vInput.value = tickerVenue;
+  }
+
   // Renderizar chips de eventos
   renderEventChips(data.events || []);
 
@@ -1239,30 +1252,128 @@ function updateEventUI() {
   }
 }
 
+// ── Lógica del Ticker de Noticias Inferior (Lower-Third) ──
+function initTickerUI() {
+  const dayInput = document.getElementById('ticker-day-input');
+  const venueInput = document.getElementById('ticker-venue-input');
+  const newsInput = document.getElementById('ticker-news-input');
+
+  if (dayInput) {
+    dayInput.value = tickerDay || (tournamentData?.date_range || 'Día 1');
+  }
+  if (venueInput) {
+    venueInput.value = tickerVenue || tournamentData?.city || 'Floridablanca, Santander';
+  }
+  if (newsInput) {
+    newsInput.value = tickerNews || '';
+  }
+
+  updateTickerLogoPreview();
+}
+
+function updateTickerLogoPreview() {
+  const imgEl = document.getElementById('panel-ticker-logo-img');
+  const placeholderEl = document.getElementById('panel-ticker-logo-placeholder');
+  if (imgEl && placeholderEl) {
+    if (tickerTournamentLogo) {
+      imgEl.src = tickerTournamentLogo;
+      imgEl.style.display = 'block';
+      placeholderEl.style.display = 'none';
+    } else {
+      imgEl.src = '';
+      imgEl.style.display = 'none';
+      placeholderEl.style.display = 'block';
+    }
+  }
+}
+
+function handleTickerLogoUpload(event) {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    tickerTournamentLogo = e.target.result;
+    try {
+      localStorage.setItem('directoobs_ticker_logo', tickerTournamentLogo);
+    } catch (err) {
+      console.warn('No se pudo guardar el logo en localStorage (límite excedido):', err);
+    }
+    updateTickerLogoPreview();
+    showToast('Logo del torneo cargado con éxito', 'success');
+    if (eventVisible) {
+      sendShowEvent();
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearTickerLogo() {
+  tickerTournamentLogo = '';
+  localStorage.removeItem('directoobs_ticker_logo');
+  const fileInput = document.getElementById('ticker-logo-file-input');
+  if (fileInput) fileInput.value = '';
+  updateTickerLogoPreview();
+  showToast('Logo del torneo eliminado', 'info');
+  if (eventVisible) {
+    sendShowEvent();
+  }
+}
+
+let tickerInputDebounce = null;
+function onTickerInputChange() {
+  const dayInput = document.getElementById('ticker-day-input');
+  const venueInput = document.getElementById('ticker-venue-input');
+  const newsInput = document.getElementById('ticker-news-input');
+
+  tickerDay = dayInput ? dayInput.value.trim() : '';
+  tickerVenue = venueInput ? venueInput.value.trim() : '';
+  tickerNews = newsInput ? newsInput.value.trim() : '';
+
+  localStorage.setItem('directoobs_ticker_day', tickerDay);
+  localStorage.setItem('directoobs_ticker_venue', tickerVenue);
+  localStorage.setItem('directoobs_ticker_news', tickerNews);
+
+  if (eventVisible) {
+    clearTimeout(tickerInputDebounce);
+    tickerInputDebounce = setTimeout(() => {
+      sendShowEvent();
+    }, 280);
+  }
+}
+
 function sendShowEvent() {
   const ev = (tournamentData?.events || []).find(e => e.event_id === selectedEventId);
   const cleanName = getCleanEventName(selectedEventId, ev ? ev.name : selectedEventId);
+
+  const venueValue = tickerVenue || tournamentData?.city || 'Floridablanca, Santander';
+  const dayValue = tickerDay || 'Día 1';
+
   const data = {
     event_id: selectedEventId,
     event_name: cleanName,
     round_number: currentRound,
     total_rounds: totalRounds,
     tournament_name: tournamentData?.name || 'Regionales Santander 2026',
-    city: tournamentData?.city || 'Floridablanca, Santander'
+    city: venueValue,
+    venue: venueValue,
+    day: dayValue,
+    news: tickerNews || '',
+    tournament_logo: tickerTournamentLogo || ''
   };
 
   currentEvent = data;
   eventVisible = true;
   sendWS({ type: 'event', data });
   updateVisibilityStates(competitorVisible, true);
-  showToast(`Evento en OBS: ${data.event_name} (${formatRoundName(currentRound, totalRounds)})`, 'success');
+  showToast(`Ticker de Noticias en OBS: ${data.event_name} (${formatRoundName(currentRound, totalRounds)})`, 'success');
 }
 
 function sendHideEvent() {
   eventVisible = false;
   sendWS({ type: 'hide_event' });
   updateVisibilityStates(competitorVisible, false);
-  showToast('Badge de evento ocultado de OBS');
+  showToast('Barra de noticias ocultada de OBS');
 }
 
 // ── Búsqueda y Configuración de Banner Broadcast (Euro 2026 Style) ──
