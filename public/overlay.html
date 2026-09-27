@@ -622,8 +622,8 @@
     position: absolute;
     left: 40px;
     top: 40px;
-    width: var(--lr-widget-width, 340px);
-    min-width: 300px;
+    width: var(--lr-widget-width, 320px);
+    min-width: 250px;
     max-width: 440px;
     background: rgba(6, 14, 25, 0.98);
     backdrop-filter: blur(14px);
@@ -652,10 +652,11 @@
     border-top-right-radius: 8px;
     background: linear-gradient(135deg, #061e3d 0%, #0d3b6c 100%);
     border-bottom: 2px solid #0284c7;
-    padding: 10px 14px 8px 14px;
+    padding: 8px 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
   }
 
   .ranking-header-left {
@@ -673,26 +674,33 @@
   .ranking-titles {
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
 
   .ranking-main-title {
     font-family: var(--font-display);
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 800;
     color: #FFFFFF;
     text-transform: uppercase;
     letter-spacing: 0.6px;
     line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .ranking-subtitle {
     font-family: var(--font-display);
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 800;
     color: #7dd3fc;
     text-transform: uppercase;
-    letter-spacing: 1.6px;
+    letter-spacing: 1.4px;
     margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .ranking-live-pill {
@@ -730,7 +738,8 @@
   /* Encabezados de columnas (Alto Contraste) */
   .ranking-cols-header {
     display: grid;
-    grid-template-columns: 30px 24px 1fr 48px 64px;
+    grid-template-columns: var(--lr-pos-w, 24px) var(--lr-flag-w, 22px) var(--lr-name-w, 130px) var(--lr-solves-w, 36px) var(--lr-avg-w, 62px);
+    column-gap: var(--lr-col-gap, 6px);
     align-items: center;
     background: rgba(10, 22, 38, 0.98);
     padding: 6px 10px;
@@ -745,7 +754,7 @@
 
   .col-r-pos { text-align: center; }
   .col-r-flag { text-align: center; }
-  .col-r-name { padding-left: 4px; }
+  .col-r-name { text-align: left; padding-left: 2px; }
   .col-r-solves { text-align: center; }
   .col-r-avg { text-align: right; padding-right: 2px; }
 
@@ -799,7 +808,8 @@
 
   .ranking-row {
     display: grid;
-    grid-template-columns: 30px 24px 1fr 48px 64px;
+    grid-template-columns: var(--lr-pos-w, 24px) var(--lr-flag-w, 22px) var(--lr-name-w, 130px) var(--lr-solves-w, 36px) var(--lr-avg-w, 62px);
+    column-gap: var(--lr-col-gap, 6px);
     align-items: center;
     padding: 4px 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
@@ -994,7 +1004,7 @@
 
   /* Nombre */
   .name-cell {
-    padding-left: 4px;
+    padding-left: 2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3845,29 +3855,48 @@
     }
   }
 
-  // ── Autoajuste del ancho del Mini Widget según el nombre más largo ──
+  // ── Autoajuste milimétrico del ancho y columna de nombres del Mini Widget ──
+  let lrMeasureCanvas = null;
   let lrMeasureEl = null;
   function getLrNameWidth(text) {
-    if (!lrMeasureEl) {
-      lrMeasureEl = document.createElement('span');
-      lrMeasureEl.style.position = 'fixed';
-      lrMeasureEl.style.left = '-9999px';
-      lrMeasureEl.style.top = '-9999px';
-      lrMeasureEl.style.visibility = 'hidden';
-      lrMeasureEl.style.whiteSpace = 'nowrap';
-      lrMeasureEl.style.fontFamily = "var(--font-text), 'Barlow', 'Inter', -apple-system, sans-serif";
-      lrMeasureEl.style.fontSize = '13.5px';
-      lrMeasureEl.style.fontWeight = '600';
-      document.body.appendChild(lrMeasureEl);
+    if (!text) return 0;
+    try {
+      if (!lrMeasureCanvas) {
+        lrMeasureCanvas = document.createElement('canvas');
+      }
+      const ctx = lrMeasureCanvas.getContext('2d');
+      ctx.font = "600 13.5px 'Barlow', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+      const m = ctx.measureText(text);
+      if (m && typeof m.width === 'number' && m.width > 0) {
+        return m.width;
+      }
+    } catch (e) {}
+
+    try {
+      if (!lrMeasureEl) {
+        lrMeasureEl = document.createElement('span');
+        lrMeasureEl.style.position = 'fixed';
+        lrMeasureEl.style.left = '-9999px';
+        lrMeasureEl.style.top = '-9999px';
+        lrMeasureEl.style.visibility = 'hidden';
+        lrMeasureEl.style.whiteSpace = 'nowrap';
+        lrMeasureEl.style.fontFamily = "var(--font-text), 'Barlow', 'Inter', -apple-system, sans-serif";
+        lrMeasureEl.style.fontSize = '13.5px';
+        lrMeasureEl.style.fontWeight = '600';
+        document.body.appendChild(lrMeasureEl);
+      }
+      lrMeasureEl.textContent = text;
+      return lrMeasureEl.getBoundingClientRect().width;
+    } catch (e) {
+      return text.length * 7.5;
     }
-    lrMeasureEl.textContent = text;
-    return lrMeasureEl.getBoundingClientRect().width;
   }
 
   function autoFitWidgetWidth(results) {
     if (!lrOverlay) return;
     if (!results || results.length === 0) {
-      lrOverlay.style.setProperty('--lr-widget-width', '320px');
+      lrOverlay.style.setProperty('--lr-name-w', '90px');
+      lrOverlay.style.setProperty('--lr-widget-width', '278px');
       return;
     }
     try {
@@ -3879,20 +3908,23 @@
         if (w > maxNameW) maxNameW = w;
       }
 
-      // Medir también los elementos renderizados en el DOM si existen
-      if (lrRowsContainer) {
-        const names = lrRowsContainer.querySelectorAll('.name-cell');
-        names.forEach(nc => {
-          const sw = nc.scrollWidth || 0;
-          if (sw > maxNameW) maxNameW = sw;
-        });
-      }
+      // El encabezado 'COMPETIDOR' mide ~68px en Barlow Condensed 11px 800.
+      // Damos 4px de margen limpio al nombre más largo para que la columna de SOLVES
+      // empiece inmediatamente al terminar el nombre, eliminando todo espacio muerto.
+      const nameColWidth = Math.max(70, Math.min(210, Math.ceil(maxNameW + 4)));
 
-      // Nombre: ancho exacto + 10px de holgura
-      const nameColWidth = Math.max(110, Math.min(220, Math.ceil(maxNameW + 10)));
-      // Columnas: pos (30px) + flag (24px) + nameColWidth + solves (48px) + avg (64px) + paddings (20px) = 186px + nameColWidth
-      const totalWidgetWidth = Math.max(300, 186 + nameColWidth);
+      // Dimensiones exactas de las columnas:
+      // padding-left: 10px
+      // pos: 24px + gap 6px
+      // flag: 22px + gap 6px
+      // name: nameColWidth + gap 6px
+      // solves: 36px + gap 6px
+      // avg: 62px
+      // padding-right: 10px
+      // Total suma fija = 10 + 24 + 6 + 22 + 6 + 6 + 36 + 6 + 62 + 10 = 188px
+      const totalWidgetWidth = Math.max(250, 188 + nameColWidth);
 
+      lrOverlay.style.setProperty('--lr-name-w', `${nameColWidth}px`);
       lrOverlay.style.setProperty('--lr-widget-width', `${totalWidgetWidth}px`);
     } catch (e) {
       console.warn('[autoFitWidgetWidth error]', e);
