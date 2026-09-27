@@ -879,6 +879,107 @@
 
             </div>
           </section>
+
+          <!-- TARJETA: ENFRENTAMIENTOS HEAD TO HEAD (FINALES) -->
+          <section class="deck-panel" id="panel-head-to-head">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon">⚔️</span> Enfrentamiento Head to Head (Finales)
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="live-status-pill offline" id="h2h-status-badge">EN ESPERA</span>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <!-- Selectores de Competidores 1 y 2 -->
+              <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:12px;">
+                <!-- Competidor 1 -->
+                <div>
+                  <label class="form-label" style="font-size:11px;">Competidor 1 (Izq):</label>
+                  <div style="position:relative;">
+                    <input type="text" class="form-input" id="h2h-search-1" placeholder="Buscar competidor 1..." oninput="onH2HSearchInput(1, this.value)" autocomplete="off" style="font-size:12px;padding:6px 8px;">
+                    <div class="search-results-dropdown" id="h2h-results-1" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:160px;overflow-y:auto;background:var(--surface, #1e293b);border:1px solid var(--border);border-radius:6px;z-index:110;box-shadow:0 8px 20px rgba(0,0,0,0.6);"></div>
+                  </div>
+                </div>
+
+                <!-- Botón Intercambiar -->
+                <div style="margin-top:16px;">
+                  <button type="button" class="btn-tactile btn-secondary" onclick="swapHeadToHeadCompetitors()" title="Invertir competidores" style="padding:6px 8px;font-size:14px;">
+                    ⇄
+                  </button>
+                </div>
+
+                <!-- Competidor 2 -->
+                <div>
+                  <label class="form-label" style="font-size:11px;">Competidor 2 (Der):</label>
+                  <div style="position:relative;">
+                    <input type="text" class="form-input" id="h2h-search-2" placeholder="Buscar competidor 2..." oninput="onH2HSearchInput(2, this.value)" autocomplete="off" style="font-size:12px;padding:6px 8px;">
+                    <div class="search-results-dropdown" id="h2h-results-2" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:160px;overflow-y:auto;background:var(--surface, #1e293b);border:1px solid var(--border);border-radius:6px;z-index:110;box-shadow:0 8px 20px rgba(0,0,0,0.6);"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Configuración de Victorias y Evento -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+                <div>
+                  <label class="form-label" style="font-size:11px;">Wins Comp 1:</label>
+                  <input type="number" class="form-input" id="h2h-wins-1" value="0" min="0" max="99" style="font-size:12px;padding:6px;text-align:center;" onchange="onH2HWinsChange()">
+                </div>
+                <div>
+                  <label class="form-label" style="font-size:11px;">Disciplina:</label>
+                  <select class="form-input" id="h2h-event-select" style="font-size:12px;padding:6px;" onchange="onH2HEventSelectChange(this.value)">
+                    <option value="333">3x3x3 Cube</option>
+                    <option value="222">2x2x2 Cube</option>
+                    <option value="444">4x4x4 Cube</option>
+                    <option value="555">5x5x5 Cube</option>
+                    <option value="666">6x6x6 Cube</option>
+                    <option value="777">7x7x7 Cube</option>
+                    <option value="333bf">3x3x3 Blindfolded</option>
+                    <option value="333fm">3x3x3 Fewest Moves</option>
+                    <option value="333oh">3x3x3 One-Handed</option>
+                    <option value="clock">Clock</option>
+                    <option value="minx">Megaminx</option>
+                    <option value="pyram">Pyraminx</option>
+                    <option value="skewb">Skewb</option>
+                    <option value="sq1">Square-1</option>
+                    <option value="444bf">4x4x4 Blindfolded</option>
+                    <option value="555bf">5x5x5 Blindfolded</option>
+                    <option value="333mbf">3x3x3 Multi-Blind</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label" style="font-size:11px;">Wins Comp 2:</label>
+                  <input type="number" class="form-input" id="h2h-wins-2" value="0" min="0" max="99" style="font-size:12px;padding:6px;text-align:center;" onchange="onH2HWinsChange()">
+                </div>
+              </div>
+
+              <!-- Previsualización Compacta Head to Head -->
+              <div class="h2h-panel-preview" style="background:#070d18;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;color:#fff;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:6px;margin-bottom:8px;">
+                  <span id="panel-h2h-name-1" style="color:#38bdf8;">COMPETIDOR 1</span>
+                  <span style="color:#f59e0b;font-size:11px;letter-spacing:1px;">VS</span>
+                  <span id="panel-h2h-name-2" style="color:#38bdf8;">COMPETIDOR 2</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;font-family:'Space Mono',monospace;font-size:11.5px;text-align:center;">
+                  <div id="panel-h2h-pr-1" style="color:#e2e8f0;">— / —</div>
+                  <div style="color:var(--text-dim,#94a3b8);font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;">PR (SINGLE/AVG)</div>
+                  <div id="panel-h2h-pr-2" style="color:#e2e8f0;">— / —</div>
+                </div>
+              </div>
+
+              <!-- Botones de Transmisión en OBS -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <button type="button" class="btn-tactile btn-primary" id="btn-show-h2h" onclick="sendShowHeadToHead()" style="padding:10px;font-weight:800;font-size:12.5px;">
+                  ▲ MOSTRAR EN OBS
+                </button>
+                <button type="button" class="btn-tactile btn-danger-outline" id="btn-hide-h2h" onclick="sendHideHeadToHead()" style="padding:10px;font-weight:800;font-size:12.5px;">
+                  ✕ Ocultar de OBS
+                </button>
+              </div>
+
+            </div>
+          </section>
         </div>
 
       </div>

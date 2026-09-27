@@ -66,6 +66,14 @@ let tournamentLogo = null;        // URL persistente del logo del torneo en serv
 let bigLogoVisible = false;       // Visibilidad del Logo Central (Momentos Muertos)
 let bigLogoUrl = null;           // URL específica o personalizada del Logo Central
 let bigLogoSize = 760;           // Tamaño máximo en píxeles (altura) del Logo Central
+let headToHeadVisible = false;   // Visibilidad del banner Head to Head
+let headToHeadData = {           // Datos del enfrentamiento Head to Head
+  competitor1: null,
+  competitor2: null,
+  event: null,
+  wins1: 0,
+  wins2: 0
+};
 
 // ── Estado de Ranking en Vivo (WCA Live) ──
 let liveRankingData = null;
@@ -115,7 +123,9 @@ function saveLiveState() {
       tournamentLogo: tournamentLogo,
       bigLogoVisible: bigLogoVisible,
       bigLogoUrl: bigLogoUrl,
-      bigLogoSize: bigLogoSize
+      bigLogoSize: bigLogoSize,
+      headToHeadVisible: headToHeadVisible,
+      headToHeadData: headToHeadData
     };
     fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
   } catch (err) {
@@ -148,6 +158,10 @@ function loadLiveState() {
       if (state.bigLogoSize !== undefined) {
         const s = parseInt(state.bigLogoSize, 10);
         if (!isNaN(s) && s >= 300 && s <= 1200) bigLogoSize = s;
+      }
+      if (state.headToHeadVisible !== undefined) headToHeadVisible = state.headToHeadVisible;
+      if (state.headToHeadData !== undefined && typeof state.headToHeadData === 'object') {
+        headToHeadData = Object.assign({ competitor1: null, competitor2: null, event: null, wins1: 0, wins2: 0 }, state.headToHeadData);
       }
       if (state.fsTheme) {
         fsTheme = {
@@ -1835,6 +1849,14 @@ function handleSocketConnection(ws, req) {
         size: bigLogoSize
       }));
     }
+
+    // Si Head to Head está activo, enviarlo al overlay
+    if (headToHeadVisible && headToHeadData) {
+      socket.send(JSON.stringify({
+        type: 'show_head_to_head',
+        data: headToHeadData
+      }));
+    }
   }
 
   function initPanel(socket) {
@@ -1857,6 +1879,8 @@ function handleSocketConnection(ws, req) {
       bigLogoVisible,
       bigLogoUrl: bigLogoUrl || tournamentLogo,
       bigLogoSize,
+      headToHeadVisible,
+      headToHeadData,
       liveRankingVisible,
       liveRankingRoundId,
       liveRankingCompId,
@@ -2026,6 +2050,7 @@ function handleSocketConnection(ws, req) {
         liveRankingVisible = false;
         showcaseVisible = false;
         bigLogoVisible = false;
+        headToHeadVisible = false;
         saveLiveState();
         stopLiveRankingPolling();
         broadcastToOverlays({ type: 'hide_competitor' });
@@ -2034,12 +2059,14 @@ function handleSocketConnection(ws, req) {
         broadcastToOverlays({ type: 'live_ranking_hide' });
         broadcastToOverlays({ type: 'hide_competitor_showcase' });
         broadcastToOverlays({ type: 'hide_big_logo' });
+        broadcastToOverlays({ type: 'hide_head_to_head' });
         broadcastToPanels({
           type: 'sync_state',
           competitorVisible: false,
           eventVisible: false,
           showcaseVisible: false,
-          bigLogoVisible: false
+          bigLogoVisible: false,
+          headToHeadVisible: false
         });
         broadcastToPanels({
           type: 'sync_live_ranking',
@@ -2125,6 +2152,33 @@ function handleSocketConnection(ws, req) {
             });
           }
         }
+        break;
+
+      case 'show_head_to_head':
+        headToHeadVisible = true;
+        if (msg.data) {
+          headToHeadData = Object.assign(headToHeadData || {}, msg.data);
+        }
+        saveLiveState();
+        broadcastToOverlays({
+          type: 'show_head_to_head',
+          data: headToHeadData
+        });
+        broadcastToPanels({
+          type: 'sync_state',
+          headToHeadVisible: true,
+          headToHeadData: headToHeadData
+        });
+        break;
+
+      case 'hide_head_to_head':
+        headToHeadVisible = false;
+        saveLiveState();
+        broadcastToOverlays({ type: 'hide_head_to_head' });
+        broadcastToPanels({
+          type: 'sync_state',
+          headToHeadVisible: false
+        });
         break;
 
       case 'live_ranking_show':

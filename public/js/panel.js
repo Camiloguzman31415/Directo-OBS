@@ -26,6 +26,12 @@ let showcaseVisible = false;
 let bigLogoVisible = false;
 let bigLogoUrl = null;
 let bigLogoSize = 760;
+let headToHeadVisible = false;
+let h2hComp1 = null;
+let h2hComp2 = null;
+let h2hWins1 = 0;
+let h2hWins2 = 0;
+let h2hEventId = '333';
 
 // ── Estado del Ticker de Noticias Broadcast (Lower-Third) ──
 let tickerTournamentLogo = localStorage.getItem('directoobs_ticker_logo') || '';
@@ -208,9 +214,20 @@ function handleServerMessage(msg) {
         }
         updateTickerLogoPreview();
       }
+      if (msg.headToHeadVisible !== undefined) {
+        headToHeadVisible = !!msg.headToHeadVisible;
+      }
+      if (msg.headToHeadData) {
+        if (msg.headToHeadData.competitor1) h2hComp1 = msg.headToHeadData.competitor1;
+        if (msg.headToHeadData.competitor2) h2hComp2 = msg.headToHeadData.competitor2;
+        if (msg.headToHeadData.wins1 !== undefined) h2hWins1 = msg.headToHeadData.wins1;
+        if (msg.headToHeadData.wins2 !== undefined) h2hWins2 = msg.headToHeadData.wins2;
+        if (msg.headToHeadData.event && msg.headToHeadData.event.event_id) h2hEventId = msg.headToHeadData.event.event_id;
+      }
       updatePreviewUI();
       updateShowcaseUI();
       updateBigLogoUI();
+      updateHeadToHeadUI();
       updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
 
       if (msg.liveRankingVisible !== undefined) liveRankingVisible = !!msg.liveRankingVisible;
@@ -368,9 +385,20 @@ function handleServerMessage(msg) {
       if (msg.bigLogoSize !== undefined) {
         bigLogoSize = parseInt(msg.bigLogoSize, 10) || 760;
       }
+      if (msg.headToHeadVisible !== undefined) {
+        headToHeadVisible = !!msg.headToHeadVisible;
+      }
+      if (msg.headToHeadData) {
+        if (msg.headToHeadData.competitor1 !== undefined) h2hComp1 = msg.headToHeadData.competitor1;
+        if (msg.headToHeadData.competitor2 !== undefined) h2hComp2 = msg.headToHeadData.competitor2;
+        if (msg.headToHeadData.wins1 !== undefined) h2hWins1 = msg.headToHeadData.wins1;
+        if (msg.headToHeadData.wins2 !== undefined) h2hWins2 = msg.headToHeadData.wins2;
+        if (msg.headToHeadData.event && msg.headToHeadData.event.event_id) h2hEventId = msg.headToHeadData.event.event_id;
+      }
       updatePreviewUI();
       updateShowcaseUI();
       updateBigLogoUI();
+      updateHeadToHeadUI();
       if (msg.competitorVisible !== undefined || msg.eventVisible !== undefined) {
         updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
       }
@@ -2057,10 +2085,12 @@ function sendHideAll() {
   eventVisible = false;
   showcaseVisible = false;
   bigLogoVisible = false;
+  headToHeadVisible = false;
   sendWS({ type: 'hide_all' });
   updateVisibilityStates(false, false);
   updateShowcaseUI();
   updateBigLogoUI();
+  updateHeadToHeadUI();
   showToast('Todos los overlays ocultados');
 }
 
@@ -3714,6 +3744,221 @@ function clearBigLogo() {
   if (fileInput) fileInput.value = '';
   updateBigLogoUI();
   showToast('Logo personalizado restablecido al logo del torneo', 'info');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ── GESTIÓN DE ENFRENTAMIENTOS HEAD TO HEAD (FINALES) ──
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function updateHeadToHeadUI() {
+  const badge = document.getElementById('h2h-status-badge');
+  const btnShow = document.getElementById('btn-show-h2h');
+  const btnHide = document.getElementById('btn-hide-h2h');
+
+  if (badge) {
+    if (headToHeadVisible) {
+      badge.textContent = 'EN VIVO';
+      badge.className = 'live-status-pill online';
+    } else {
+      badge.textContent = 'EN ESPERA';
+      badge.className = 'live-status-pill offline';
+    }
+  }
+
+  if (btnShow && btnHide) {
+    if (headToHeadVisible) {
+      btnShow.style.boxShadow = '0 0 12px rgba(22, 163, 74, 0.6)';
+      btnShow.style.borderColor = '#22c55e';
+      btnHide.style.boxShadow = 'none';
+      btnHide.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+    } else {
+      btnShow.style.boxShadow = 'none';
+      btnShow.style.borderColor = 'transparent';
+      btnHide.style.boxShadow = 'none';
+      btnHide.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+    }
+  }
+
+  const name1El = document.getElementById('panel-h2h-name-1');
+  const name2El = document.getElementById('panel-h2h-name-2');
+  const pr1El = document.getElementById('panel-h2h-pr-1');
+  const pr2El = document.getElementById('panel-h2h-pr-2');
+  const wins1Input = document.getElementById('h2h-wins-1');
+  const wins2Input = document.getElementById('h2h-wins-2');
+  const evSelect = document.getElementById('h2h-event-select');
+
+  if (wins1Input) wins1Input.value = h2hWins1;
+  if (wins2Input) wins2Input.value = h2hWins2;
+  if (evSelect && h2hEventId) evSelect.value = h2hEventId;
+
+  const currentEid = h2hEventId || selectedEventId || '333';
+
+  if (name1El) {
+    name1El.textContent = (h2hComp1 && h2hComp1.name) ? h2hComp1.name.toUpperCase() : 'COMPETIDOR 1';
+  }
+  if (name2El) {
+    name2El.textContent = (h2hComp2 && h2hComp2.name) ? h2hComp2.name.toUpperCase() : 'COMPETIDOR 2';
+  }
+
+  if (pr1El) {
+    if (h2hComp1) {
+      const pr = h2hComp1.prs && h2hComp1.prs[currentEid];
+      const s = (pr && pr.single_fmt) ? pr.single_fmt : '—';
+      const a = (pr && pr.average_fmt) ? pr.average_fmt : '—';
+      pr1El.textContent = `${s} / ${a}`;
+    } else {
+      pr1El.textContent = '— / —';
+    }
+  }
+
+  if (pr2El) {
+    if (h2hComp2) {
+      const pr = h2hComp2.prs && h2hComp2.prs[currentEid];
+      const s = (pr && pr.single_fmt) ? pr.single_fmt : '—';
+      const a = (pr && pr.average_fmt) ? pr.average_fmt : '—';
+      pr2El.textContent = `${s} / ${a}`;
+    } else {
+      pr2El.textContent = '— / —';
+    }
+  }
+}
+
+function onH2HSearchInput(slot, query) {
+  const dropdown = document.getElementById(`h2h-results-${slot}`);
+  if (!dropdown) return;
+
+  const q = (query || '').trim().toLowerCase();
+  if (q.length < 2) {
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = '';
+    return;
+  }
+
+  const comps = (tournamentData && tournamentData.competitors) || [];
+  const matches = comps.filter(c => {
+    const n = (c.name || '').toLowerCase();
+    const w = (c.wca_id || '').toLowerCase();
+    return n.includes(q) || w.includes(q);
+  }).slice(0, 8);
+
+  if (matches.length === 0) {
+    dropdown.innerHTML = '<div style="padding:8px 12px;color:var(--text-dim);font-size:12px;">No se encontraron competidores</div>';
+    dropdown.style.display = 'block';
+    return;
+  }
+
+  dropdown.innerHTML = matches.map(c => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" 
+         onmouseover="this.style.background='rgba(255,255,255,0.08)'" 
+         onmouseout="this.style.background='transparent'" 
+         onclick="selectH2HCompetitor(${slot}, '${escapeHtml(c.wca_id || c.name)}')">
+      <span style="font-weight:700;font-size:12px;color:#fff;">${escapeHtml(c.name)}</span>
+      <span style="font-size:11px;color:var(--text-dim);font-family:'Space Mono',monospace;">${escapeHtml(c.wca_id || 'NUEVO')}</span>
+    </div>
+  `).join('');
+  dropdown.style.display = 'block';
+}
+
+function selectH2HCompetitor(slot, idOrName) {
+  const comps = (tournamentData && tournamentData.competitors) || [];
+  const comp = comps.find(c => (c.wca_id || '').toUpperCase() === idOrName.toUpperCase() || c.name === idOrName);
+  if (!comp) return;
+
+  if (slot === 1) {
+    h2hComp1 = comp;
+    const inp = document.getElementById('h2h-search-1');
+    if (inp) inp.value = comp.name;
+    const drop = document.getElementById('h2h-results-1');
+    if (drop) drop.style.display = 'none';
+    if (comp.wca_id && !comp.avatar_url) {
+      fetchCompetitorAvatarIfNeeded(comp).then(() => {
+        if (headToHeadVisible) sendShowHeadToHead();
+      });
+    }
+  } else {
+    h2hComp2 = comp;
+    const inp = document.getElementById('h2h-search-2');
+    if (inp) inp.value = comp.name;
+    const drop = document.getElementById('h2h-results-2');
+    if (drop) drop.style.display = 'none';
+    if (comp.wca_id && !comp.avatar_url) {
+      fetchCompetitorAvatarIfNeeded(comp).then(() => {
+        if (headToHeadVisible) sendShowHeadToHead();
+      });
+    }
+  }
+
+  updateHeadToHeadUI();
+  if (headToHeadVisible) {
+    sendShowHeadToHead();
+  }
+}
+
+function swapHeadToHeadCompetitors() {
+  const tmpComp = h2hComp1;
+  h2hComp1 = h2hComp2;
+  h2hComp2 = tmpComp;
+
+  const tmpWins = h2hWins1;
+  h2hWins1 = h2hWins2;
+  h2hWins2 = tmpWins;
+
+  const s1 = document.getElementById('h2h-search-1');
+  const s2 = document.getElementById('h2h-search-2');
+  if (s1) s1.value = h2hComp1 ? h2hComp1.name : '';
+  if (s2) s2.value = h2hComp2 ? h2hComp2.name : '';
+
+  updateHeadToHeadUI();
+  if (headToHeadVisible) {
+    sendShowHeadToHead();
+  }
+}
+
+function onH2HWinsChange() {
+  const w1 = parseInt(document.getElementById('h2h-wins-1')?.value, 10);
+  const w2 = parseInt(document.getElementById('h2h-wins-2')?.value, 10);
+  h2hWins1 = isNaN(w1) || w1 < 0 ? 0 : w1;
+  h2hWins2 = isNaN(w2) || w2 < 0 ? 0 : w2;
+  updateHeadToHeadUI();
+  if (headToHeadVisible) {
+    sendShowHeadToHead();
+  }
+}
+
+function onH2HEventSelectChange(eid) {
+  h2hEventId = eid || '333';
+  updateHeadToHeadUI();
+  if (headToHeadVisible) {
+    sendShowHeadToHead();
+  }
+}
+
+function sendShowHeadToHead() {
+  if (!h2hComp1 && !h2hComp2) {
+    showToast('Selecciona al menos un competidor para el Head to Head', 'warning');
+    return;
+  }
+  headToHeadVisible = true;
+  const payload = {
+    competitor1: h2hComp1,
+    competitor2: h2hComp2,
+    event: { event_id: h2hEventId || selectedEventId || '333' },
+    wins1: h2hWins1,
+    wins2: h2hWins2
+  };
+  sendWS({
+    type: 'show_head_to_head',
+    data: payload
+  });
+  updateHeadToHeadUI();
+  showToast('Enfrentamiento Head to Head en pantalla', 'success');
+}
+
+function sendHideHeadToHead() {
+  headToHeadVisible = false;
+  sendWS({ type: 'hide_head_to_head' });
+  updateHeadToHeadUI();
+  showToast('Enfrentamiento Head to Head ocultado');
 }
 
 
