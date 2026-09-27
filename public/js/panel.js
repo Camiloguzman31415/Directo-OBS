@@ -1095,11 +1095,7 @@ function loadTournament(data) {
     }
   }
 
-  if (!tickerVenue && (data.city || data.venue)) {
-    tickerVenue = data.venue || data.city || '';
-    const vInput = document.getElementById('ticker-venue-input');
-    if (vInput && !vInput.value) vInput.value = tickerVenue;
-  }
+  autoDetectTickerInfo(false);
 
   // Renderizar chips de eventos
   renderEventChips(data.events || []);
@@ -1253,20 +1249,86 @@ function updateEventUI() {
 }
 
 // ── Lógica del Ticker de Noticias Inferior (Lower-Third) ──
+function getAutoDayAndDate() {
+  const now = new Date();
+  const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  
+  const dayName = daysOfWeek[now.getDay()];
+  const dayNum = now.getDate();
+  const monthName = months[now.getMonth()];
+  const dateFormatted = `${dayName}, ${dayNum} de ${monthName}`;
+
+  if (tournamentData?.start_date) {
+    try {
+      const startParts = tournamentData.start_date.split('-');
+      if (startParts.length === 3) {
+        const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+        const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const diffTime = todayMidnight.getTime() - startDate.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+        if (diffDays >= 1 && diffDays <= 7) {
+          return `Día ${diffDays} · ${dateFormatted}`;
+        }
+      }
+    } catch (e) {
+      console.warn('Error calculando día del torneo:', e);
+    }
+  }
+
+  return `Día 1 · ${dateFormatted}`;
+}
+
+function getAutoVenue() {
+  if (!tournamentData) return 'Sede Oficial';
+  return tournamentData.venue || tournamentData.venue_address || tournamentData.city || 'Floridablanca, Santander';
+}
+
+function autoDetectTickerInfo(force = false) {
+  const dayInput = document.getElementById('ticker-day-input');
+  const venueInput = document.getElementById('ticker-venue-input');
+
+  const autoDay = getAutoDayAndDate();
+  const autoVenue = getAutoVenue();
+
+  if (dayInput && (force || !dayInput.value.trim() || !tickerDay)) {
+    dayInput.value = autoDay;
+    tickerDay = autoDay;
+    localStorage.setItem('directoobs_ticker_day', tickerDay);
+  }
+
+  if (venueInput && (force || !venueInput.value.trim() || !tickerVenue)) {
+    venueInput.value = autoVenue;
+    tickerVenue = autoVenue;
+    localStorage.setItem('directoobs_ticker_venue', tickerVenue);
+  }
+
+  if (force) {
+    showToast(`Detectado: ${autoDay} | ${autoVenue}`, 'success');
+    if (eventVisible) {
+      sendShowEvent();
+    }
+  }
+}
+
 function initTickerUI() {
   const dayInput = document.getElementById('ticker-day-input');
   const venueInput = document.getElementById('ticker-venue-input');
   const newsInput = document.getElementById('ticker-news-input');
 
-  if (dayInput) {
-    dayInput.value = tickerDay || (tournamentData?.date_range || 'Día 1');
+  if (!tickerDay) {
+    tickerDay = getAutoDayAndDate();
+    localStorage.setItem('directoobs_ticker_day', tickerDay);
   }
-  if (venueInput) {
-    venueInput.value = tickerVenue || tournamentData?.city || 'Floridablanca, Santander';
+  if (!tickerVenue) {
+    tickerVenue = getAutoVenue();
+    localStorage.setItem('directoobs_ticker_venue', tickerVenue);
   }
-  if (newsInput) {
-    newsInput.value = tickerNews || '';
-  }
+
+  if (dayInput) dayInput.value = tickerDay;
+  if (venueInput) venueInput.value = tickerVenue;
+  if (newsInput) newsInput.value = tickerNews || '';
 
   updateTickerLogoPreview();
 }
@@ -1282,7 +1344,7 @@ function updateTickerLogoPreview() {
     } else {
       imgEl.src = '';
       imgEl.style.display = 'none';
-      placeholderEl.style.display = 'block';
+      placeholderEl.style.display = 'flex';
     }
   }
 }
@@ -1346,8 +1408,8 @@ function sendShowEvent() {
   const ev = (tournamentData?.events || []).find(e => e.event_id === selectedEventId);
   const cleanName = getCleanEventName(selectedEventId, ev ? ev.name : selectedEventId);
 
-  const venueValue = tickerVenue || tournamentData?.city || 'Floridablanca, Santander';
-  const dayValue = tickerDay || 'Día 1';
+  const venueValue = tickerVenue || getAutoVenue();
+  const dayValue = tickerDay || getAutoDayAndDate();
 
   const data = {
     event_id: selectedEventId,
@@ -1366,7 +1428,7 @@ function sendShowEvent() {
   eventVisible = true;
   sendWS({ type: 'event', data });
   updateVisibilityStates(competitorVisible, true);
-  showToast(`Ticker de Noticias en OBS: ${data.event_name} (${formatRoundName(currentRound, totalRounds)})`, 'success');
+  showToast(`Ticker en OBS: ${data.event_name} (${formatRoundName(currentRound, totalRounds)})`, 'success');
 }
 
 function sendHideEvent() {

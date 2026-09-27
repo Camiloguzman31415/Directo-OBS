@@ -407,20 +407,18 @@
     left: 0;
     right: 0;
     width: 100vw;
-    height: 48px;
-    background: rgba(4, 9, 18, 0.96);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1.5px solid rgba(2, 132, 199, 0.6);
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.7);
+    height: 42px;
+    background: #080c14;
+    border-top: 1.5px solid #1d4ed8;
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.85);
     display: flex;
     align-items: center;
     z-index: 900;
     opacity: 0;
     pointer-events: none;
     transform: translateY(100%);
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-                opacity 0.35s ease-out;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s ease-out;
     overflow: hidden;
     will-change: transform, opacity;
   }
@@ -433,22 +431,22 @@
 
   /* 1. Slot Extremo Izquierdo para Logo del Torneo */
   .ticker-logo-slot {
-    width: 76px;
-    height: 48px;
-    background: #020610;
-    border-right: 1.5px solid rgba(255, 255, 255, 0.12);
+    width: 60px;
+    height: 42px;
+    background: #02050b;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    padding: 3px 8px;
+    padding: 3px 6px;
     position: relative;
     z-index: 2;
   }
 
   #ticker-tournament-logo {
-    max-height: 40px;
-    max-width: 64px;
+    max-height: 32px;
+    max-width: 50px;
     object-fit: contain;
   }
 
@@ -456,21 +454,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
+    color: #38bdf8;
   }
 
-  /* 2. Bloque Destacado de Evento y Ronda */
+  /* 2. Bloque Destacado de Evento y Ronda (Estilo Broadcast USA/Europe) */
   .ticker-event-pill {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-    height: 48px;
+    background: #17426e;
+    height: 42px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 0 18px;
+    gap: 8px;
+    padding: 0 16px;
     flex-shrink: 0;
-    border-right: 2px solid #38bdf8;
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.4);
+    border-right: 1px solid rgba(255, 255, 255, 0.18);
     position: relative;
     z-index: 2;
   }
@@ -479,48 +475,46 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
   }
 
   .ticker-event-icon {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     filter: brightness(0) invert(1);
+    opacity: 0.95;
   }
 
   .ticker-event-text {
     display: flex;
     align-items: center;
-    gap: 7px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 800;
-    font-size: 13.5px;
+    gap: 6px;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    font-size: 14px;
     color: #ffffff;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     white-space: nowrap;
-    text-transform: uppercase;
+  }
+
+  .ticker-event-name {
+    color: #ffffff;
   }
 
   .ticker-event-separator {
-    color: #bae6fd;
-    font-weight: 900;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
   }
 
   .ticker-event-round {
-    color: #f0f9ff;
-    background: rgba(0, 0, 0, 0.28);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11.5px;
-    font-weight: 700;
-    letter-spacing: 0.6px;
+    color: #ffffff;
   }
 
   /* 3. Cinta Deslizante de Noticias / Ticker (Marquee de derecha a izquierda) */
   .ticker-marquee-wrapper {
     flex: 1;
-    height: 48px;
+    height: 42px;
     overflow: hidden;
     position: relative;
     display: flex;
@@ -548,58 +542,41 @@
   .ticker-marquee-content {
     display: flex;
     align-items: center;
-    gap: 24px;
-    padding-right: 24px;
+    gap: 16px;
+    padding-right: 16px;
   }
 
   .ticker-item {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #f1f5f9;
+    letter-spacing: 0.2px;
+  }
+
+  .ticker-label {
     font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: #e2e8f0;
-    letter-spacing: 0.3px;
-  }
-
-  .ticker-tag {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 3px;
-    text-transform: uppercase;
+    color: #7dd3fc;
     letter-spacing: 0.5px;
+    text-transform: uppercase;
   }
 
-  .ticker-tag.day {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.4);
-  }
-
-  .ticker-tag.venue {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.4);
-  }
-
-  .ticker-tag.news {
-    background: rgba(56, 189, 248, 0.2);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.4);
-  }
-
-  .ticker-tag.tourney {
-    background: rgba(168, 85, 247, 0.2);
-    color: #c084fc;
-    border: 1px solid rgba(168, 85, 247, 0.4);
+  .ticker-value {
+    color: #ffffff;
+    font-weight: 500;
   }
 
   .ticker-separator {
-    color: rgba(255, 255, 255, 0.25);
-    font-size: 10px;
+    color: rgba(255, 255, 255, 0.28);
+    font-size: 13px;
+    font-weight: 300;
+    margin: 0 8px;
+    user-select: none;
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -1939,11 +1916,15 @@
   <div class="ticker-logo-slot" id="ticker-logo-slot">
     <img id="ticker-tournament-logo" src="" alt="Logo" style="display:none;">
     <div id="ticker-default-logo" class="ticker-cube-badge">
-      <span class="cube-icon">🧊</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+      </svg>
     </div>
   </div>
 
-  <!-- Bloque Destacado: Nombre del Evento y Ronda -->
+  <!-- Bloque Destacado: Nombre del Evento y Ronda (Estilo Broadcast) -->
   <div class="ticker-event-pill">
     <div class="ticker-event-icon-box">
       <img id="event-icon-badge" class="ticker-event-icon" src="icons/333.svg" alt="Evento" onerror="this.style.display='none'">
@@ -1951,32 +1932,32 @@
     <div class="ticker-event-text">
       <span class="ticker-event-name" id="event-badge-title">3x3</span>
       <span class="ticker-event-separator">-</span>
-      <span class="ticker-event-round" id="event-stat-round-num">RONDA 1</span>
+      <span class="ticker-event-round" id="event-stat-round-num">Round 1</span>
     </div>
   </div>
 
-  <!-- Cinta Deslizante de Noticias / Ticker Continuo (Marquee) -->
+  <!-- Cinta Deslizante de Noticias / Ticker Continuo (Marquee Plano) -->
   <div class="ticker-marquee-wrapper">
     <div class="ticker-marquee-track" id="ticker-marquee-track">
       <div class="ticker-marquee-content" id="ticker-content-1">
-        <span class="ticker-item"><span class="ticker-tag tourney">🏆 TORNEO</span> <span>Regionales Santander 2026</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item"><span class="ticker-tag day">📅 DÍA</span> <span>Día 1</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item"><span class="ticker-tag venue">📍 LUGAR</span> <span>Floridablanca, Santander</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item"><span class="ticker-tag news">📢 NOTICIAS</span> <span>Transmisión Oficial en Vivo</span></span>
-        <span class="ticker-separator">◆</span>
+        <span class="ticker-item"><span class="ticker-label">TORNEO:</span> <span class="ticker-value">Regionales Santander 2026</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">FECHA:</span> <span class="ticker-value">Sábado, 26 de Septiembre</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">LUGAR:</span> <span class="ticker-value">Floridablanca, Santander</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">INFO:</span> <span class="ticker-value">Transmisión Oficial en Vivo</span></span>
+        <span class="ticker-separator">|</span>
       </div>
       <div class="ticker-marquee-content" id="ticker-content-2">
-        <span class="ticker-item"><span class="ticker-tag tourney">🏆 TORNEO</span> <span>Regionales Santander 2026</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item"><span class="ticker-tag day">📅 DÍA</span> <span>Día 1</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item"><span class="ticker-tag venue">📍 LUGAR</span> <span>Floridablanca, Santander</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item"><span class="ticker-tag news">📢 NOTICIAS</span> <span>Transmisión Oficial en Vivo</span></span>
-        <span class="ticker-separator">◆</span>
+        <span class="ticker-item"><span class="ticker-label">TORNEO:</span> <span class="ticker-value">Regionales Santander 2026</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">FECHA:</span> <span class="ticker-value">Sábado, 26 de Septiembre</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">LUGAR:</span> <span class="ticker-value">Floridablanca, Santander</span></span>
+        <span class="ticker-separator">|</span>
+        <span class="ticker-item"><span class="ticker-label">INFO:</span> <span class="ticker-value">Transmisión Oficial en Vivo</span></span>
+        <span class="ticker-separator">|</span>
       </div>
     </div>
   </div>
@@ -2139,10 +2120,10 @@
 
   function formatRound(rNum, total) {
     if (!rNum) return '';
-    if (rNum === 1) return total === 1 ? 'FINAL' : 'FIRST ROUND';
-    if (rNum === total) return 'FINAL';
-    if (rNum === total - 1) return 'SEMI FINAL';
-    return `ROUND ${rNum}`;
+    if (rNum === 1) return total === 1 ? 'Final' : 'Round 1';
+    if (rNum === total) return 'Final';
+    if (rNum === total - 1) return 'Semifinals';
+    return `Round ${rNum}`;
   }
 
   const EVENT_FULL_NAMES = {
@@ -2171,27 +2152,25 @@
     const eid = eventData.event_id || '333';
     let rawName = eventData.event_name || eid;
     rawName = rawName.replace(/(\d+)x\1x\1(\s*Cube)?/gi, '$1x$1');
-    const shortName = (EVENT_SHORT_NAMES[eid] || rawName).toUpperCase();
-    const fullEventName = (EVENT_FULL_NAMES[eid] || rawName).toUpperCase();
+    const shortName = EVENT_SHORT_NAMES[eid] || rawName;
     const rnum = eventData.round_number || 1;
     const total = eventData.total_rounds || 3;
     let tourney = eventData.tournament_name || 'Regionales Santander 2026';
     if (tourney.toLowerCase() === 'world cube association') {
       tourney = 'Regionales Santander 2026';
     }
-    tourney = tourney.toUpperCase();
 
     const roundText = eventData.round_name || formatRound(rnum, total);
 
     // Actualizar encabezado del banner de mesa
-    if (bannerEventTitle) bannerEventTitle.textContent = shortName;
-    if (bannerEventRound) bannerEventRound.textContent = roundText;
+    if (bannerEventTitle) bannerEventTitle.textContent = shortName.toUpperCase();
+    if (bannerEventRound) bannerEventRound.textContent = roundText.toUpperCase();
     if (bannerEventIcon) {
       bannerEventIcon.src = `icons/${eid}.svg`;
       bannerEventIcon.style.display = 'block';
     }
 
-    // Actualizar Ticker Inferior de Noticias (Broadcast)
+    // Actualizar Ticker Inferior de Noticias (Estilo Broadcast Limpio)
     if (elEventBadgeTitle) elEventBadgeTitle.textContent = shortName;
     if (elStatRoundNum) elStatRoundNum.textContent = roundText;
     if (elIconBadge) {
@@ -2212,21 +2191,26 @@
       }
     }
 
-    // Actualizar contenido del ticker deslizante
-    const dayText = eventData.day || eventData.event_day || 'Día 1';
-    const venueText = eventData.venue || eventData.city || eventData.location || 'Floridablanca, Santander';
-    const newsText = eventData.news || eventData.announcement || 'Transmisión Oficial en Vivo';
+    // Actualizar contenido del ticker deslizante (Texto Plano, Cero Emojis)
+    const dayText = eventData.day || eventData.event_day || '';
+    const venueText = eventData.venue || eventData.city || eventData.location || '';
+    const newsText = eventData.news || eventData.announcement || '';
 
-    const tickerHtml = `
-      <span class="ticker-item"><span class="ticker-tag tourney">🏆 TORNEO</span> <span>${escapeHtml(tourney)}</span></span>
-      <span class="ticker-separator">◆</span>
-      <span class="ticker-item"><span class="ticker-tag day">📅 DÍA</span> <span>${escapeHtml(dayText)}</span></span>
-      <span class="ticker-separator">◆</span>
-      <span class="ticker-item"><span class="ticker-tag venue">📍 LUGAR</span> <span>${escapeHtml(venueText)}</span></span>
-      <span class="ticker-separator">◆</span>
-      <span class="ticker-item"><span class="ticker-tag news">📢 NOTICIAS</span> <span>${escapeHtml(newsText)}</span></span>
-      <span class="ticker-separator">◆</span>
-    `;
+    const items = [];
+    if (tourney) {
+      items.push(`<span class="ticker-item"><span class="ticker-label">TORNEO:</span> <span class="ticker-value">${escapeHtml(tourney)}</span></span>`);
+    }
+    if (dayText) {
+      items.push(`<span class="ticker-item"><span class="ticker-label">FECHA:</span> <span class="ticker-value">${escapeHtml(dayText)}</span></span>`);
+    }
+    if (venueText) {
+      items.push(`<span class="ticker-item"><span class="ticker-label">LUGAR:</span> <span class="ticker-value">${escapeHtml(venueText)}</span></span>`);
+    }
+    if (newsText) {
+      items.push(`<span class="ticker-item"><span class="ticker-label">INFO:</span> <span class="ticker-value">${escapeHtml(newsText)}</span></span>`);
+    }
+
+    const tickerHtml = items.join('<span class="ticker-separator">|</span>') + '<span class="ticker-separator">|</span>';
 
     if (tickerContent1) tickerContent1.innerHTML = tickerHtml;
     if (tickerContent2) tickerContent2.innerHTML = tickerHtml;

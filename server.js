@@ -444,6 +444,7 @@ app.post('/api/wca/fetch', async (req, res) => {
         start_date: comp.start_date,
         end_date: comp.end_date,
         city: comp.city,
+        venue: comp.venue || comp.venue_address || comp.city,
         events,
         competitors: competitorsFull
       };
