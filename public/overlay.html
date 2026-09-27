@@ -2592,6 +2592,234 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* ━━━ BANNER DE FINALES VERSUS (CARA A CARA WCA LIVE CON WPA/BPA/AVG) ━━━ */
+  #versus-banner {
+    position: absolute;
+    width: fit-content;
+    min-width: 920px;
+    max-width: 96vw;
+    background: var(--banner-bg, rgba(6, 15, 27, 0.94));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 6px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+    display: inline-flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+    will-change: transform, opacity;
+    left: 50% !important;
+    right: auto !important;
+    top: 36px;
+    transform: translateX(-50%) translateY(calc(-100% - 80px)) !important;
+    transition: opacity 0.4s ease-in, transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #versus-banner.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) !important;
+    transition: opacity 0.35s ease-out, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .vb-header, .vb-row {
+    display: grid;
+    grid-template-columns: 290px repeat(5, 76px) 88px 88px 100px;
+    align-items: center;
+  }
+
+  .vb-header {
+    height: 44px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.45);
+  }
+
+  .vb-header-event {
+    background: var(--header-green-grad, linear-gradient(90deg, #059669 0%, #10b981 100%));
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .vb-event-icon {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(1);
+    flex-shrink: 0;
+  }
+
+  .vb-event-titles {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .vb-event-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 20px;
+    color: #FFFFFF;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .vb-event-round {
+    font-family: var(--font-text);
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.92);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .vb-col-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    border-left: 1px solid var(--grid-border, rgba(255, 255, 255, 0.12));
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    background: rgba(13, 27, 44, 0.96);
+  }
+
+  .vb-col-head.vb-col-wpa {
+    color: #f87171;
+    background: rgba(35, 12, 18, 0.96);
+    border-left: 1px solid rgba(239, 68, 68, 0.35);
+  }
+
+  .vb-col-head.vb-col-bpa {
+    color: #34d399;
+    background: rgba(8, 30, 22, 0.96);
+    border-left: 1px solid rgba(16, 185, 129, 0.35);
+  }
+
+  .vb-col-head.vb-col-avg {
+    background: var(--header-blue-grad, linear-gradient(90deg, #0284c7 0%, #0369a1 100%));
+    font-size: 19px;
+    letter-spacing: 1.2px;
+  }
+
+  .vb-row {
+    height: 52px;
+    background: rgba(10, 22, 38, 0.88);
+    position: relative;
+    border-top: 1px solid var(--grid-border, rgba(255, 255, 255, 0.12));
+  }
+
+  .vb-row:nth-child(even) {
+    background: rgba(7, 16, 28, 0.94);
+  }
+
+  .vb-comp-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  .vb-flag {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .vb-flag img {
+    width: 34px;
+    height: 23px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  }
+
+  .vb-name {
+    font-family: var(--font-display);
+    font-weight: var(--weight-name, 700);
+    font-size: var(--name-size, 23px);
+    color: var(--text-primary, #F8FAFC);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  }
+
+  .vb-solve-col, .vb-stat-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    border-left: 1px solid var(--grid-border, rgba(255, 255, 255, 0.12));
+  }
+
+  .vb-solve-val {
+    font-family: var(--font-display);
+    font-weight: var(--weight-num, 700);
+    font-size: 21.5px;
+    letter-spacing: 0.5px;
+    color: #FFFFFF;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+  }
+
+  .vb-solve-val.trimmed {
+    color: #94A3B8;
+    font-weight: 500;
+    opacity: 0.85;
+  }
+
+  .vb-wpa-val {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 22px;
+    color: #f87171;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  }
+
+  .vb-bpa-val {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 22px;
+    color: #34d399;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  }
+
+  .vb-avg-val {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 23px;
+    color: #FFFFFF;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+  }
+
+  .vb-stat-col.vb-avg-col {
+    background: rgba(2, 132, 199, 0.15);
+  }
+
+  .vb-val-empty {
+    color: #64748B !important;
+    font-weight: 500 !important;
+    opacity: 0.7;
+    text-shadow: none !important;
+  }
 </style>
 </head>
 <body>
@@ -2646,6 +2874,60 @@
     <div class="col-data col-avg-data">
       <span class="pr-num" id="avg-2">—</span>
     </div>
+  </div>
+</div>
+
+<!-- Banner de Finales Versus Cara a Cara (WCA Live) -->
+<div id="versus-banner" class="versus-banner pos-top align-center">
+  <!-- Cabecera de la tabla -->
+  <div class="vb-header">
+    <div class="vb-header-event">
+      <img id="vb-event-icon" class="vb-event-icon" src="icons/333.svg" alt="Evento" onerror="this.style.display='none'">
+      <div class="vb-event-titles">
+        <span id="vb-event-title" class="vb-event-title">3x3x3</span>
+        <span id="vb-event-round" class="vb-event-round">FINAL</span>
+      </div>
+    </div>
+    <div class="vb-col-head vb-col-solve">1</div>
+    <div class="vb-col-head vb-col-solve">2</div>
+    <div class="vb-col-head vb-col-solve">3</div>
+    <div class="vb-col-head vb-col-solve">4</div>
+    <div class="vb-col-head vb-col-solve">5</div>
+    <div class="vb-col-head vb-col-wpa">WPA</div>
+    <div class="vb-col-head vb-col-bpa">BPA</div>
+    <div class="vb-col-head vb-col-avg">AVG</div>
+  </div>
+
+  <!-- Fila Competidor 1 -->
+  <div class="vb-row" id="vb-row-1">
+    <div class="vb-comp-info">
+      <div class="vb-flag" id="vb-flag-1"></div>
+      <span class="vb-name" id="vb-name-1">—</span>
+    </div>
+    <div class="vb-solve-col" id="vb-s1-1"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-solve-col" id="vb-s1-2"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-solve-col" id="vb-s1-3"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-solve-col" id="vb-s1-4"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-solve-col" id="vb-s1-5"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-stat-col vb-wpa-col" id="vb-wpa-1"><span class="vb-wpa-val vb-val-empty">—</span></div>
+    <div class="vb-stat-col vb-bpa-col" id="vb-bpa-1"><span class="vb-bpa-val vb-val-empty">—</span></div>
+    <div class="vb-stat-col vb-avg-col" id="vb-avg-1"><span class="vb-avg-val vb-val-empty">—</span></div>
+  </div>
+
+  <!-- Fila Competidor 2 -->
+  <div class="vb-row" id="vb-row-2">
+    <div class="vb-comp-info">
+      <div class="vb-flag" id="vb-flag-2"></div>
+      <span class="vb-name" id="vb-name-2">—</span>
+    </div>
+    <div class="vb-solve-col" id="vb-s2-1"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-solve-col" id="vb-s2-2"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-solve-col" id="vb-s2-3"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-solve-col" id="vb-s2-4"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-solve-col" id="vb-s2-5"><span class="vb-solve-val vb-val-empty">—</span></div>
+    <div class="vb-stat-col vb-wpa-col" id="vb-wpa-2"><span class="vb-wpa-val vb-val-empty">—</span></div>
+    <div class="vb-stat-col vb-bpa-col" id="vb-bpa-2"><span class="vb-bpa-val vb-val-empty">—</span></div>
+    <div class="vb-stat-col vb-avg-col" id="vb-avg-2"><span class="vb-avg-val vb-val-empty">—</span></div>
   </div>
 </div>
 
@@ -4173,6 +4455,93 @@
     }
   }
 
+  // ── GESTIÓN DEL BANNER DE FINALES VERSUS (WCA LIVE) ──
+  const versusBanner = document.getElementById('versus-banner');
+  const vbEventIcon = document.getElementById('vb-event-icon');
+  const vbEventTitle = document.getElementById('vb-event-title');
+  const vbEventRound = document.getElementById('vb-event-round');
+
+  function renderVersusBanner(data) {
+    if (!data) return;
+
+    const eventId = data.eventId || currentEventData?.event_id || '333';
+    if (vbEventIcon) {
+      vbEventIcon.src = `icons/${eventId}.svg`;
+      vbEventIcon.style.display = 'block';
+    }
+    if (vbEventTitle) {
+      let evName = data.eventName || currentEventData?.name || '3x3';
+      evName = evName.replace(/(\d+)x\1x\1(\s*Cube)?/gi, '$1x$1');
+      vbEventTitle.textContent = evName.toUpperCase();
+    }
+    if (vbEventRound) {
+      vbEventRound.textContent = (data.roundName || 'FINAL').toUpperCase();
+    }
+
+    renderVersusRow(1, data.competitor1);
+    renderVersusRow(2, data.competitor2);
+  }
+
+  function renderVersusRow(slot, comp) {
+    const elName = document.getElementById(`vb-name-${slot}`);
+    if (elName) {
+      elName.textContent = (comp && comp.name) ? comp.name.toUpperCase() : (slot === 1 ? 'COMPETIDOR 1' : 'COMPETIDOR 2');
+    }
+    renderFlag(`vb-flag-${slot}`, comp?.countryIso2 || comp?.country || '');
+
+    const attempts = comp?.attempts || [];
+    for (let i = 1; i <= 5; i++) {
+      const col = document.getElementById(`vb-s${slot}-${i}`);
+      if (!col) continue;
+      const att = attempts[i - 1];
+      if (att && att.text && att.text !== '—') {
+        const isTrimmed = !!att.isTrimmed;
+        col.innerHTML = `<span class="vb-solve-val ${isTrimmed ? 'trimmed' : ''}">${att.text}</span>`;
+      } else {
+        col.innerHTML = `<span class="vb-solve-val vb-val-empty">—</span>`;
+      }
+    }
+
+    const wpaCol = document.getElementById(`vb-wpa-${slot}`);
+    if (wpaCol) {
+      const wpa = comp?.wpaFormatted || comp?.wpa;
+      if (wpa && wpa !== '—') {
+        wpaCol.innerHTML = `<span class="vb-wpa-val">${wpa}</span>`;
+      } else {
+        wpaCol.innerHTML = `<span class="vb-wpa-val vb-val-empty">—</span>`;
+      }
+    }
+
+    const bpaCol = document.getElementById(`vb-bpa-${slot}`);
+    if (bpaCol) {
+      const bpa = comp?.bpaFormatted || comp?.bpa;
+      if (bpa && bpa !== '—') {
+        bpaCol.innerHTML = `<span class="vb-bpa-val">${bpa}</span>`;
+      } else {
+        bpaCol.innerHTML = `<span class="vb-bpa-val vb-val-empty">—</span>`;
+      }
+    }
+
+    const avgCol = document.getElementById(`vb-avg-${slot}`);
+    if (avgCol) {
+      const avg = comp?.avgFormatted || comp?.averageOfficialFormatted || comp?.average;
+      if (avg && avg !== '—') {
+        avgCol.innerHTML = `<span class="vb-avg-val">${avg}</span>`;
+      } else {
+        avgCol.innerHTML = `<span class="vb-avg-val vb-val-empty">—</span>`;
+      }
+    }
+  }
+
+  function showVersusBanner(data) {
+    if (data) renderVersusBanner(data);
+    if (versusBanner) versusBanner.classList.add('visible');
+  }
+
+  function hideVersusBanner() {
+    if (versusBanner) versusBanner.classList.remove('visible');
+  }
+
   function connect() {
     let wsUrl = 'ws://localhost:8765';
     if (window.location.protocol.startsWith('http')) {
@@ -4240,6 +4609,14 @@
             showHeadToHead(msg.data, msg.size);
           } else if (msg.type === 'hide_head_to_head') {
             hideHeadToHead();
+          } else if (msg.type === 'versus_banner_data') {
+            if (msg.visible) {
+              showVersusBanner(msg.data);
+            } else {
+              hideVersusBanner();
+            }
+          } else if (msg.type === 'hide_versus_banner') {
+            hideVersusBanner();
           } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {
             banner.classList.remove('visible');
           } else if (msg.type === 'hide_event') {

@@ -335,10 +335,216 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
   };
 }
 
+/**
+ * Calcula BPA (Best Possible Average), WPA (Worst Possible Average) y AVG oficial para formato Ao5
+ */
+function calculateAo5Stats(attemptsRaw, eventId = '333') {
+  const count = 5;
+  const rawList = [];
+  for (let i = 0; i < count; i++) {
+    const raw = (attemptsRaw && typeof attemptsRaw[i] === 'number') ? attemptsRaw[i] : 0;
+    rawList.push(raw);
+  }
+
+  const completedSolves = rawList.map((r, idx) => ({ raw: r, idx })).filter(x => x.raw !== 0);
+  const numDone = completedSolves.length;
+
+  let bpa = null;
+  let wpa = null;
+  let avg = null;
+  const trimmedIndices = new Set();
+
+  if (numDone === 5) {
+    // 5 intentos completados: se calcula el promedio oficial WCA (descarta mejor y peor)
+    const dnfCount = completedSolves.filter(x => x.raw < 0).length;
+    if (dnfCount >= 2) {
+      avg = -1; // DNF
+    } else {
+      const sorted = [...completedSolves].sort((a, b) => {
+        const va = a.raw < 0 ? Infinity : a.raw;
+        const vb = b.raw < 0 ? Infinity : b.raw;
+        return va - vb;
+      });
+      trimmedIndices.add(sorted[0].idx);
+      trimmedIndices.add(sorted[4].idx);
+
+      const middle = [sorted[1].raw, sorted[2].raw, sorted[3].raw];
+      if (middle.some(r => r < 0)) {
+        avg = -1;
+      } else {
+        const sum = middle.reduce((acc, c) => acc + c, 0);
+        avg = Math.round(sum / 3);
+      }
+    }
+  } else if (numDone === 4) {
+    // 4 intentos completados: cálculo oficial WCA de BPA y WPA
+    const dnfCount = completedSolves.filter(x => x.raw < 0).length;
+    if (dnfCount >= 2) {
+      // 2 o más DNFs -> el average final será DNF inevitablemente
+      bpa = -1;
+      wpa = -1;
+    } else if (dnfCount === 1) {
+      // 1 DNF y 3 tiempos válidos
+      const valid = completedSolves.filter(x => x.raw > 0).map(x => x.raw).sort((a, b) => a - b);
+      // BPA: el 5to solve es óptimo (se descarta junto con el DNF). Promedian los 3 válidos:
+      bpa = Math.round((valid[0] + valid[1] + valid[2]) / 3);
+      // WPA: el 5to solve es DNF o el peor -> habrían 2 DNFs -> DNF
+      wpa = -1;
+    } else {
+      // 0 DNFs (4 tiempos válidos)
+      const sorted = completedSolves.map(x => x.raw).sort((a, b) => a - b);
+      // sorted = [x1, x2, x3, x4] con x1 <= x2 <= x3 <= x4
+      // BPA: solve 5 es el mejor (menor a x1) -> se descarta solve 5 (mejor) y x4 (peor) -> promedian x1, x2, x3
+      bpa = Math.round((sorted[0] + sorted[1] + sorted[2]) / 3);
+      // WPA: solve 5 es el peor (mayor a x4 o DNF) -> se descarta x1 (mejor) y solve 5 (peor) -> promedian x2, x3, x4
+      wpa = Math.round((sorted[1] + sorted[2] + sorted[3]) / 3);
+    }
+  }
+
+  // Formatear cada intento individual con indicador de recorte
+  const attemptsFormatted = rawList.map((raw, idx) => {
+    const text = formatWcaTime(raw, eventId);
+    const isTrimmed = trimmedIndices.has(idx);
+    return {
+      raw,
+      text: (isTrimmed && text !== '—') ? `(${text})` : text,
+      isTrimmed
+    };
+  });
+
+  return {
+    numDone,
+    bpa,
+    bpaFormatted: bpa !== null ? (bpa === -1 ? 'DNF' : formatWcaTime(bpa, eventId)) : '—',
+    wpa,
+    wpaFormatted: wpa !== null ? (wpa === -1 ? 'DNF' : formatWcaTime(wpa, eventId)) : '—',
+    avg,
+    avgFormatted: avg !== null ? (avg === -1 ? 'DNF' : formatWcaTime(avg, eventId)) : '—',
+    attempts: attemptsFormatted
+  };
+}
+
+/**
+ * Obtiene los datos del enfrentamiento cara a cara (Versus) de dos competidores en una ronda de WCA Live
+ */
+async function fetchLiveVersusData(roundId, comp1IdOrName, comp2IdOrName) {
+  const q = `query($id: ID!) {
+    round(id: $id) {
+      id
+      name
+      open
+      finished
+      competitionEvent {
+        event { id name }
+        competition { id name wcaId }
+      }
+      format { id numberOfAttempts }
+      results {
+        ranking
+        best
+        average
+        singleRecordTag
+        averageRecordTag
+        attempts { result }
+        person {
+          id
+          wcaId
+          name
+          registrantId
+          country { iso2 }
+        }
+      }
+    }
+  }`;
+
+  const json = await graphql(q, { id: String(roundId) });
+  const round = json.data?.round;
+  if (!round) {
+    throw new Error(`Ronda no encontrada en WCA Live con ID: ${roundId}`);
+  }
+
+  const eventId = round.competitionEvent?.event?.id || '333';
+  const eventName = round.competitionEvent?.event?.name || '3x3';
+  const compName = round.competitionEvent?.competition?.name || '';
+  const roundName = round.name || 'Final';
+  const rawResults = round.results || [];
+
+  function findResult(target) {
+    if (!target) return null;
+    const clean = String(target).trim().toLowerCase();
+    return rawResults.find(r => {
+      const p = r.person || {};
+      const wId = (p.wcaId || '').toLowerCase();
+      const regId = String(p.registrantId || '');
+      const pId = String(p.id || '');
+      const name = (p.name || '').toLowerCase();
+      return wId === clean || regId === clean || pId === clean || name.includes(clean);
+    });
+  }
+
+  const res1 = findResult(comp1IdOrName);
+  const res2 = findResult(comp2IdOrName);
+
+  function formatCompetitorVersus(r, fallbackName = 'Competidor') {
+    if (!r) {
+      return {
+        name: fallbackName,
+        wcaId: '',
+        countryIso2: '',
+        attempts: Array(5).fill({ raw: 0, text: '—', isTrimmed: false }),
+        bpa: null,
+        bpaFormatted: '—',
+        wpa: null,
+        wpaFormatted: '—',
+        avg: null,
+        avgFormatted: '—'
+      };
+    }
+
+    const rawAttempts = (r.attempts || []).map(a => (a && typeof a.result === 'number') ? a.result : 0);
+    while (rawAttempts.length < 5) rawAttempts.push(0);
+
+    const stats = calculateAo5Stats(rawAttempts, eventId);
+
+    return {
+      name: r.person?.name || fallbackName,
+      wcaId: r.person?.wcaId || '',
+      countryIso2: r.person?.country?.iso2?.toLowerCase() || '',
+      registrantId: r.person?.registrantId || null,
+      ranking: r.ranking,
+      best: r.best,
+      bestFormatted: formatWcaTime(r.best, eventId),
+      averageOfficial: r.average,
+      averageOfficialFormatted: formatWcaTime(r.average, eventId),
+      singleRecordTag: r.singleRecordTag || null,
+      averageRecordTag: r.averageRecordTag || null,
+      ...stats
+    };
+  }
+
+  return {
+    roundId: round.id,
+    roundName,
+    eventId,
+    eventName,
+    competitionName: compName,
+    competitor1: formatCompetitorVersus(res1, comp1IdOrName || 'Competidor 1'),
+    competitor2: formatCompetitorVersus(res2, comp2IdOrName || 'Competidor 2'),
+    allCompetitors: rawResults.map(r => ({
+      name: r.person?.name || 'Desconocido',
+      wcaId: r.person?.wcaId || '',
+      countryIso2: r.person?.country?.iso2?.toLowerCase() || '',
+      registrantId: r.person?.registrantId
+    }))
+  };
+}
+
 export {
   graphql,
   formatWcaTime,
   resolveWcaLiveId,
   fetchLiveCompetitionRounds,
-  fetchLiveRoundRanking
+  fetchLiveRoundRanking,
+  calculateAo5Stats,
+  fetchLiveVersusData
 };

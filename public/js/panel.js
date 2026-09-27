@@ -63,6 +63,15 @@ let liveRankingDynamicPaging = true;
 let liveRankingAutoBalance = true;
 let liveRankingPageDuration = 10;
 
+// ── Estado del Banner de Finales Versus (WCA Live) ──
+let versusBannerVisible = false;
+let versusRoundId = null;
+let versusCompId = null;
+let versusComp1Target = null;
+let versusComp2Target = null;
+let versusPollInterval = 2;
+let versusData = null;
+
 let obsStatus = {
   connected: false,
   currentProgramScene: null,
@@ -280,6 +289,20 @@ function handleServerMessage(msg) {
         fetchLiveRoundRanking(targetRoundId, false);
       }
       updateLiveRankingUI();
+
+      // Hidratar estado de Banner Versus
+      if (msg.versusBannerVisible !== undefined) versusBannerVisible = !!msg.versusBannerVisible;
+      if (msg.versusRoundId) versusRoundId = msg.versusRoundId;
+      if (msg.versusCompId) versusCompId = msg.versusCompId;
+      if (msg.versusPollInterval !== undefined) versusPollInterval = msg.versusPollInterval;
+      if (msg.versusComp1Target !== undefined) versusComp1Target = msg.versusComp1Target;
+      if (msg.versusComp2Target !== undefined) versusComp2Target = msg.versusComp2Target;
+      if (msg.versusData) {
+        versusData = msg.versusData;
+        renderVersusPanelPreview(versusData);
+      }
+      populateVersusRoundSelect(versusRoundId);
+      updateVersusUI();
       break;
 
     case 'obs_status':
@@ -460,6 +483,21 @@ function handleServerMessage(msg) {
         currentFsTheme = Object.assign({}, currentFsTheme, msg.data);
         updateFsThemeUI();
       }
+      break;
+
+    case 'sync_versus_banner':
+    case 'versus_banner_data':
+      if (msg.visible !== undefined) versusBannerVisible = !!msg.visible;
+      if (msg.roundId) versusRoundId = msg.roundId;
+      if (msg.compId) versusCompId = msg.compId;
+      if (msg.pollInterval !== undefined) versusPollInterval = msg.pollInterval;
+      if (msg.comp1Target !== undefined) versusComp1Target = msg.comp1Target;
+      if (msg.comp2Target !== undefined) versusComp2Target = msg.comp2Target;
+      if (msg.data) {
+        versusData = msg.data;
+        renderVersusPanelPreview(versusData);
+      }
+      updateVersusUI();
       break;
   }
 }
@@ -2750,6 +2788,7 @@ async function loadLiveCompetitionRounds(targetRoundId = null, silent = false) {
 
     const preferredRound = targetRoundId || liveRankingSelectedRoundId || localStorage.getItem('directoobs_live_round_id');
     populateLiveRoundSelect(preferredRound);
+    populateVersusRoundSelect(versusRoundId || preferredRound);
 
     if (liveRankingSelectedRoundId) {
       localStorage.setItem('directoobs_live_round_id', liveRankingSelectedRoundId);
@@ -4049,6 +4088,288 @@ function setH2HSizePreset(val) {
   const slider = document.getElementById('h2h-size-slider');
   if (slider) slider.value = val;
   onH2HSizeInput(val);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ── GESTIÓN DEL BANNER DE FINALES VERSUS (CARA A CARA WCA LIVE) ──
+// ══════════════════════════════════════════════════════════════════
+
+function populateVersusRoundSelect(targetRoundId = null) {
+  const select = document.getElementById('versus-round-select');
+  if (!select) return;
+
+  if (!liveRankingRounds || liveRankingRounds.length === 0) {
+    select.innerHTML = '<option value="">No hay rondas de WCA Live disponibles</option>';
+    select.disabled = true;
+    return;
+  }
+
+  select.innerHTML = liveRankingRounds.map(r => {
+    const eName = EVENT_NAMES[r.eventId] || r.eventName || r.eventId;
+    return `<option value="${r.roundId}">${eName} - ${r.roundName} (Ronda ${r.roundNumber})</option>`;
+  }).join('');
+  select.disabled = false;
+
+  const toSelect = targetRoundId || versusRoundId || liveRankingSelectedRoundId || localStorage.getItem('directoobs_versus_round_id');
+  if (toSelect && liveRankingRounds.some(r => r.roundId === toSelect)) {
+    select.value = toSelect;
+    versusRoundId = toSelect;
+  } else {
+    select.value = liveRankingRounds[0].roundId;
+    versusRoundId = select.value;
+  }
+
+  // Cargar competidores de la ronda para los selects
+  fetchVersusDataForRound(versusRoundId);
+}
+
+async function fetchVersusDataForRound(roundId) {
+  if (!roundId) return;
+  try {
+    const res = await fetch(`/api/live/rounds/${roundId}`);
+    const data = await res.json();
+    if (data.ok && data.ranking && data.ranking.results) {
+      populateVersusCompetitors(data.ranking.results);
+    }
+  } catch (err) {
+    console.warn('[VersusPanel] Error obteniendo competidores de la ronda:', err);
+  }
+}
+
+function populateVersusCompetitors(results) {
+  const sel1 = document.getElementById('versus-comp1-select');
+  const sel2 = document.getElementById('versus-comp2-select');
+  if (!sel1 || !sel2) return;
+
+  if (!results || results.length === 0) {
+    sel1.innerHTML = '<option value="">Sin competidores</option>';
+    sel2.innerHTML = '<option value="">Sin competidores</option>';
+    return;
+  }
+
+  const optionsHtml = '<option value="">-- Seleccionar de la ronda --</option>' + results.map(r => {
+    const name = r.name || 'Desconocido';
+    const wcaId = r.wcaId ? ` (${r.wcaId})` : '';
+    const pos = r.ranking ? `#${r.ranking} ` : '';
+    return `<option value="${escapeHtml(name)}">${pos}${escapeHtml(name)}${wcaId}</option>`;
+  }).join('');
+
+  sel1.innerHTML = optionsHtml;
+  sel2.innerHTML = optionsHtml;
+
+  // Restaurar selección previa si existe
+  if (versusComp1Target) {
+    sel1.value = versusComp1Target;
+    const inp1 = document.getElementById('versus-comp1-custom');
+    if (inp1) inp1.value = versusComp1Target;
+  } else if (results.length > 0) {
+    sel1.value = results[0].name;
+    versusComp1Target = results[0].name;
+    const inp1 = document.getElementById('versus-comp1-custom');
+    if (inp1) inp1.value = results[0].name;
+  }
+
+  if (versusComp2Target) {
+    sel2.value = versusComp2Target;
+    const inp2 = document.getElementById('versus-comp2-custom');
+    if (inp2) inp2.value = versusComp2Target;
+  } else if (results.length > 1) {
+    sel2.value = results[1].name;
+    versusComp2Target = results[1].name;
+    const inp2 = document.getElementById('versus-comp2-custom');
+    if (inp2) inp2.value = results[1].name;
+  }
+
+  // Refrescar los datos del versus en el servidor y panel
+  sendVersusConfigToServer();
+}
+
+function onVersusRoundChanged() {
+  const sel = document.getElementById('versus-round-select');
+  if (!sel) return;
+  versusRoundId = sel.value;
+  localStorage.setItem('directoobs_versus_round_id', versusRoundId);
+  fetchVersusDataForRound(versusRoundId);
+}
+
+function syncVersusWithCurrentRound() {
+  if (liveRankingSelectedRoundId) {
+    const sel = document.getElementById('versus-round-select');
+    if (sel) {
+      sel.value = liveRankingSelectedRoundId;
+      onVersusRoundChanged();
+      showToast('Ronda sincronizada con Ranking WCA Live', 'info');
+    }
+  } else {
+    showToast('No hay ronda activa seleccionada en el ranking', 'warning');
+  }
+}
+
+function onVersusCompSelectChange(slot) {
+  const sel = document.getElementById(`versus-comp${slot}-select`);
+  const inp = document.getElementById(`versus-comp${slot}-custom`);
+  if (!sel) return;
+  const val = sel.value;
+  if (inp) inp.value = val;
+  if (slot === 1) versusComp1Target = val;
+  if (slot === 2) versusComp2Target = val;
+  sendVersusConfigToServer();
+}
+
+function onVersusCompCustomChange(slot) {
+  const inp = document.getElementById(`versus-comp${slot}-custom`);
+  const sel = document.getElementById(`versus-comp${slot}-select`);
+  if (!inp) return;
+  const val = inp.value.trim();
+  if (sel) sel.value = val;
+  if (slot === 1) versusComp1Target = val;
+  if (slot === 2) versusComp2Target = val;
+  sendVersusConfigToServer();
+}
+
+function swapVersusCompetitors() {
+  const tmp = versusComp1Target;
+  versusComp1Target = versusComp2Target;
+  versusComp2Target = tmp;
+
+  const sel1 = document.getElementById('versus-comp1-select');
+  const sel2 = document.getElementById('versus-comp2-select');
+  const inp1 = document.getElementById('versus-comp1-custom');
+  const inp2 = document.getElementById('versus-comp2-custom');
+
+  if (sel1) sel1.value = versusComp1Target || '';
+  if (inp1) inp1.value = versusComp1Target || '';
+  if (sel2) sel2.value = versusComp2Target || '';
+  if (inp2) inp2.value = versusComp2Target || '';
+
+  sendVersusConfigToServer();
+}
+
+function onVersusPollChanged(val) {
+  const sec = parseInt(val, 10) || 2;
+  versusPollInterval = sec;
+  sendVersusConfigToServer();
+}
+
+function sendVersusConfigToServer() {
+  sendWS({
+    type: 'set_versus_config',
+    roundId: versusRoundId,
+    compId: liveRankingCompId || versusCompId,
+    comp1Target: versusComp1Target,
+    comp2Target: versusComp2Target,
+    pollInterval: versusPollInterval
+  });
+}
+
+function manualRefreshVersus() {
+  sendWS({ type: 'versus_refresh' });
+  showToast('Actualizando datos de Versus WCA Live...', 'info');
+}
+
+function sendShowVersusBanner() {
+  if (!versusRoundId) {
+    showToast('Selecciona primero una ronda de WCA Live para la final', 'warning');
+    return;
+  }
+  versusBannerVisible = true;
+  sendWS({
+    type: 'show_versus_banner',
+    roundId: versusRoundId,
+    compId: liveRankingCompId || versusCompId,
+    comp1Target: versusComp1Target,
+    comp2Target: versusComp2Target,
+    pollInterval: versusPollInterval
+  });
+  updateVersusUI();
+  showToast('Banner de Finales Versus enviado a OBS', 'success');
+}
+
+function sendHideVersusBanner() {
+  versusBannerVisible = false;
+  sendWS({ type: 'hide_versus_banner' });
+  updateVersusUI();
+  showToast('Banner de Finales Versus ocultado', 'info');
+}
+
+function updateVersusUI() {
+  const badge = document.getElementById('versus-status-badge');
+  const btnShow = document.getElementById('btn-show-versus');
+
+  if (badge) {
+    if (versusBannerVisible) {
+      badge.className = 'live-status-pill online';
+      badge.textContent = `EN VIVO (${versusPollInterval}s)`;
+    } else {
+      badge.className = 'live-status-pill offline';
+      badge.textContent = 'EN ESPERA';
+    }
+  }
+
+  if (btnShow) {
+    if (versusBannerVisible) {
+      btnShow.classList.add('active');
+      btnShow.innerHTML = '<span>● AL AIRE EN OBS</span>';
+    } else {
+      btnShow.classList.remove('active');
+      btnShow.innerHTML = '<span>▲ MOSTRAR EN OBS</span>';
+    }
+  }
+
+  const pollSel = document.getElementById('versus-poll-select');
+  if (pollSel && versusPollInterval) {
+    pollSel.value = String(versusPollInterval);
+  }
+}
+
+function renderVersusPanelPreview(data) {
+  if (!data) return;
+
+  const evPreview = document.getElementById('versus-preview-event');
+  if (evPreview) {
+    let evName = data.eventName || '3x3';
+    evName = evName.replace(/(\d+)x\1x\1(\s*Cube)?/gi, '$1x$1');
+    evPreview.textContent = `${evName.toUpperCase()} • ${(data.roundName || 'FINAL').toUpperCase()}`;
+  }
+
+  renderVersusPanelRow(1, data.competitor1);
+  renderVersusPanelRow(2, data.competitor2);
+}
+
+function renderVersusPanelRow(slot, comp) {
+  const elName = document.getElementById(`vp-name-${slot}`);
+  if (elName) {
+    elName.textContent = (comp && comp.name) ? comp.name : (slot === 1 ? 'Competidor 1' : 'Competidor 2');
+  }
+
+  const attempts = comp?.attempts || [];
+  for (let i = 1; i <= 5; i++) {
+    const td = document.getElementById(`vp-s${slot}-${i}`);
+    if (!td) continue;
+    const att = attempts[i - 1];
+    if (att && att.text && att.text !== '—') {
+      td.textContent = att.text;
+      td.style.color = att.isTrimmed ? '#94a3b8' : '#e2e8f0';
+    } else {
+      td.textContent = '—';
+      td.style.color = '#64748b';
+    }
+  }
+
+  const wpaTd = document.getElementById(`vp-wpa-${slot}`);
+  if (wpaTd) {
+    wpaTd.textContent = comp?.wpaFormatted || comp?.wpa || '—';
+  }
+
+  const bpaTd = document.getElementById(`vp-bpa-${slot}`);
+  if (bpaTd) {
+    bpaTd.textContent = comp?.bpaFormatted || comp?.bpa || '—';
+  }
+
+  const avgTd = document.getElementById(`vp-avg-${slot}`);
+  if (avgTd) {
+    avgTd.textContent = comp?.avgFormatted || comp?.averageOfficialFormatted || comp?.average || '—';
+  }
 }
 
 

@@ -18,7 +18,9 @@ import { fileURLToPath } from 'url';
 import {
   fetchLiveCompetitionRounds,
   fetchLiveRoundRanking,
-  resolveWcaLiveId
+  resolveWcaLiveId,
+  calculateAo5Stats,
+  fetchLiveVersusData
 } from './server/wcaLiveService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -74,6 +76,23 @@ let headToHeadData = {           // Datos del enfrentamiento Head to Head
   event: null
 };
 
+// ── Estado del Banner de Finales Versus (Cara a Cara WCA Live con WPA/BPA/AVG) ──
+let versusBannerVisible = false;
+let versusRoundId = null;
+let versusCompId = null;
+let versusPollInterval = 2; // segundos (rápido para finales)
+let versusPollTimer = null;
+let versusComp1Target = null;
+let versusComp2Target = null;
+let versusData = {
+  eventId: '333',
+  eventName: '3x3',
+  roundName: 'Final',
+  competitor1: null,
+  competitor2: null,
+  allCompetitors: []
+};
+
 // ── Estado de Ranking en Vivo (WCA Live) ──
 let liveRankingData = null;
 let liveRankingVisible = false;
@@ -125,7 +144,14 @@ function saveLiveState() {
       bigLogoSize: bigLogoSize,
       headToHeadVisible: headToHeadVisible,
       headToHeadSize: headToHeadSize,
-      headToHeadData: headToHeadData
+      headToHeadData: headToHeadData,
+      versusBannerVisible: versusBannerVisible,
+      versusRoundId: versusRoundId,
+      versusCompId: versusCompId,
+      versusPollInterval: versusPollInterval,
+      versusComp1Target: versusComp1Target,
+      versusComp2Target: versusComp2Target,
+      versusData: versusData
     };
     fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
   } catch (err) {
@@ -167,6 +193,13 @@ function loadLiveState() {
       if (state.headToHeadData !== undefined && typeof state.headToHeadData === 'object') {
         headToHeadData = Object.assign({ competitor1: null, competitor2: null, event: null }, state.headToHeadData);
       }
+      if (state.versusBannerVisible !== undefined) versusBannerVisible = state.versusBannerVisible;
+      if (state.versusRoundId) versusRoundId = state.versusRoundId;
+      if (state.versusCompId) versusCompId = state.versusCompId;
+      if (state.versusPollInterval !== undefined) versusPollInterval = state.versusPollInterval;
+      if (state.versusComp1Target) versusComp1Target = state.versusComp1Target;
+      if (state.versusComp2Target) versusComp2Target = state.versusComp2Target;
+      if (state.versusData) versusData = state.versusData;
       if (state.fsTheme) {
         fsTheme = {
           bgColor: state.fsTheme.bgColor || '#0c4ea8',
@@ -236,6 +269,64 @@ if (liveRankingRoundId) {
     })
     .catch(err => {
       console.warn(`[LiveRanking] No se pudo precargar ranking para ${liveRankingRoundId}:`, err.message);
+    });
+}
+
+// ── Polling y Gestión en Tiempo Real de Banner de Finales Versus (WCA Live) ──
+async function refreshVersusData() {
+  if (!versusRoundId) return;
+  try {
+    const data = await fetchLiveVersusData(versusRoundId, versusComp1Target, versusComp2Target);
+    if (data) {
+      versusData = data;
+      broadcastToOverlays({
+        type: 'versus_banner_data',
+        visible: versusBannerVisible,
+        data: versusData
+      });
+      broadcastToPanels({
+        type: 'sync_versus_banner',
+        visible: versusBannerVisible,
+        data: versusData,
+        roundId: versusRoundId,
+        compId: versusCompId,
+        pollInterval: versusPollInterval,
+        comp1Target: versusComp1Target,
+        comp2Target: versusComp2Target
+      });
+    }
+  } catch (err) {
+    console.warn('[VersusPolling] Error al refrescar datos versus:', err.message);
+  }
+}
+
+function startVersusPolling(intervalSec) {
+  stopVersusPolling();
+  const sec = Math.max(1, parseInt(intervalSec, 10) || 2);
+  versusPollInterval = sec;
+  console.log(`[VersusPolling] Iniciando polling cada ${sec}s para ronda ${versusRoundId}`);
+  refreshVersusData();
+  versusPollTimer = setInterval(refreshVersusData, sec * 1000);
+}
+
+function stopVersusPolling() {
+  if (versusPollTimer) {
+    clearInterval(versusPollTimer);
+    versusPollTimer = null;
+  }
+}
+
+if (versusRoundId) {
+  fetchLiveVersusData(versusRoundId, versusComp1Target, versusComp2Target)
+    .then(data => {
+      versusData = data;
+      console.log(`[VersusPolling] Datos versus precargados para ronda ${versusRoundId}`);
+      if (versusBannerVisible) {
+        startVersusPolling(versusPollInterval);
+      }
+    })
+    .catch(err => {
+      console.warn(`[VersusPolling] No se pudo precargar datos versus para ${versusRoundId}:`, err.message);
     });
 }
 
@@ -694,6 +785,82 @@ app.get('/api/live/status', (req, res) => {
     data: liveRankingData,
     fsTheme: fsTheme
   });
+});
+
+// ── Rutas de Banner de Finales Versus (WCA Live) ──
+app.get('/api/versus/status', (req, res) => {
+  res.json({
+    ok: true,
+    visible: versusBannerVisible,
+    roundId: versusRoundId,
+    compId: versusCompId,
+    pollInterval: versusPollInterval,
+    comp1Target: versusComp1Target,
+    comp2Target: versusComp2Target,
+    data: versusData
+  });
+});
+
+app.post('/api/versus/configure', async (req, res) => {
+  try {
+    const { roundId, compId, comp1Target, comp2Target, pollInterval, visible } = req.body;
+    if (roundId !== undefined) versusRoundId = roundId;
+    if (compId !== undefined) versusCompId = compId;
+    if (comp1Target !== undefined) versusComp1Target = comp1Target;
+    if (comp2Target !== undefined) versusComp2Target = comp2Target;
+    if (pollInterval !== undefined) {
+      versusPollInterval = Math.max(1, parseInt(pollInterval, 10) || 2);
+      if (versusBannerVisible) {
+        startVersusPolling(versusPollInterval);
+      }
+    }
+    if (visible !== undefined) {
+      versusBannerVisible = !!visible;
+      if (versusBannerVisible) {
+        startVersusPolling(versusPollInterval);
+      } else {
+        stopVersusPolling();
+        broadcastToOverlays({ type: 'hide_versus_banner' });
+      }
+    }
+    saveLiveState();
+    await refreshVersusData();
+    res.json({ ok: true, data: versusData, visible: versusBannerVisible });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/versus/toggle', async (req, res) => {
+  const { visible } = req.body;
+  versusBannerVisible = visible !== undefined ? !!visible : !versusBannerVisible;
+  if (versusBannerVisible) {
+    startVersusPolling(versusPollInterval);
+  } else {
+    stopVersusPolling();
+    broadcastToOverlays({ type: 'hide_versus_banner' });
+  }
+  saveLiveState();
+  broadcastToPanels({
+    type: 'sync_versus_banner',
+    visible: versusBannerVisible,
+    data: versusData,
+    roundId: versusRoundId,
+    compId: versusCompId,
+    pollInterval: versusPollInterval,
+    comp1Target: versusComp1Target,
+    comp2Target: versusComp2Target
+  });
+  res.json({ ok: true, visible: versusBannerVisible, data: versusData });
+});
+
+app.post('/api/versus/refresh', async (req, res) => {
+  try {
+    await refreshVersusData();
+    res.json({ ok: true, data: versusData });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 // Subir imagen personalizada de fondo para la tabla Fullscreen
@@ -1916,6 +2083,15 @@ function handleSocketConnection(ws, req) {
         size: headToHeadSize
       }));
     }
+
+    // Si Versus Banner está activo, enviarlo al overlay
+    if (versusBannerVisible && versusData) {
+      socket.send(JSON.stringify({
+        type: 'versus_banner_data',
+        visible: true,
+        data: versusData
+      }));
+    }
   }
 
   function initPanel(socket) {
@@ -1954,6 +2130,13 @@ function handleSocketConnection(ws, req) {
       liveRankingPageSize,
       liveRankingPageDuration,
       liveRankingViewMode,
+      versusBannerVisible,
+      versusRoundId,
+      versusCompId,
+      versusPollInterval,
+      versusComp1Target,
+      versusComp2Target,
+      versusData,
       fsTheme,
       overlayCount: overlayClients.size,
       obsStatus
@@ -2111,8 +2294,10 @@ function handleSocketConnection(ws, req) {
         showcaseVisible = false;
         bigLogoVisible = false;
         headToHeadVisible = false;
+        versusBannerVisible = false;
         saveLiveState();
         stopLiveRankingPolling();
+        stopVersusPolling();
         broadcastToOverlays({ type: 'hide_competitor' });
         broadcastToOverlays({ type: 'hide_banner' });
         broadcastToOverlays({ type: 'hide_event' });
@@ -2120,6 +2305,7 @@ function handleSocketConnection(ws, req) {
         broadcastToOverlays({ type: 'hide_competitor_showcase' });
         broadcastToOverlays({ type: 'hide_big_logo' });
         broadcastToOverlays({ type: 'hide_head_to_head' });
+        broadcastToOverlays({ type: 'hide_versus_banner' });
         broadcastToPanels({
           type: 'sync_state',
           competitorVisible: false,
@@ -2137,6 +2323,16 @@ function handleSocketConnection(ws, req) {
           pollInterval: liveRankingPollInterval,
           top: liveRankingTop,
           cutoff: liveRankingCutoff
+        });
+        broadcastToPanels({
+          type: 'sync_versus_banner',
+          visible: false,
+          data: versusData,
+          roundId: versusRoundId,
+          compId: versusCompId,
+          pollInterval: versusPollInterval,
+          comp1Target: versusComp1Target,
+          comp2Target: versusComp2Target
         });
         break;
 
@@ -2426,6 +2622,51 @@ function handleSocketConnection(ws, req) {
           top: liveRankingTop,
           cutoff: liveRankingCutoff
         });
+        break;
+
+      case 'show_versus_banner':
+        versusBannerVisible = true;
+        if (msg.roundId) versusRoundId = msg.roundId;
+        if (msg.compId) versusCompId = msg.compId;
+        if (msg.comp1Target !== undefined) versusComp1Target = msg.comp1Target;
+        if (msg.comp2Target !== undefined) versusComp2Target = msg.comp2Target;
+        if (msg.pollInterval !== undefined) versusPollInterval = Math.max(1, parseInt(msg.pollInterval, 10) || 2);
+        saveLiveState();
+        startVersusPolling(versusPollInterval);
+        break;
+
+      case 'hide_versus_banner':
+        versusBannerVisible = false;
+        stopVersusPolling();
+        saveLiveState();
+        broadcastToOverlays({ type: 'hide_versus_banner' });
+        broadcastToPanels({
+          type: 'sync_versus_banner',
+          visible: false,
+          data: versusData,
+          roundId: versusRoundId,
+          compId: versusCompId,
+          pollInterval: versusPollInterval,
+          comp1Target: versusComp1Target,
+          comp2Target: versusComp2Target
+        });
+        break;
+
+      case 'set_versus_config':
+        if (msg.roundId !== undefined) versusRoundId = msg.roundId;
+        if (msg.compId !== undefined) versusCompId = msg.compId;
+        if (msg.comp1Target !== undefined) versusComp1Target = msg.comp1Target;
+        if (msg.comp2Target !== undefined) versusComp2Target = msg.comp2Target;
+        if (msg.pollInterval !== undefined) {
+          versusPollInterval = Math.max(1, parseInt(msg.pollInterval, 10) || 2);
+          if (versusBannerVisible) startVersusPolling(versusPollInterval);
+        }
+        saveLiveState();
+        refreshVersusData();
+        break;
+
+      case 'versus_refresh':
+        refreshVersusData();
         break;
 
       case 'set_fs_theme':
