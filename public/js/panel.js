@@ -27,6 +27,7 @@ let bigLogoVisible = false;
 let bigLogoUrl = null;
 let bigLogoSize = 760;
 let headToHeadVisible = false;
+let headToHeadSize = 1150;
 let h2hComp1 = null;
 let h2hComp2 = null;
 let h2hEventId = '333';
@@ -215,6 +216,9 @@ function handleServerMessage(msg) {
       if (msg.headToHeadVisible !== undefined) {
         headToHeadVisible = !!msg.headToHeadVisible;
       }
+      if (msg.headToHeadSize !== undefined) {
+        headToHeadSize = parseInt(msg.headToHeadSize, 10) || 1150;
+      }
       if (msg.headToHeadData) {
         if (msg.headToHeadData.competitor1) h2hComp1 = msg.headToHeadData.competitor1;
         if (msg.headToHeadData.competitor2) h2hComp2 = msg.headToHeadData.competitor2;
@@ -383,6 +387,9 @@ function handleServerMessage(msg) {
       }
       if (msg.headToHeadVisible !== undefined) {
         headToHeadVisible = !!msg.headToHeadVisible;
+      }
+      if (msg.headToHeadSize !== undefined) {
+        headToHeadSize = parseInt(msg.headToHeadSize, 10) || 1150;
       }
       if (msg.headToHeadData) {
         if (msg.headToHeadData.competitor1 !== undefined) h2hComp1 = msg.headToHeadData.competitor1;
@@ -3811,6 +3818,11 @@ function updateHeadToHeadUI() {
       pr2El.textContent = '— / —';
     }
   }
+
+  const sizeSlider = document.getElementById('h2h-size-slider');
+  const sizeVal = document.getElementById('h2h-size-val');
+  if (sizeSlider && document.activeElement !== sizeSlider) sizeSlider.value = headToHeadSize;
+  if (sizeVal) sizeVal.textContent = `${headToHeadSize}px`;
 }
 
 function onH2HSearchInput(slot, query) {
@@ -3923,7 +3935,8 @@ function sendShowHeadToHead() {
   };
   sendWS({
     type: 'show_head_to_head',
-    data: payload
+    data: payload,
+    size: headToHeadSize
   });
   updateHeadToHeadUI();
   showToast('Enfrentamiento Head to Head en pantalla', 'success');
@@ -3934,6 +3947,24 @@ function sendHideHeadToHead() {
   sendWS({ type: 'hide_head_to_head' });
   updateHeadToHeadUI();
   showToast('Enfrentamiento Head to Head ocultado');
+}
+
+function onH2HSizeInput(val) {
+  const s = parseInt(val, 10);
+  if (isNaN(s)) return;
+  headToHeadSize = s;
+  const sizeVal = document.getElementById('h2h-size-val');
+  if (sizeVal) sizeVal.textContent = `${headToHeadSize}px`;
+  sendWS({
+    type: 'set_head_to_head_size',
+    size: headToHeadSize
+  });
+}
+
+function setH2HSizePreset(val) {
+  const slider = document.getElementById('h2h-size-slider');
+  if (slider) slider.value = val;
+  onH2HSizeInput(val);
 }
 
 

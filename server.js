@@ -67,6 +67,7 @@ let bigLogoVisible = false;       // Visibilidad del Logo Central (Momentos Muer
 let bigLogoUrl = null;           // URL específica o personalizada del Logo Central
 let bigLogoSize = 760;           // Tamaño máximo en píxeles (altura) del Logo Central
 let headToHeadVisible = false;   // Visibilidad del banner Head to Head
+let headToHeadSize = 1150;        // Tamaño ancho base en píxeles del banner Head to Head
 let headToHeadData = {           // Datos del enfrentamiento Head to Head
   competitor1: null,
   competitor2: null,
@@ -123,6 +124,7 @@ function saveLiveState() {
       bigLogoUrl: bigLogoUrl,
       bigLogoSize: bigLogoSize,
       headToHeadVisible: headToHeadVisible,
+      headToHeadSize: headToHeadSize,
       headToHeadData: headToHeadData
     };
     fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
@@ -158,6 +160,10 @@ function loadLiveState() {
         if (!isNaN(s) && s >= 300 && s <= 1200) bigLogoSize = s;
       }
       if (state.headToHeadVisible !== undefined) headToHeadVisible = state.headToHeadVisible;
+      if (state.headToHeadSize !== undefined) {
+        const s = parseInt(state.headToHeadSize, 10);
+        if (!isNaN(s) && s >= 600 && s <= 1800) headToHeadSize = s;
+      }
       if (state.headToHeadData !== undefined && typeof state.headToHeadData === 'object') {
         headToHeadData = Object.assign({ competitor1: null, competitor2: null, event: null }, state.headToHeadData);
       }
@@ -1855,11 +1861,17 @@ function handleSocketConnection(ws, req) {
       }));
     }
 
+    socket.send(JSON.stringify({
+      type: 'head_to_head_size',
+      size: headToHeadSize
+    }));
+
     // Si Head to Head está activo, enviarlo al overlay
     if (headToHeadVisible && headToHeadData) {
       socket.send(JSON.stringify({
         type: 'show_head_to_head',
-        data: headToHeadData
+        data: headToHeadData,
+        size: headToHeadSize
       }));
     }
   }
@@ -1885,6 +1897,7 @@ function handleSocketConnection(ws, req) {
       bigLogoUrl: bigLogoUrl || tournamentLogo,
       bigLogoSize,
       headToHeadVisible,
+      headToHeadSize,
       headToHeadData,
       liveRankingVisible,
       liveRankingRoundId,
@@ -2161,19 +2174,43 @@ function handleSocketConnection(ws, req) {
 
       case 'show_head_to_head':
         headToHeadVisible = true;
+        if (msg.size !== undefined) {
+          const s = parseInt(msg.size, 10);
+          if (!isNaN(s) && s >= 600 && s <= 1800) headToHeadSize = s;
+        }
         if (msg.data) {
           headToHeadData = Object.assign(headToHeadData || {}, msg.data);
         }
         saveLiveState();
         broadcastToOverlays({
           type: 'show_head_to_head',
-          data: headToHeadData
+          data: headToHeadData,
+          size: headToHeadSize
         });
         broadcastToPanels({
           type: 'sync_state',
           headToHeadVisible: true,
-          headToHeadData: headToHeadData
+          headToHeadData: headToHeadData,
+          headToHeadSize: headToHeadSize
         });
+        break;
+
+      case 'set_head_to_head_size':
+        if (msg.size !== undefined) {
+          const s = parseInt(msg.size, 10);
+          if (!isNaN(s) && s >= 600 && s <= 1800) {
+            headToHeadSize = s;
+            saveLiveState();
+            broadcastToOverlays({
+              type: 'head_to_head_size',
+              size: headToHeadSize
+            });
+            broadcastToPanels({
+              type: 'sync_state',
+              headToHeadSize: headToHeadSize
+            });
+          }
+        }
         break;
 
       case 'hide_head_to_head':
