@@ -71,8 +71,10 @@ let headToHeadData = {           // Datos del enfrentamiento Head to Head
   competitor1: null,
   competitor2: null,
   event: null,
-  wins1: 0,
-  wins2: 0
+  nr_single1: '',
+  nr_avg1: '',
+  nr_single2: '',
+  nr_avg2: ''
 };
 
 // ── Estado de Ranking en Vivo (WCA Live) ──
@@ -161,7 +163,7 @@ function loadLiveState() {
       }
       if (state.headToHeadVisible !== undefined) headToHeadVisible = state.headToHeadVisible;
       if (state.headToHeadData !== undefined && typeof state.headToHeadData === 'object') {
-        headToHeadData = Object.assign({ competitor1: null, competitor2: null, event: null, wins1: 0, wins2: 0 }, state.headToHeadData);
+        headToHeadData = Object.assign({ competitor1: null, competitor2: null, event: null, nr_single1: '', nr_avg1: '', nr_single2: '', nr_avg2: '' }, state.headToHeadData);
       }
       if (state.fsTheme) {
         fsTheme = {
@@ -565,23 +567,30 @@ app.get('/api/wca/avatar/:wcaId', async (req, res) => {
     const pData = await pRes.json();
     const personObj = pData.person || (pData.persons && pData.persons[0]) || {};
     const avatarUrl = (personObj.avatar && !personObj.avatar.is_default && personObj.avatar.url && !personObj.avatar.url.includes('missing_avatar')) ? personObj.avatar.url : null;
+    const personalRecords = personObj.personal_records || null;
     
-    // Si tenemos al competidor en memoria, enriquecer su objeto con el avatar
+    // Si tenemos al competidor en memoria, enriquecer su objeto con avatar y récords/rankings WCA
     if (tournamentData && tournamentData.competitors) {
       const comp = tournamentData.competitors.find(c => (c.wca_id || '').toUpperCase() === cleanId);
-      if (comp) comp.avatar_url = avatarUrl;
+      if (comp) {
+        comp.avatar_url = avatarUrl;
+        if (personalRecords) comp.personal_records = personalRecords;
+      }
     }
     if (currentCompetitor && (currentCompetitor.wca_id || '').toUpperCase() === cleanId) {
       currentCompetitor.avatar_url = avatarUrl;
+      if (personalRecords) currentCompetitor.personal_records = personalRecords;
     }
     if (currentCompetitor2 && (currentCompetitor2.wca_id || '').toUpperCase() === cleanId) {
       currentCompetitor2.avatar_url = avatarUrl;
+      if (personalRecords) currentCompetitor2.personal_records = personalRecords;
     }
     if (showcaseCompetitor && (showcaseCompetitor.wca_id || '').toUpperCase() === cleanId) {
       showcaseCompetitor.avatar_url = avatarUrl;
+      if (personalRecords) showcaseCompetitor.personal_records = personalRecords;
     }
 
-    res.json({ ok: true, wca_id: cleanId, avatar_url: avatarUrl });
+    res.json({ ok: true, wca_id: cleanId, avatar_url: avatarUrl, personal_records: personalRecords });
   } catch (err) {
     res.json({ ok: false, avatar_url: null, error: err.message });
   }

@@ -29,8 +29,10 @@ let bigLogoSize = 760;
 let headToHeadVisible = false;
 let h2hComp1 = null;
 let h2hComp2 = null;
-let h2hWins1 = 0;
-let h2hWins2 = 0;
+let h2hNrSingle1 = '';
+let h2hNrAvg1 = '';
+let h2hNrSingle2 = '';
+let h2hNrAvg2 = '';
 let h2hEventId = '333';
 
 // ── Estado del Ticker de Noticias Broadcast (Lower-Third) ──
@@ -220,8 +222,10 @@ function handleServerMessage(msg) {
       if (msg.headToHeadData) {
         if (msg.headToHeadData.competitor1) h2hComp1 = msg.headToHeadData.competitor1;
         if (msg.headToHeadData.competitor2) h2hComp2 = msg.headToHeadData.competitor2;
-        if (msg.headToHeadData.wins1 !== undefined) h2hWins1 = msg.headToHeadData.wins1;
-        if (msg.headToHeadData.wins2 !== undefined) h2hWins2 = msg.headToHeadData.wins2;
+        if (msg.headToHeadData.nr_single1 !== undefined) h2hNrSingle1 = msg.headToHeadData.nr_single1;
+        if (msg.headToHeadData.nr_avg1 !== undefined) h2hNrAvg1 = msg.headToHeadData.nr_avg1;
+        if (msg.headToHeadData.nr_single2 !== undefined) h2hNrSingle2 = msg.headToHeadData.nr_single2;
+        if (msg.headToHeadData.nr_avg2 !== undefined) h2hNrAvg2 = msg.headToHeadData.nr_avg2;
         if (msg.headToHeadData.event && msg.headToHeadData.event.event_id) h2hEventId = msg.headToHeadData.event.event_id;
       }
       updatePreviewUI();
@@ -391,8 +395,10 @@ function handleServerMessage(msg) {
       if (msg.headToHeadData) {
         if (msg.headToHeadData.competitor1 !== undefined) h2hComp1 = msg.headToHeadData.competitor1;
         if (msg.headToHeadData.competitor2 !== undefined) h2hComp2 = msg.headToHeadData.competitor2;
-        if (msg.headToHeadData.wins1 !== undefined) h2hWins1 = msg.headToHeadData.wins1;
-        if (msg.headToHeadData.wins2 !== undefined) h2hWins2 = msg.headToHeadData.wins2;
+        if (msg.headToHeadData.nr_single1 !== undefined) h2hNrSingle1 = msg.headToHeadData.nr_single1;
+        if (msg.headToHeadData.nr_avg1 !== undefined) h2hNrAvg1 = msg.headToHeadData.nr_avg1;
+        if (msg.headToHeadData.nr_single2 !== undefined) h2hNrSingle2 = msg.headToHeadData.nr_single2;
+        if (msg.headToHeadData.nr_avg2 !== undefined) h2hNrAvg2 = msg.headToHeadData.nr_avg2;
         if (msg.headToHeadData.event && msg.headToHeadData.event.event_id) h2hEventId = msg.headToHeadData.event.event_id;
       }
       updatePreviewUI();
@@ -3783,12 +3789,12 @@ function updateHeadToHeadUI() {
   const name2El = document.getElementById('panel-h2h-name-2');
   const pr1El = document.getElementById('panel-h2h-pr-1');
   const pr2El = document.getElementById('panel-h2h-pr-2');
-  const wins1Input = document.getElementById('h2h-wins-1');
-  const wins2Input = document.getElementById('h2h-wins-2');
   const evSelect = document.getElementById('h2h-event-select');
+  const inpNrS1 = document.getElementById('h2h-nr-single-1');
+  const inpNrA1 = document.getElementById('h2h-nr-avg-1');
+  const inpNrS2 = document.getElementById('h2h-nr-single-2');
+  const inpNrA2 = document.getElementById('h2h-nr-avg-2');
 
-  if (wins1Input) wins1Input.value = h2hWins1;
-  if (wins2Input) wins2Input.value = h2hWins2;
   if (evSelect && h2hEventId) evSelect.value = h2hEventId;
 
   const currentEid = h2hEventId || selectedEventId || '333';
@@ -3799,6 +3805,35 @@ function updateHeadToHeadUI() {
   if (name2El) {
     name2El.textContent = (h2hComp2 && h2hComp2.name) ? h2hComp2.name.toUpperCase() : 'COMPETIDOR 2';
   }
+
+  const rec1 = h2hComp1?.personal_records?.[currentEid];
+  const rec2 = h2hComp2?.personal_records?.[currentEid];
+
+  // Autocompletar NR desde WCA / prs si no fueron ingresados a mano
+  if (h2hComp1) {
+    const autoNrS1 = rec1?.single?.country_rank || h2hComp1?.prs?.[currentEid]?.national_rank_single || '';
+    const autoNrA1 = rec1?.average?.country_rank || h2hComp1?.prs?.[currentEid]?.national_rank_average || '';
+    if (!h2hNrSingle1 && autoNrS1) h2hNrSingle1 = autoNrS1;
+    if (!h2hNrAvg1 && autoNrA1) h2hNrAvg1 = autoNrA1;
+  } else {
+    h2hNrSingle1 = '';
+    h2hNrAvg1 = '';
+  }
+
+  if (h2hComp2) {
+    const autoNrS2 = rec2?.single?.country_rank || h2hComp2?.prs?.[currentEid]?.national_rank_single || '';
+    const autoNrA2 = rec2?.average?.country_rank || h2hComp2?.prs?.[currentEid]?.national_rank_average || '';
+    if (!h2hNrSingle2 && autoNrS2) h2hNrSingle2 = autoNrS2;
+    if (!h2hNrAvg2 && autoNrA2) h2hNrAvg2 = autoNrA2;
+  } else {
+    h2hNrSingle2 = '';
+    h2hNrAvg2 = '';
+  }
+
+  if (inpNrS1) inpNrS1.value = h2hNrSingle1;
+  if (inpNrA1) inpNrA1.value = h2hNrAvg1;
+  if (inpNrS2) inpNrS2.value = h2hNrSingle2;
+  if (inpNrA2) inpNrA2.value = h2hNrAvg2;
 
   if (pr1El) {
     if (h2hComp1) {
@@ -3866,23 +3901,29 @@ function selectH2HCompetitor(slot, idOrName) {
 
   if (slot === 1) {
     h2hComp1 = comp;
+    h2hNrSingle1 = '';
+    h2hNrAvg1 = '';
     const inp = document.getElementById('h2h-search-1');
     if (inp) inp.value = comp.name;
     const drop = document.getElementById('h2h-results-1');
     if (drop) drop.style.display = 'none';
-    if (comp.wca_id && !comp.avatar_url) {
+    if (comp.wca_id) {
       fetchCompetitorAvatarIfNeeded(comp).then(() => {
+        updateHeadToHeadUI();
         if (headToHeadVisible) sendShowHeadToHead();
       });
     }
   } else {
     h2hComp2 = comp;
+    h2hNrSingle2 = '';
+    h2hNrAvg2 = '';
     const inp = document.getElementById('h2h-search-2');
     if (inp) inp.value = comp.name;
     const drop = document.getElementById('h2h-results-2');
     if (drop) drop.style.display = 'none';
-    if (comp.wca_id && !comp.avatar_url) {
+    if (comp.wca_id) {
       fetchCompetitorAvatarIfNeeded(comp).then(() => {
+        updateHeadToHeadUI();
         if (headToHeadVisible) sendShowHeadToHead();
       });
     }
@@ -3894,14 +3935,33 @@ function selectH2HCompetitor(slot, idOrName) {
   }
 }
 
+function onH2HNRChange() {
+  const inpNrS1 = document.getElementById('h2h-nr-single-1');
+  const inpNrA1 = document.getElementById('h2h-nr-avg-1');
+  const inpNrS2 = document.getElementById('h2h-nr-single-2');
+  const inpNrA2 = document.getElementById('h2h-nr-avg-2');
+
+  if (inpNrS1) h2hNrSingle1 = inpNrS1.value.trim();
+  if (inpNrA1) h2hNrAvg1 = inpNrA1.value.trim();
+  if (inpNrS2) h2hNrSingle2 = inpNrS2.value.trim();
+  if (inpNrA2) h2hNrAvg2 = inpNrA2.value.trim();
+
+  if (headToHeadVisible) {
+    sendShowHeadToHead();
+  }
+}
+
 function swapHeadToHeadCompetitors() {
   const tmpComp = h2hComp1;
   h2hComp1 = h2hComp2;
   h2hComp2 = tmpComp;
 
-  const tmpWins = h2hWins1;
-  h2hWins1 = h2hWins2;
-  h2hWins2 = tmpWins;
+  const tmpNrS = h2hNrSingle1;
+  const tmpNrA = h2hNrAvg1;
+  h2hNrSingle1 = h2hNrSingle2;
+  h2hNrAvg1 = h2hNrAvg2;
+  h2hNrSingle2 = tmpNrS;
+  h2hNrAvg2 = tmpNrA;
 
   const s1 = document.getElementById('h2h-search-1');
   const s2 = document.getElementById('h2h-search-2');
@@ -3914,19 +3974,12 @@ function swapHeadToHeadCompetitors() {
   }
 }
 
-function onH2HWinsChange() {
-  const w1 = parseInt(document.getElementById('h2h-wins-1')?.value, 10);
-  const w2 = parseInt(document.getElementById('h2h-wins-2')?.value, 10);
-  h2hWins1 = isNaN(w1) || w1 < 0 ? 0 : w1;
-  h2hWins2 = isNaN(w2) || w2 < 0 ? 0 : w2;
-  updateHeadToHeadUI();
-  if (headToHeadVisible) {
-    sendShowHeadToHead();
-  }
-}
-
 function onH2HEventSelectChange(eid) {
   h2hEventId = eid || '333';
+  h2hNrSingle1 = '';
+  h2hNrAvg1 = '';
+  h2hNrSingle2 = '';
+  h2hNrAvg2 = '';
   updateHeadToHeadUI();
   if (headToHeadVisible) {
     sendShowHeadToHead();
@@ -3943,8 +3996,10 @@ function sendShowHeadToHead() {
     competitor1: h2hComp1,
     competitor2: h2hComp2,
     event: { event_id: h2hEventId || selectedEventId || '333' },
-    wins1: h2hWins1,
-    wins2: h2hWins2
+    nr_single1: h2hNrSingle1,
+    nr_avg1: h2hNrAvg1,
+    nr_single2: h2hNrSingle2,
+    nr_avg2: h2hNrAvg2
   };
   sendWS({
     type: 'show_head_to_head',

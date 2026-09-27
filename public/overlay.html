@@ -1315,7 +1315,7 @@
   /* ── Tarjetas de Competidor Lateral ── */
   .h2h-player-card {
     width: 370px;
-    height: 320px;
+    height: 330px;
     background: #060c18;
     border: 4px solid #ffffff;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
@@ -1386,7 +1386,7 @@
 
   /* Placa de Nombre con diseño Broadcast Deportivo */
   .h2h-name-bar {
-    height: 54px;
+    height: 52px;
     background: linear-gradient(90deg, #0c2b52 0%, #15467e 50%, #0c2b52 100%);
     padding: 0 16px;
     display: flex;
@@ -1421,7 +1421,7 @@
   /* ── Tarjeta Central (Comparación Head to Head en Dark Glass Obsidian) ── */
   .h2h-center-card {
     width: 450px;
-    height: 320px;
+    height: 330px;
     background: #091322;
     border: 4px solid #ffffff;
     border-radius: 12px;
@@ -1436,9 +1436,9 @@
   }
 
   .h2h-center-header {
-    height: 66px;
+    height: 58px;
     background: linear-gradient(180deg, #1d4ed8 0%, #173887 100%);
-    padding: 14px 16px 8px;
+    padding: 10px 16px 6px;
     text-align: center;
     position: relative;
     border-bottom: 2.5px solid rgba(255, 255, 255, 0.35);
@@ -1448,11 +1448,11 @@
 
   .h2h-event-icon-box {
     position: absolute;
-    top: -27px;
+    top: -26px;
     left: 50%;
     transform: translateX(-50%);
-    width: 54px;
-    height: 54px;
+    width: 52px;
+    height: 52px;
     background: #ffffff;
     border: 3px solid #1d4ed8;
     border-radius: 12px;
@@ -1464,20 +1464,20 @@
   }
 
   .h2h-event-icon-box img {
-    width: 36px;
-    height: 36px;
+    width: 35px;
+    height: 35px;
     object-fit: contain;
   }
 
   .h2h-title-banner {
-    margin-top: 14px;
+    margin-top: 10px;
   }
 
   .h2h-title-banner span {
     font-family: 'Barlow Condensed', 'Arial Black', sans-serif;
     font-weight: 900;
-    font-size: 28px;
-    letter-spacing: 2.8px;
+    font-size: 26px;
+    letter-spacing: 2.5px;
     color: #ffffff;
     text-transform: uppercase;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
@@ -1496,14 +1496,14 @@
   .h2h-stat-row {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 108px 1fr;
+    grid-template-columns: 1fr 116px 1fr;
     align-items: center;
-    padding: 0 18px;
+    padding: 0 16px;
     border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
   }
 
   .h2h-stat-row:nth-child(even) {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.025);
   }
 
   .h2h-stat-row:last-child {
@@ -1513,25 +1513,20 @@
   .h2h-val {
     font-family: 'Space Mono', monospace;
     font-weight: 800;
-    font-size: 28px;
+    font-size: 26px;
     color: #e2e8f0;
     text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
     transition: color 0.25s ease, text-shadow 0.25s ease;
   }
 
-  .h2h-stat-row#h2h-row-wins .h2h-val {
-    font-size: 32px;
-    font-weight: 900;
-  }
-
   .h2h-val.h2h-val-left {
     text-align: right;
-    padding-right: 18px;
+    padding-right: 16px;
   }
 
   .h2h-val.h2h-val-right {
     text-align: left;
-    padding-left: 18px;
+    padding-left: 16px;
   }
 
   /* Resaltado del mejor tiempo en dorado oro puro radiante */
@@ -1547,13 +1542,14 @@
     color: #f8fafc;
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 800;
-    font-size: 14px;
-    letter-spacing: 2px;
+    font-size: 13px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
-    padding: 6px 8px;
+    padding: 5px 6px;
     border-radius: 6px;
     text-align: center;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 3px 6px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
   }
 
   /* Fondo Broadcast Degradado y Patrón Geométrico de Cubos */
@@ -2627,25 +2623,32 @@
       </div>
       
       <div class="h2h-comparison-body">
-        <!-- Fila Victorias (Wins) -->
-        <div class="h2h-stat-row" id="h2h-row-wins">
-          <div class="h2h-val h2h-val-left" id="h2h-stat-wins-1">0</div>
-          <div class="h2h-stat-label">WINS</div>
-          <div class="h2h-val h2h-val-right" id="h2h-stat-wins-2">0</div>
-        </div>
-
-        <!-- Fila Single -->
+        <!-- Fila PR Single -->
         <div class="h2h-stat-row">
           <div class="h2h-val h2h-val-left" id="h2h-stat-single-1">—</div>
-          <div class="h2h-stat-label">SINGLE</div>
+          <div class="h2h-stat-label">PR SINGLE</div>
           <div class="h2h-val h2h-val-right" id="h2h-stat-single-2">—</div>
         </div>
 
-        <!-- Fila Average -->
+        <!-- Fila NR Single -->
+        <div class="h2h-stat-row">
+          <div class="h2h-val h2h-val-left" id="h2h-stat-nrsingle-1">—</div>
+          <div class="h2h-stat-label">NR SINGLE</div>
+          <div class="h2h-val h2h-val-right" id="h2h-stat-nrsingle-2">—</div>
+        </div>
+
+        <!-- Fila PR Average -->
         <div class="h2h-stat-row">
           <div class="h2h-val h2h-val-left" id="h2h-stat-avg-1">—</div>
-          <div class="h2h-stat-label">AVERAGE</div>
+          <div class="h2h-stat-label">PR AVG</div>
           <div class="h2h-val h2h-val-right" id="h2h-stat-avg-2">—</div>
+        </div>
+
+        <!-- Fila NR Average -->
+        <div class="h2h-stat-row">
+          <div class="h2h-val h2h-val-left" id="h2h-stat-nravg-1">—</div>
+          <div class="h2h-stat-label">NR AVG</div>
+          <div class="h2h-val h2h-val-right" id="h2h-stat-nravg-2">—</div>
         </div>
       </div>
     </div>
@@ -3838,12 +3841,14 @@
 
   const h2hEventIcon = document.getElementById('h2h-event-icon');
   const h2hRowWins = document.getElementById('h2h-row-wins');
-  const h2hStatWins1 = document.getElementById('h2h-stat-wins-1');
-  const h2hStatWins2 = document.getElementById('h2h-stat-wins-2');
   const h2hStatSingle1 = document.getElementById('h2h-stat-single-1');
   const h2hStatSingle2 = document.getElementById('h2h-stat-single-2');
+  const h2hStatNrSingle1 = document.getElementById('h2h-stat-nrsingle-1');
+  const h2hStatNrSingle2 = document.getElementById('h2h-stat-nrsingle-2');
   const h2hStatAvg1 = document.getElementById('h2h-stat-avg-1');
   const h2hStatAvg2 = document.getElementById('h2h-stat-avg-2');
+  const h2hStatNrAvg1 = document.getElementById('h2h-stat-nravg-1');
+  const h2hStatNrAvg2 = document.getElementById('h2h-stat-nravg-2');
 
   function parseH2HTimeToSeconds(str) {
     if (!str || typeof str !== 'string') return Infinity;
@@ -3857,6 +3862,13 @@
     }
     const val = parseFloat(str);
     return isNaN(val) ? Infinity : val;
+  }
+
+  function parseH2HRank(val) {
+    if (val === undefined || val === null || val === '' || val === '—' || val === '-') return Infinity;
+    const clean = String(val).replace(/[^0-9]/g, '');
+    const num = parseInt(clean, 10);
+    return isNaN(num) || num <= 0 ? Infinity : num;
   }
 
   function renderHeadToHead(data) {
@@ -3924,17 +3936,36 @@
     const s2 = (pr2 && pr2.single_fmt) ? pr2.single_fmt : '—';
     const a2 = (pr2 && pr2.average_fmt) ? pr2.average_fmt : '—';
 
-    // Rellenar cajas inferiores de PR
+    // Rellenar cajas inferiores de PR (compatibilidad interna)
     if (h2hP1Single) h2hP1Single.textContent = s1;
     if (h2hP1Avg) h2hP1Avg.textContent = a1;
     if (h2hP2Single) h2hP2Single.textContent = s2;
     if (h2hP2Avg) h2hP2Avg.textContent = a2;
 
-    // Rellenar tarjeta central comparativa
+    // Rellenar tarjeta central comparativa: PR Single y PR Average
     if (h2hStatSingle1) h2hStatSingle1.textContent = s1;
     if (h2hStatSingle2) h2hStatSingle2.textContent = s2;
     if (h2hStatAvg1) h2hStatAvg1.textContent = a1;
     if (h2hStatAvg2) h2hStatAvg2.textContent = a2;
+
+    // ── Obtener Rankings Nacionales (NR) ──
+    const wcaRec1 = comp1.personal_records && comp1.personal_records[eventId];
+    const wcaRec2 = comp2.personal_records && comp2.personal_records[eventId];
+
+    const rawNrS1 = data.nr_single1 !== undefined && data.nr_single1 !== '' ? data.nr_single1 : (wcaRec1?.single?.country_rank || pr1?.national_rank_single);
+    const rawNrS2 = data.nr_single2 !== undefined && data.nr_single2 !== '' ? data.nr_single2 : (wcaRec2?.single?.country_rank || pr2?.national_rank_single);
+    const rawNrA1 = data.nr_avg1 !== undefined && data.nr_avg1 !== '' ? data.nr_avg1 : (wcaRec1?.average?.country_rank || pr1?.national_rank_average);
+    const rawNrA2 = data.nr_avg2 !== undefined && data.nr_avg2 !== '' ? data.nr_avg2 : (wcaRec2?.average?.country_rank || pr2?.national_rank_average);
+
+    const numNrS1 = parseH2HRank(rawNrS1);
+    const numNrS2 = parseH2HRank(rawNrS2);
+    const numNrA1 = parseH2HRank(rawNrA1);
+    const numNrA2 = parseH2HRank(rawNrA2);
+
+    if (h2hStatNrSingle1) h2hStatNrSingle1.textContent = numNrS1 !== Infinity ? `#${numNrS1}` : '—';
+    if (h2hStatNrSingle2) h2hStatNrSingle2.textContent = numNrS2 !== Infinity ? `#${numNrS2}` : '—';
+    if (h2hStatNrAvg1) h2hStatNrAvg1.textContent = numNrA1 !== Infinity ? `#${numNrA1}` : '—';
+    if (h2hStatNrAvg2) h2hStatNrAvg2.textContent = numNrA2 !== Infinity ? `#${numNrA2}` : '—';
 
     // Resaltado inteligente del mejor tiempo (Single)
     if (h2hStatSingle1 && h2hStatSingle2) {
@@ -3962,18 +3993,25 @@
       }
     }
 
-    // Victorias (Wins)
-    const wins1 = parseInt(data.wins1, 10) || 0;
-    const wins2 = parseInt(data.wins2, 10) || 0;
-    if (h2hStatWins1 && h2hStatWins2) {
-      h2hStatWins1.textContent = wins1;
-      h2hStatWins2.textContent = wins2;
-      h2hStatWins1.classList.remove('best-val');
-      h2hStatWins2.classList.remove('best-val');
-      if (wins1 > wins2) {
-        h2hStatWins1.classList.add('best-val');
-      } else if (wins2 > wins1) {
-        h2hStatWins2.classList.add('best-val');
+    // Resaltado inteligente del mejor ranking nacional (NR Single: menor número es mejor)
+    if (h2hStatNrSingle1 && h2hStatNrSingle2) {
+      h2hStatNrSingle1.classList.remove('best-val');
+      h2hStatNrSingle2.classList.remove('best-val');
+      if (numNrS1 < numNrS2) {
+        h2hStatNrSingle1.classList.add('best-val');
+      } else if (numNrS2 < numNrS1) {
+        h2hStatNrSingle2.classList.add('best-val');
+      }
+    }
+
+    // Resaltado inteligente del mejor ranking nacional (NR Average: menor número es mejor)
+    if (h2hStatNrAvg1 && h2hStatNrAvg2) {
+      h2hStatNrAvg1.classList.remove('best-val');
+      h2hStatNrAvg2.classList.remove('best-val');
+      if (numNrA1 < numNrA2) {
+        h2hStatNrAvg1.classList.add('best-val');
+      } else if (numNrA2 < numNrA1) {
+        h2hStatNrAvg2.classList.add('best-val');
       }
     }
   }
