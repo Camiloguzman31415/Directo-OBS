@@ -22,6 +22,11 @@ import {
   calculateAo5Stats,
   fetchLiveVersusData
 } from './server/wcaLiveService.js';
+import {
+  startFinalsDemo,
+  stopFinalsDemo,
+  isDemoActive
+} from './server/liveDemoFinals.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -861,6 +866,37 @@ app.post('/api/versus/refresh', async (req, res) => {
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
+});
+
+// ── Rutas de Simulación / Demostración en Vivo (Final 3x3 - 60s) ──
+function runFinalsSimulation() {
+  liveRankingVisible = true;
+  liveRankingViewMode = 'widget';
+  startFinalsDemo(
+    (overlayMsg) => {
+      liveRankingData = overlayMsg.data;
+      liveRankingVisible = true;
+      liveRankingViewMode = 'widget';
+      broadcastToOverlays(overlayMsg);
+    },
+    (panelMsg) => {
+      broadcastToPanels(panelMsg);
+    }
+  );
+}
+
+app.post('/api/demo/start-final-simulation', (req, res) => {
+  runFinalsSimulation();
+  res.json({ ok: true, message: 'Simulación de final 3x3 iniciada' });
+});
+
+app.post('/api/demo/stop-final-simulation', (req, res) => {
+  stopFinalsDemo();
+  res.json({ ok: true, message: 'Simulación detenida' });
+});
+
+app.get('/api/demo/status', (req, res) => {
+  res.json({ ok: true, active: isDemoActive() });
 });
 
 // Subir imagen personalizada de fondo para la tabla Fullscreen
@@ -2548,6 +2584,7 @@ function handleSocketConnection(ws, req) {
       case 'live_ranking_hide':
         liveRankingVisible = false;
         stopLiveRankingPolling();
+        stopFinalsDemo();
         saveLiveState();
         broadcastToOverlays({
           type: 'live_ranking_hide'
@@ -2562,6 +2599,14 @@ function handleSocketConnection(ws, req) {
           top: liveRankingTop,
           cutoff: liveRankingCutoff
         });
+        break;
+
+      case 'demo_start_finals':
+        runFinalsSimulation();
+        break;
+
+      case 'demo_stop_finals':
+        stopFinalsDemo();
         break;
 
       case 'live_ranking_comp_selected':

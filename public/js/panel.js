@@ -468,6 +468,33 @@ function handleServerMessage(msg) {
         liveRankingViewMode = msg.viewMode;
         updateViewModeButtons();
       }
+      if (msg.demoNote) {
+        demoRunning = true;
+        const btnDemo = document.getElementById('btn-demo-final');
+        if (btnDemo) btnDemo.innerHTML = '<span>⏹ DETENER SIMULACIÓN</span>';
+        const pillDemo = document.getElementById('demo-status-pill');
+        if (pillDemo) {
+          pillDemo.style.display = 'block';
+          pillDemo.innerHTML = `⏱ <strong>Paso ${msg.demoStep}/${msg.demoTotalSteps}:</strong> ${escapeHtml(msg.demoNote)}`;
+        }
+      }
+      if (msg.data && msg.data.isFinished) {
+        demoRunning = false;
+        const btnDemo = document.getElementById('btn-demo-final');
+        if (btnDemo) btnDemo.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+        const pillDemo = document.getElementById('demo-status-pill');
+        if (pillDemo) {
+          pillDemo.innerHTML = '✅ <strong>¡Simulación Finalizada!</strong> Podio oficial definido.';
+          setTimeout(() => { if (pillDemo && !demoRunning) pillDemo.style.display = 'none'; }, 6000);
+        }
+      }
+      if (!msg.visible) {
+        demoRunning = false;
+        const btnDemo = document.getElementById('btn-demo-final');
+        if (btnDemo) btnDemo.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+        const pillDemo = document.getElementById('demo-status-pill');
+        if (pillDemo) pillDemo.style.display = 'none';
+      }
       updateLiveRankingUI();
       break;
 
@@ -3016,8 +3043,48 @@ function sendShowLiveRanking() {
 function sendHideLiveRanking() {
   sendWS({ type: 'live_ranking_hide' });
   liveRankingVisible = false;
+  demoRunning = false;
+  const btn = document.getElementById('btn-demo-final');
+  if (btn) btn.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+  const statusPill = document.getElementById('demo-status-pill');
+  if (statusPill) statusPill.style.display = 'none';
   updateLiveRankingUI();
   showToast('Ranking en Vivo ocultado de OBS', 'info');
+}
+
+let demoRunning = false;
+
+async function triggerFinalsDemo() {
+  const btn = document.getElementById('btn-demo-final');
+  const statusPill = document.getElementById('demo-status-pill');
+  if (demoRunning) {
+    try {
+      await fetch('/api/demo/stop-final-simulation', { method: 'POST' });
+      demoRunning = false;
+      if (btn) btn.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+      if (statusPill) statusPill.style.display = 'none';
+      showToast('Simulación de final detenida', 'info');
+    } catch (e) {
+      console.error(e);
+    }
+    return;
+  }
+
+  try {
+    demoRunning = true;
+    if (btn) btn.innerHTML = '<span>⏹ DETENER SIMULACIÓN</span>';
+    if (statusPill) {
+      statusPill.style.display = 'block';
+      statusPill.innerHTML = '⚡ <em>Iniciando simulación de Final 3x3 (60s)...</em>';
+    }
+    showToast('Iniciando demostración en vivo de Final 3x3...', 'success');
+    await fetch('/api/demo/start-final-simulation', { method: 'POST' });
+  } catch (err) {
+    showToast('Error al iniciar simulación: ' + err.message, 'error');
+    demoRunning = false;
+    if (btn) btn.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+    if (statusPill) statusPill.style.display = 'none';
+  }
 }
 
 function updatePagingSummary() {
