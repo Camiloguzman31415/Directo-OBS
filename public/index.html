@@ -803,6 +803,55 @@
 
             </div>
           </section>
+
+          <!-- TARJETA: LOGO CENTRAL DEL TORNEO (MOMENTOS MUERTOS / DESCANSO) -->
+          <section class="deck-panel" id="panel-tournament-big-logo">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon">📺</span> Logo Central en Pantalla (Pausas / Descanso)
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="live-status-pill offline" id="big-logo-status-badge">EN ESPERA</span>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <p style="font-size:12px;color:var(--text-dim,#94a3b8);margin-bottom:12px;line-height:1.4;">
+                Muestra el logo oficial del torneo en gran tamaño centrado en la pantalla (estilo broadcast de TV), ideal para tomas de cámara durante momentos muertos o pausas entre rondas.
+              </p>
+
+              <!-- Previsualización del Logo Central -->
+              <div class="big-logo-preview-box" style="position:relative;background:#050c18;border:1px solid rgba(255,255,255,0.12);border-radius:8px;height:140px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px;background-image:radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);background-size:16px 16px;">
+                <img id="panel-big-logo-preview" src="" alt="Preview Logo Central" style="max-height:115px;max-width:85%;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(0,0,0,0.8));display:none;">
+                <div id="panel-big-logo-empty" style="text-align:center;color:var(--text-dim,#94a3b8);font-size:12px;">
+                  <div style="font-size:24px;margin-bottom:4px;">🖼️</div>
+                  Sin logo específico cargado<br><span style="font-size:11px;opacity:0.8;">(Usará el logo oficial del torneo)</span>
+                </div>
+              </div>
+
+              <!-- Selector y Carga de Logo -->
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+                <input type="file" id="big-logo-file-input" accept="image/*" style="display:none;" onchange="handleBigLogoUpload(event)">
+                <button type="button" class="btn-tactile btn-secondary" onclick="document.getElementById('big-logo-file-input').click()" style="flex:1;font-size:12px;padding:8px 10px;">
+                  📁 Subir Logo en Alta Resolución
+                </button>
+                <button type="button" class="btn-tactile btn-danger-outline" onclick="clearBigLogo()" style="font-size:12px;padding:8px 10px;" title="Restablecer al logo del torneo">
+                  ✕ Restablecer
+                </button>
+              </div>
+
+              <!-- Botones de Transmisión en OBS -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <button type="button" class="btn-tactile btn-primary" id="btn-show-big-logo" onclick="sendShowBigLogo()" style="padding:10px;font-weight:800;font-size:12.5px;">
+                  ▲ MOSTRAR LOGO EN OBS
+                </button>
+                <button type="button" class="btn-tactile btn-danger-outline" id="btn-hide-big-logo" onclick="sendHideBigLogo()" style="padding:10px;font-weight:800;font-size:12.5px;">
+                  ✕ Ocultar Logo
+                </button>
+              </div>
+
+            </div>
+          </section>
         </div>
 
       </div>

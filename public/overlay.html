@@ -1001,7 +1001,8 @@
   body.is-fullscreen-page #banner,
   body.is-fullscreen-page #event-badge,
   body.is-fullscreen-page #live-ranking-overlay,
-  body.is-fullscreen-page #competitor-showcase-card {
+  body.is-fullscreen-page #competitor-showcase-card,
+  body.is-fullscreen-page #tournament-big-logo-overlay {
     display: none !important;
   }
 
@@ -1165,6 +1166,111 @@
 
   .showcase-lbl-spacer {
     width: 22px;
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     TOURNAMENT BIG LOGO OVERLAY (MOMENTOS MUERTOS / DESCANSO / PAUSAS)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  #tournament-big-logo-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 850;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.92);
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                visibility 0.5s ease;
+    will-change: transform, opacity;
+  }
+
+  #tournament-big-logo-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
+                transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Animación suave continua de respiración/flotación cinematográfica de TV */
+  .big-logo-floating-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: bigLogoFloat 5s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  @keyframes bigLogoFloat {
+    0% {
+      transform: translateY(0px);
+    }
+    100% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Imagen del Logo con sombras multicapa Broadcast */
+  .big-logo-img {
+    max-width: 680px;
+    max-height: 520px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 45px rgba(0, 0, 0, 0.9)) 
+            drop-shadow(0 4px 15px rgba(0, 0, 0, 0.6))
+            drop-shadow(0 0 50px rgba(14, 86, 190, 0.35));
+    transition: filter 0.3s ease;
+  }
+
+  /* Fallback de alta gama si no hay imagen de logo cargada */
+  .big-logo-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(14, 86, 190, 0.4) 0%, rgba(4, 37, 102, 0.85) 60%, rgba(2, 18, 54, 0.95) 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 36px 52px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(12px);
+  }
+
+  .big-logo-fallback-cube {
+    width: 140px;
+    height: 140px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 12px 25px rgba(0, 0, 0, 0.7));
+  }
+
+  .big-logo-fallback-title {
+    font-family: 'Barlow Condensed', 'Arial Black', sans-serif;
+    font-size: 44px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    max-width: 600px;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    line-height: 1.1;
+  }
+
+  .big-logo-fallback-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #38bdf8;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 8px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
   }
 
   /* Fondo Broadcast Degradado y Patrón Geométrico de Cubos */
@@ -2187,6 +2293,18 @@
   </div>
 </div>
 
+<!-- Tournament Big Logo Overlay (Momentos Muertos / Pausas de TV) -->
+<div id="tournament-big-logo-overlay">
+  <div class="big-logo-floating-wrap">
+    <img id="big-logo-img" class="big-logo-img" alt="Logo Oficial del Torneo" style="display:none;">
+    <div id="big-logo-fallback" class="big-logo-fallback" style="display:none;">
+      <img src="icons/333.svg" class="big-logo-fallback-cube" alt="WCA Cubing">
+      <div id="big-logo-fallback-title" class="big-logo-fallback-title">TORNEO WCA</div>
+      <div class="big-logo-fallback-sub">OFFICIAL COMPETITION</div>
+    </div>
+  </div>
+</div>
+
 <!-- Standalone Live Ranking Overlay (Broadcast Style) -->
 <div id="live-ranking-overlay">
   <div class="ranking-header">
@@ -2428,6 +2546,10 @@
       applyTournamentLogo(eventData.logo);
     } else if (currentTournamentLogo) {
       applyTournamentLogo(currentTournamentLogo);
+    }
+
+    if (bigLogoFallbackTitle && tourney) {
+      bigLogoFallbackTitle.textContent = tourney.toUpperCase();
     }
 
     // Actualizar contenido del ticker deslizante
@@ -3262,6 +3384,52 @@
     }
   }
 
+  // ── Tournament Big Logo Overlay (Momentos Muertos / Descanso) ──
+  const bigLogoOverlay = document.getElementById('tournament-big-logo-overlay');
+  const bigLogoImg = document.getElementById('big-logo-img');
+  const bigLogoFallback = document.getElementById('big-logo-fallback');
+  const bigLogoFallbackTitle = document.getElementById('big-logo-fallback-title');
+  let currentBigLogoUrl = null;
+
+  function updateBigLogoVisuals(url) {
+    const finalUrl = (url && typeof url === 'string' && url.trim() !== '') ? url.trim() : null;
+    currentBigLogoUrl = finalUrl;
+    if (finalUrl) {
+      if (bigLogoImg) {
+        bigLogoImg.src = finalUrl;
+        bigLogoImg.style.display = 'block';
+      }
+      if (bigLogoFallback) {
+        bigLogoFallback.style.display = 'none';
+      }
+    } else {
+      if (bigLogoImg) {
+        bigLogoImg.src = '';
+        bigLogoImg.style.display = 'none';
+      }
+      if (bigLogoFallback) {
+        bigLogoFallback.style.display = 'flex';
+        if (bigLogoFallbackTitle && currentEventData && currentEventData.name) {
+          bigLogoFallbackTitle.textContent = currentEventData.name.toUpperCase();
+        }
+      }
+    }
+  }
+
+  function showBigLogo(url) {
+    const targetUrl = url || currentBigLogoUrl || currentTournamentLogo;
+    updateBigLogoVisuals(targetUrl);
+    if (bigLogoOverlay) {
+      bigLogoOverlay.classList.add('visible');
+    }
+  }
+
+  function hideBigLogo() {
+    if (bigLogoOverlay) {
+      bigLogoOverlay.classList.remove('visible');
+    }
+  }
+
   function connect() {
     let wsUrl = 'ws://localhost:8765';
     if (window.location.protocol.startsWith('http')) {
@@ -3311,6 +3479,15 @@
             hideCompetitorShowcase();
           } else if (msg.type === 'tournament_logo_updated') {
             applyTournamentLogo(msg.logo);
+            if (!currentBigLogoUrl) {
+              updateBigLogoVisuals(msg.logo);
+            }
+          } else if (msg.type === 'show_big_logo') {
+            showBigLogo(msg.url);
+          } else if (msg.type === 'hide_big_logo') {
+            hideBigLogo();
+          } else if (msg.type === 'big_logo_updated') {
+            updateBigLogoVisuals(msg.url);
           } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {
             banner.classList.remove('visible');
           } else if (msg.type === 'hide_event') {

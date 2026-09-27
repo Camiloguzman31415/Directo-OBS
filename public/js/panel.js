@@ -23,6 +23,8 @@ let competitorVisible = false;
 let eventVisible = false;
 let showcaseCompetitor = null;
 let showcaseVisible = false;
+let bigLogoVisible = false;
+let bigLogoUrl = null;
 
 // ── Estado del Ticker de Noticias Broadcast (Lower-Third) ──
 let tickerTournamentLogo = localStorage.getItem('directoobs_ticker_logo') || '';
@@ -189,6 +191,12 @@ function handleServerMessage(msg) {
       if (msg.showcaseVisible !== undefined) {
         showcaseVisible = !!msg.showcaseVisible;
       }
+      if (msg.bigLogoVisible !== undefined) {
+        bigLogoVisible = !!msg.bigLogoVisible;
+      }
+      if (msg.bigLogoUrl !== undefined) {
+        bigLogoUrl = msg.bigLogoUrl;
+      }
       if (msg.tournamentLogo !== undefined) {
         if (msg.tournamentLogo) {
           tickerTournamentLogo = msg.tournamentLogo;
@@ -198,6 +206,7 @@ function handleServerMessage(msg) {
       }
       updatePreviewUI();
       updateShowcaseUI();
+      updateBigLogoUI();
       updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
 
       if (msg.liveRankingVisible !== undefined) liveRankingVisible = !!msg.liveRankingVisible;
@@ -346,8 +355,15 @@ function handleServerMessage(msg) {
       if (msg.showcaseVisible !== undefined) {
         showcaseVisible = !!msg.showcaseVisible;
       }
+      if (msg.bigLogoVisible !== undefined) {
+        bigLogoVisible = !!msg.bigLogoVisible;
+      }
+      if (msg.bigLogoUrl !== undefined) {
+        bigLogoUrl = msg.bigLogoUrl;
+      }
       updatePreviewUI();
       updateShowcaseUI();
+      updateBigLogoUI();
       if (msg.competitorVisible !== undefined || msg.eventVisible !== undefined) {
         updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
       }
@@ -361,6 +377,12 @@ function handleServerMessage(msg) {
         localStorage.removeItem('directoobs_ticker_logo');
       }
       updateTickerLogoPreview();
+      updateBigLogoUI();
+      break;
+
+    case 'big_logo_updated':
+      bigLogoUrl = msg.url || null;
+      updateBigLogoUI();
       break;
 
     case 'sync_live_ranking':
@@ -2026,8 +2048,12 @@ function sendHideCompetitor() {
 function sendHideAll() {
   competitorVisible = false;
   eventVisible = false;
+  showcaseVisible = false;
+  bigLogoVisible = false;
   sendWS({ type: 'hide_all' });
   updateVisibilityStates(false, false);
+  updateShowcaseUI();
+  updateBigLogoUI();
   showToast('Todos los overlays ocultados');
 }
 
@@ -3534,6 +3560,114 @@ function sendHideCompetitorShowcase() {
   sendWS({ type: 'hide_competitor_showcase' });
   updateShowcaseUI();
   showToast('Tarjeta de competidor ocultada de OBS');
+}
+
+// ── GESTIÓN DE LOGO CENTRAL DEL TORNEO (MOMENTOS MUERTOS / DESCANSO) ──
+function updateBigLogoUI() {
+  const badge = document.getElementById('big-logo-status-badge');
+  const btnShow = document.getElementById('btn-show-big-logo');
+  const btnHide = document.getElementById('btn-hide-big-logo');
+  const imgPreview = document.getElementById('panel-big-logo-preview');
+  const emptyPlaceholder = document.getElementById('panel-big-logo-empty');
+
+  if (badge) {
+    if (bigLogoVisible) {
+      badge.textContent = 'EN VIVO';
+      badge.className = 'live-status-pill online';
+    } else {
+      badge.textContent = 'EN ESPERA';
+      badge.className = 'live-status-pill offline';
+    }
+  }
+
+  if (btnShow && btnHide) {
+    if (bigLogoVisible) {
+      btnShow.style.boxShadow = '0 0 12px rgba(22, 163, 74, 0.6)';
+      btnShow.style.borderColor = '#22c55e';
+      btnHide.style.boxShadow = 'none';
+      btnHide.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+    } else {
+      btnShow.style.boxShadow = 'none';
+      btnShow.style.borderColor = 'transparent';
+      btnHide.style.boxShadow = 'none';
+      btnHide.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+    }
+  }
+
+  const effectiveUrl = bigLogoUrl || tickerTournamentLogo || null;
+  if (imgPreview && emptyPlaceholder) {
+    if (effectiveUrl) {
+      imgPreview.src = effectiveUrl;
+      imgPreview.style.display = 'block';
+      emptyPlaceholder.style.display = 'none';
+    } else {
+      imgPreview.src = '';
+      imgPreview.style.display = 'none';
+      emptyPlaceholder.style.display = 'block';
+    }
+  }
+}
+
+function sendShowBigLogo() {
+  bigLogoVisible = true;
+  const activeUrl = bigLogoUrl || tickerTournamentLogo || null;
+  sendWS({
+    type: 'show_big_logo',
+    url: activeUrl
+  });
+  updateBigLogoUI();
+  showToast('Logo central activado en OBS', 'success');
+}
+
+function sendHideBigLogo() {
+  bigLogoVisible = false;
+  sendWS({ type: 'hide_big_logo' });
+  updateBigLogoUI();
+  showToast('Logo central ocultado de OBS');
+}
+
+function handleBigLogoUpload(event) {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64Data = e.target.result;
+    try {
+      showToast('Guardando logo central en servidor...', 'info');
+      const resp = await fetch('/api/big-logo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: base64Data,
+          filename: file.name
+        })
+      });
+      const result = await resp.json();
+      if (result.ok && result.url) {
+        bigLogoUrl = result.url;
+        updateBigLogoUI();
+        showToast('Logo central en alta resolución subido con éxito', 'success');
+      } else {
+        throw new Error(result.error || 'Error al guardar');
+      }
+    } catch (err) {
+      console.warn('Error subiendo logo central:', err);
+      bigLogoUrl = base64Data;
+      updateBigLogoUI();
+      showToast('Logo central cargado localmente', 'info');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearBigLogo() {
+  bigLogoUrl = null;
+  fetch('/api/big-logo/delete', { method: 'POST' }).catch(() => {});
+  const fileInput = document.getElementById('big-logo-file-input');
+  if (fileInput) fileInput.value = '';
+  updateBigLogoUI();
+  showToast('Logo personalizado restablecido al logo del torneo', 'info');
 }
 
 

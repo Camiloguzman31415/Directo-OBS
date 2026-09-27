@@ -63,6 +63,8 @@ let eventVisible = false;
 let showcaseCompetitor = null;   // Competidor asignado al Showcase (esquina superior derecha)
 let showcaseVisible = false;      // Visibilidad del Showcase en OBS
 let tournamentLogo = null;        // URL persistente del logo del torneo en servidor
+let bigLogoVisible = false;       // Visibilidad del Logo Central (Momentos Muertos)
+let bigLogoUrl = null;           // URL específica o personalizada del Logo Central
 
 // ── Estado de Ranking en Vivo (WCA Live) ──
 let liveRankingData = null;
@@ -109,7 +111,9 @@ function saveLiveState() {
       visible: liveRankingVisible,
       viewMode: liveRankingViewMode,
       fsTheme: fsTheme,
-      tournamentLogo: tournamentLogo
+      tournamentLogo: tournamentLogo,
+      bigLogoVisible: bigLogoVisible,
+      bigLogoUrl: bigLogoUrl
     };
     fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
   } catch (err) {
@@ -137,6 +141,8 @@ function loadLiveState() {
       if (state.visible !== undefined) liveRankingVisible = state.visible;
       if (state.viewMode) liveRankingViewMode = state.viewMode;
       if (state.tournamentLogo !== undefined) tournamentLogo = state.tournamentLogo;
+      if (state.bigLogoVisible !== undefined) bigLogoVisible = state.bigLogoVisible;
+      if (state.bigLogoUrl !== undefined) bigLogoUrl = state.bigLogoUrl;
       if (state.fsTheme) {
         fsTheme = {
           bgColor: state.fsTheme.bgColor || '#0c4ea8',
@@ -740,6 +746,80 @@ app.post('/api/tournament-logo/delete', (req, res) => {
     broadcastToPanels({ type: 'tournament_logo_updated', logo: null });
 
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Subir logo central grande para momentos muertos / descanso
+app.post('/api/big-logo', (req, res) => {
+  try {
+    const { imageBase64, filename } = req.body;
+    if (!imageBase64) {
+      return res.status(400).json({ error: 'No se recibió ninguna imagen' });
+    }
+
+    const uploadsDir = path.join(__dirname, 'public', 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    let ext = 'png';
+    if (filename && filename.includes('.')) {
+      ext = filename.split('.').pop().toLowerCase();
+    } else if (imageBase64.startsWith('data:image/jpeg')) {
+      ext = 'jpg';
+    } else if (imageBase64.startsWith('data:image/webp')) {
+      ext = 'webp';
+    } else if (imageBase64.startsWith('data:image/svg+xml')) {
+      ext = 'svg';
+    }
+
+    let buffer;
+    if (imageBase64.includes(';base64,')) {
+      const parts = imageBase64.split(';base64,');
+      buffer = Buffer.from(parts[1], 'base64');
+    } else {
+      buffer = Buffer.from(imageBase64, 'base64');
+    }
+
+    const savedFilename = `big_logo_${Date.now()}.${ext}`;
+    const filePath = path.join(uploadsDir, savedFilename);
+    fs.writeFileSync(filePath, buffer);
+
+    const publicUrl = `/uploads/${savedFilename}`;
+    bigLogoUrl = publicUrl;
+    saveLiveState();
+
+    broadcastToOverlays({ type: 'big_logo_updated', url: publicUrl });
+    broadcastToPanels({ type: 'big_logo_updated', url: publicUrl });
+
+    if (bigLogoVisible) {
+      broadcastToOverlays({ type: 'show_big_logo', url: publicUrl });
+    }
+
+    res.json({ ok: true, url: publicUrl });
+  } catch (err) {
+    console.error('[Upload Big Logo Error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Eliminar logo central personalizado
+app.post('/api/big-logo/delete', (req, res) => {
+  try {
+    bigLogoUrl = null;
+    saveLiveState();
+
+    const fallbackUrl = tournamentLogo || null;
+    broadcastToOverlays({ type: 'big_logo_updated', url: fallbackUrl });
+    broadcastToPanels({ type: 'big_logo_updated', url: fallbackUrl });
+
+    if (bigLogoVisible) {
+      broadcastToOverlays({ type: 'show_big_logo', url: fallbackUrl });
+    }
+
+    res.json({ ok: true, fallbackUrl });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1729,6 +1809,21 @@ function handleSocketConnection(ws, req) {
         logo: tournamentLogo
       }));
     }
+
+    // Enviar estado de Logo Central (Momentos Muertos)
+    const activeBigLogoUrl = bigLogoUrl || tournamentLogo;
+    if (activeBigLogoUrl) {
+      socket.send(JSON.stringify({
+        type: 'big_logo_updated',
+        url: activeBigLogoUrl
+      }));
+    }
+    if (bigLogoVisible) {
+      socket.send(JSON.stringify({
+        type: 'show_big_logo',
+        url: activeBigLogoUrl
+      }));
+    }
   }
 
   function initPanel(socket) {
@@ -1748,6 +1843,8 @@ function handleSocketConnection(ws, req) {
       showcaseCompetitor,
       showcaseVisible,
       tournamentLogo,
+      bigLogoVisible,
+      bigLogoUrl: bigLogoUrl || tournamentLogo,
       liveRankingVisible,
       liveRankingRoundId,
       liveRankingCompId,
@@ -1916,17 +2013,21 @@ function handleSocketConnection(ws, req) {
         eventVisible = false;
         liveRankingVisible = false;
         showcaseVisible = false;
+        bigLogoVisible = false;
+        saveLiveState();
         stopLiveRankingPolling();
         broadcastToOverlays({ type: 'hide_competitor' });
         broadcastToOverlays({ type: 'hide_banner' });
         broadcastToOverlays({ type: 'hide_event' });
         broadcastToOverlays({ type: 'live_ranking_hide' });
         broadcastToOverlays({ type: 'hide_competitor_showcase' });
+        broadcastToOverlays({ type: 'hide_big_logo' });
         broadcastToPanels({
           type: 'sync_state',
           competitorVisible: false,
           eventVisible: false,
-          showcaseVisible: false
+          showcaseVisible: false,
+          bigLogoVisible: false
         });
         broadcastToPanels({
           type: 'sync_live_ranking',
@@ -1961,6 +2062,32 @@ function handleSocketConnection(ws, req) {
         broadcastToPanels({
           type: 'sync_state',
           showcaseVisible: false
+        });
+        break;
+
+      case 'show_big_logo':
+        if (msg.url) bigLogoUrl = msg.url;
+        bigLogoVisible = true;
+        saveLiveState();
+        const activeUrl = bigLogoUrl || tournamentLogo;
+        broadcastToOverlays({
+          type: 'show_big_logo',
+          url: activeUrl
+        });
+        broadcastToPanels({
+          type: 'sync_state',
+          bigLogoVisible: true,
+          bigLogoUrl: activeUrl
+        });
+        break;
+
+      case 'hide_big_logo':
+        bigLogoVisible = false;
+        saveLiveState();
+        broadcastToOverlays({ type: 'hide_big_logo' });
+        broadcastToPanels({
+          type: 'sync_state',
+          bigLogoVisible: false
         });
         break;
 
