@@ -317,7 +317,10 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
           singleRecordIdx = attempts.findIndex(a => a && typeof a.result === 'number' && a.result === r.best);
         }
         return getAttemptsDetail(attempts, eventId, totalAttempts, singleRecordIdx, r.singleRecordTag);
-      })()
+      })(),
+      podiumTargets: (totalAttempts === 5 && completedSolves === 4)
+        ? calculatePodiumTargets(attempts, rawResults.filter((_, oIdx) => oIdx !== idx), eventId)
+        : null
     };
   });
 
@@ -422,6 +425,79 @@ function calculateAo5Stats(attemptsRaw, eventId = '333') {
     avgFormatted: avg !== null ? (avg === -1 ? 'DNF' : formatWcaTime(avg, eventId)) : '—',
     attempts: attemptsFormatted
   };
+}
+
+/**
+ * Calcula los tiempos de solve necesarios para alcanzar puestos de podio (1st, 2nd, 3rd)
+ * en la última solve (cuando el competidor tiene 4/5 intentos completados en formato Ao5).
+ */
+function calculatePodiumTargets(attemptsRaw, otherResults, eventId = '333') {
+  const rawList = (attemptsRaw || []).map(a => (a && typeof a.result === 'number') ? a.result : (typeof a === 'number' ? a : 0));
+  const completedSolves = rawList.filter(r => r !== 0);
+  if (completedSolves.length !== 4) return null;
+
+  const dnfCount = completedSolves.filter(x => x < 0).length;
+  if (dnfCount >= 2) return null; // Si ya tiene 2 DNFs, el promedio final es DNF
+
+  let bpa, wpa, M, x1, x4;
+  if (dnfCount === 1) {
+    const valid = completedSolves.filter(x => x > 0).sort((a, b) => a - b);
+    x1 = valid[0];
+    M = valid[1] + valid[2];
+    bpa = Math.round((valid[0] + valid[1] + valid[2]) / 3);
+    wpa = -1; // DNF
+  } else {
+    const sorted = [...completedSolves].sort((a, b) => a - b);
+    x1 = sorted[0];
+    x4 = sorted[3];
+    M = sorted[1] + sorted[2];
+    bpa = Math.round((sorted[0] + sorted[1] + sorted[2]) / 3);
+    wpa = Math.round((sorted[1] + sorted[2] + sorted[3]) / 3);
+  }
+
+  // Extraer los promedios válidos ya fijados por otros competidores en la ronda
+  const otherAverages = (otherResults || [])
+    .filter(other => typeof other.average === 'number' && other.average > 0)
+    .map(other => other.average)
+    .sort((a, b) => a - b);
+
+  function getMaxSolveForTarget(T) {
+    if (bpa > T) return null; // Imposible alcanzar el target incluso con el mejor solve posible
+    if (wpa > 0 && wpa <= T) return 'SAFE'; // Ya asegurado por WPA
+
+    // Para que round((M + y) / 3) <= T:
+    // La suma máxima de los 3 tiempos intermedios es 3 * T + 1
+    const Smax = 3 * T + 1;
+    const yMax = Smax - M;
+    if (yMax <= 0) return null;
+    return yMax;
+  }
+
+  const targets = [];
+  const podiumLabels = [
+    { place: 1, label: 'FOR 1st', color: 'gold' },
+    { place: 2, label: 'FOR 2nd', color: 'silver' },
+    { place: 3, label: 'FOR 3rd', color: 'bronze' }
+  ];
+
+  for (let i = 0; i < 3; i++) {
+    const T = otherAverages[i];
+    if (T === undefined || T === null || T <= 0) continue;
+    const yMax = getMaxSolveForTarget(T);
+    if (yMax !== null && yMax !== 'SAFE') {
+      targets.push({
+        place: podiumLabels[i].place,
+        label: podiumLabels[i].label,
+        color: podiumLabels[i].color,
+        targetAvg: T,
+        targetAvgFormatted: formatWcaTime(T, eventId),
+        maxSolve: yMax,
+        maxSolveFormatted: formatWcaTime(yMax, eventId)
+      });
+    }
+  }
+
+  return targets.length > 0 ? targets : null;
 }
 
 /**
@@ -546,5 +622,6 @@ export {
   fetchLiveCompetitionRounds,
   fetchLiveRoundRanking,
   calculateAo5Stats,
+  calculatePodiumTargets,
   fetchLiveVersusData
 };

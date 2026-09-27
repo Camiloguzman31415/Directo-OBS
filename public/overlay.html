@@ -627,7 +627,7 @@
     backdrop-filter: blur(14px);
     border-radius: 8px;
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.16);
-    overflow: hidden;
+    overflow: visible;
     z-index: 1000;
     opacity: 0;
     transform: translateX(calc(-100% - 60px));
@@ -646,6 +646,8 @@
 
   /* Header del Ranking */
   .ranking-header {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
     background: linear-gradient(135deg, #061e3d 0%, #0d3b6c 100%);
     border-bottom: 2px solid #0284c7;
     padding: 10px 14px 8px 14px;
@@ -800,6 +802,8 @@
     padding: 5px 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     transition: background 0.2s ease;
+    position: relative;
+    overflow: visible;
   }
 
   .ranking-row:nth-child(even) {
@@ -808,6 +812,121 @@
 
   .ranking-row:last-child {
     border-bottom: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+
+  /* ━━━ WIDGET DE PROYECCIÓN DE PODIO (ÚLTIMO INTENTO 4/5) ━━━ */
+  .ranking-row.has-podium-target {
+    background: rgba(2, 132, 199, 0.12) !important;
+    box-shadow: inset 3px 0 0 #38bdf8;
+  }
+
+  .lr-podium-popover {
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(6, 14, 25, 0.98);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 7px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0, 0, 0, 0.6);
+    padding: 5px 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1050;
+    pointer-events: none;
+    white-space: nowrap;
+    animation: lrPodiumPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes lrPodiumPopIn {
+    0% {
+      opacity: 0;
+      transform: translateY(-50%) translateX(-8px) scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0) scale(1);
+    }
+  }
+
+  .lr-podium-popover::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent rgba(255, 255, 255, 0.22) transparent transparent;
+  }
+
+  .lr-target-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 62px;
+  }
+
+  .lr-target-badge {
+    font-family: var(--font-display);
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .lr-target-badge.badge-gold {
+    background: rgba(245, 158, 11, 0.25);
+    color: #ffd000;
+    border: 1px solid rgba(245, 158, 11, 0.6);
+    box-shadow: 0 1px 4px rgba(245, 158, 11, 0.2);
+  }
+
+  .lr-target-badge.badge-silver {
+    background: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 1px 4px rgba(255, 255, 255, 0.15);
+  }
+
+  .lr-target-badge.badge-bronze {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    color: #FFFFFF;
+    border: 1px solid #f97316;
+    box-shadow: 0 1px 6px rgba(234, 88, 12, 0.35);
+  }
+
+  .lr-target-time {
+    font-family: var(--font-display);
+    font-weight: var(--weight-num, 700);
+    font-size: 16px;
+    color: #FFFFFF;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.4px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+  }
+
+  .lr-target-time.time-safe {
+    color: #34d399;
+    font-size: 13.5px;
+  }
+
+  .solves-pill.final-solve {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.55) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.35) !important;
   }
 
   /* Posición con badge de pase a ronda */
@@ -3829,10 +3948,37 @@
               return `<span class="record-tag-badge ${tagClass}">${tag}</span>`;
             }).join(' ');
             
+            const isFinalSolve = (r.solvesCompleted === 4 && (r.totalSolves === 5 || !r.totalSolves));
+            const solvesPillClass = isFinalSolve ? 'final-solve' : (inProgress ? 'in-progress' : 'completed');
+            
+            // Generar el popover de proyección de podio cuando el competidor está en 4/5
+            let podiumPopoverHtml = '';
+            if (r.podiumTargets && Array.isArray(r.podiumTargets) && r.podiumTargets.length > 0) {
+              const targetsCols = r.podiumTargets.map(t => {
+                const badgeClass = `badge-${t.color || 'silver'}`;
+                const isSafe = t.maxSolve === 'SAFE' || t.maxSolveFormatted === 'SEGURO';
+                const timeClass = isSafe ? 'time-safe' : '';
+                return `
+                  <div class="lr-target-col">
+                    <div class="lr-target-badge ${badgeClass}">${t.label}</div>
+                    <div class="lr-target-time ${timeClass}">${t.maxSolveFormatted}</div>
+                  </div>
+                `;
+              }).join('');
+
+              podiumPopoverHtml = `
+                <div class="lr-podium-popover">
+                  ${targetsCols}
+                </div>
+              `;
+            }
+
+            const rowClass = podiumPopoverHtml ? 'ranking-row has-podium-target' : 'ranking-row';
+
             const displayTime = r.displayTime || (r.solvesCompleted > 0 ? (r.averageFormatted !== '—' ? r.averageFormatted : r.bestFormatted) : '—');
 
             return `
-              <div class="ranking-row">
+              <div class="${rowClass}">
                 <div class="pos-cell">
                   <span class="pos-badge ${posClass}">${r.ranking}</span>
                 </div>
@@ -3847,6 +3993,7 @@
                   ${recBadge}
                   <span class="time-value">${displayTime}</span>
                 </div>
+                ${podiumPopoverHtml}
               </div>
             `;
           }).join('');

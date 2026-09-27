@@ -3087,13 +3087,22 @@ function renderLiveRankingPreview(rankingObj) {
   tbody.innerHTML = rankingObj.ranking.map(r => {
     const isAdv = !!r.isAdvancing;
     const badgeClass = isAdv ? 'advancing' : 'non-advancing';
-    const solvesPillClass = r.inProgress ? 'in-progress' : 'completed';
+    const isFinalSolve = (r.solvesCompleted === 4 && (r.totalSolves === 5 || !r.totalSolves));
+    const solvesPillClass = isFinalSolve ? 'final-solve' : (r.inProgress ? 'in-progress' : 'completed');
     const flagIso = (r.countryIso2 || 'co').toLowerCase();
     const recTag = r.recordTag ? `<span class="live-record-badge">${r.recordTag}</span>` : '';
     const displayTime = r.displayTime || (r.solvesCompleted > 0 ? (r.averageFormatted !== '—' ? r.averageFormatted : r.bestFormatted) : '—');
 
+    let targetsBadges = '';
+    if (r.podiumTargets && Array.isArray(r.podiumTargets) && r.podiumTargets.length > 0) {
+      targetsBadges = '<div style="display:flex;gap:4px;margin-top:3px;font-size:10px;">' + r.podiumTargets.map(t => {
+        const color = t.color === 'gold' ? '#ffd000' : t.color === 'bronze' ? '#fb923c' : '#e2e8f0';
+        return `<span style="background:rgba(0,0,0,0.5);border:1px solid ${color};color:${color};padding:1px 5px;border-radius:3px;font-weight:700;font-family:\'Space Mono\',monospace;">${t.label}: ${t.maxSolveFormatted}</span>`;
+      }).join('') + '</div>';
+    }
+
     return `
-      <tr>
+      <tr style="${isFinalSolve ? 'background:rgba(2, 132, 199, 0.1);' : ''}">
         <td style="text-align:center;">
           <span class="live-pos-badge ${badgeClass}">${r.ranking}</span>
         </td>
@@ -3102,9 +3111,10 @@ function renderLiveRankingPreview(rankingObj) {
         </td>
         <td style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(r.name)}">
           ${escapeHtml(r.name)}
+          ${targetsBadges}
         </td>
         <td style="text-align:center;">
-          <span class="live-solves-pill ${solvesPillClass}">${r.solvesText || `${r.solvesCompleted || 0}/${r.totalSolves || 5}`}</span>
+          <span class="live-solves-pill ${solvesPillClass}" style="${isFinalSolve ? 'color:#f87171;font-weight:800;' : ''}">${r.solvesText || `${r.solvesCompleted || 0}/${r.totalSolves || 5}`}</span>
         </td>
         <td style="text-align:right;font-family:'Space Mono',monospace;font-weight:700;">
           ${recTag}${displayTime}
