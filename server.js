@@ -598,6 +598,48 @@ app.get('/api/wca/avatar/:wcaId', async (req, res) => {
   }
 });
 
+// Cache en memoria para resultados históricos de competidores WCA
+const wcaResultsCache = new Map();
+
+// Obtener medallas y podios por categoría de un competidor
+app.get('/api/wca/podiums/:wcaId', async (req, res) => {
+  const { wcaId } = req.params;
+  const eventId = req.query.eventId || '333';
+  const cleanId = (wcaId || '').trim().toUpperCase();
+
+  if (!cleanId) {
+    return res.json({ ok: true, wca_id: '', event_id: eventId, gold: 0, silver: 0, bronze: 0 });
+  }
+
+  try {
+    let results = wcaResultsCache.get(cleanId);
+    if (!results) {
+      const WCA_HEADERS = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
+      const pRes = await fetch(`${WCA_API}/persons/${cleanId}/results`, { headers: WCA_HEADERS });
+      if (pRes.ok) {
+        results = await pRes.json();
+        wcaResultsCache.set(cleanId, results);
+      } else {
+        results = [];
+      }
+    }
+
+    let gold = 0, silver = 0, bronze = 0;
+    for (const r of (results || [])) {
+      if (r.event_id === eventId && (r.round_type_id === 'f' || r.round_type_id === 'c')) {
+        if (r.pos === 1) gold++;
+        else if (r.pos === 2) silver++;
+        else if (r.pos === 3) bronze++;
+      }
+    }
+
+    res.json({ ok: true, wca_id: cleanId, event_id: eventId, gold, silver, bronze });
+  } catch (err) {
+    console.error(`[WCA Podiums Error] ${cleanId}:`, err.message);
+    res.json({ ok: false, gold: 0, silver: 0, bronze: 0 });
+  }
+});
+
 // ── Rutas de Ranking en Vivo (WCA Live) ──
 // Obtener eventos y rondas de una competencia en WCA Live
 app.get('/api/live/competitions/:id', async (req, res) => {

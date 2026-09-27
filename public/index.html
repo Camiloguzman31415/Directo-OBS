@@ -966,6 +966,52 @@
                 </div>
               </div>
 
+              <!-- Podios en la Categoría (Oro, Plata, Bronce) -->
+              <div style="margin-bottom:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <label class="form-label" style="font-size:11px;margin:0;">Podios en la Categoría (WCA):</label>
+                  <button type="button" class="btn-tactile btn-secondary" onclick="fetchH2HPodiumsFromWCA()" style="padding:2px 8px;font-size:10px;" title="Recalcular automáticamente desde la API de la WCA">
+                    🔄 Sincronizar WCA
+                  </button>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;">
+                  <!-- Comp 1 Podios -->
+                  <div style="display:flex;gap:4px;">
+                    <div style="flex:1;text-align:center;">
+                      <span style="font-size:10px;color:#ffd000;font-weight:700;">🥇 ORO</span>
+                      <input type="number" id="h2h-p1-gold" class="form-input" style="padding:4px;text-align:center;font-size:12px;font-weight:700;" value="0" min="0" onchange="onH2HPodiumChange()">
+                    </div>
+                    <div style="flex:1;text-align:center;">
+                      <span style="font-size:10px;color:#e2e8f0;font-weight:700;">🥈 PLATA</span>
+                      <input type="number" id="h2h-p1-silver" class="form-input" style="padding:4px;text-align:center;font-size:12px;font-weight:700;" value="0" min="0" onchange="onH2HPodiumChange()">
+                    </div>
+                    <div style="flex:1;text-align:center;">
+                      <span style="font-size:10px;color:#d97706;font-weight:700;">🥉 BRONCE</span>
+                      <input type="number" id="h2h-p1-bronze" class="form-input" style="padding:4px;text-align:center;font-size:12px;font-weight:700;" value="0" min="0" onchange="onH2HPodiumChange()">
+                    </div>
+                  </div>
+
+                  <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text-dim);font-weight:700;">VS</div>
+
+                  <!-- Comp 2 Podios -->
+                  <div style="display:flex;gap:4px;">
+                    <div style="flex:1;text-align:center;">
+                      <span style="font-size:10px;color:#ffd000;font-weight:700;">🥇 ORO</span>
+                      <input type="number" id="h2h-p2-gold" class="form-input" style="padding:4px;text-align:center;font-size:12px;font-weight:700;" value="0" min="0" onchange="onH2HPodiumChange()">
+                    </div>
+                    <div style="flex:1;text-align:center;">
+                      <span style="font-size:10px;color:#e2e8f0;font-weight:700;">🥈 PLATA</span>
+                      <input type="number" id="h2h-p2-silver" class="form-input" style="padding:4px;text-align:center;font-size:12px;font-weight:700;" value="0" min="0" onchange="onH2HPodiumChange()">
+                    </div>
+                    <div style="flex:1;text-align:center;">
+                      <span style="font-size:10px;color:#d97706;font-weight:700;">🥉 BRONCE</span>
+                      <input type="number" id="h2h-p2-bronze" class="form-input" style="padding:4px;text-align:center;font-size:12px;font-weight:700;" value="0" min="0" onchange="onH2HPodiumChange()">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Previsualización Compacta Head to Head -->
               <div class="h2h-panel-preview" style="background:#070d18;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;margin-bottom:14px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;color:#fff;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:6px;margin-bottom:8px;">

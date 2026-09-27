@@ -31,6 +31,8 @@ let headToHeadSize = 1150;
 let h2hComp1 = null;
 let h2hComp2 = null;
 let h2hEventId = '333';
+let h2hPodiums1 = { gold: 0, silver: 0, bronze: 0 };
+let h2hPodiums2 = { gold: 0, silver: 0, bronze: 0 };
 
 // ── Estado del Ticker de Noticias Broadcast (Lower-Third) ──
 let tickerTournamentLogo = localStorage.getItem('directoobs_ticker_logo') || '';
@@ -223,6 +225,8 @@ function handleServerMessage(msg) {
         if (msg.headToHeadData.competitor1) h2hComp1 = msg.headToHeadData.competitor1;
         if (msg.headToHeadData.competitor2) h2hComp2 = msg.headToHeadData.competitor2;
         if (msg.headToHeadData.event && msg.headToHeadData.event.event_id) h2hEventId = msg.headToHeadData.event.event_id;
+        if (msg.headToHeadData.podiums1) h2hPodiums1 = Object.assign({}, msg.headToHeadData.podiums1);
+        if (msg.headToHeadData.podiums2) h2hPodiums2 = Object.assign({}, msg.headToHeadData.podiums2);
       }
       updatePreviewUI();
       updateShowcaseUI();
@@ -395,6 +399,8 @@ function handleServerMessage(msg) {
         if (msg.headToHeadData.competitor1 !== undefined) h2hComp1 = msg.headToHeadData.competitor1;
         if (msg.headToHeadData.competitor2 !== undefined) h2hComp2 = msg.headToHeadData.competitor2;
         if (msg.headToHeadData.event && msg.headToHeadData.event.event_id) h2hEventId = msg.headToHeadData.event.event_id;
+        if (msg.headToHeadData.podiums1) h2hPodiums1 = Object.assign({}, msg.headToHeadData.podiums1);
+        if (msg.headToHeadData.podiums2) h2hPodiums2 = Object.assign({}, msg.headToHeadData.podiums2);
       }
       updatePreviewUI();
       updateShowcaseUI();
@@ -3823,6 +3829,20 @@ function updateHeadToHeadUI() {
   const sizeVal = document.getElementById('h2h-size-val');
   if (sizeSlider && document.activeElement !== sizeSlider) sizeSlider.value = headToHeadSize;
   if (sizeVal) sizeVal.textContent = `${headToHeadSize}px`;
+
+  const p1g = document.getElementById('h2h-p1-gold');
+  const p1s = document.getElementById('h2h-p1-silver');
+  const p1b = document.getElementById('h2h-p1-bronze');
+  const p2g = document.getElementById('h2h-p2-gold');
+  const p2s = document.getElementById('h2h-p2-silver');
+  const p2b = document.getElementById('h2h-p2-bronze');
+
+  if (p1g && document.activeElement !== p1g) p1g.value = h2hPodiums1.gold || 0;
+  if (p1s && document.activeElement !== p1s) p1s.value = h2hPodiums1.silver || 0;
+  if (p1b && document.activeElement !== p1b) p1b.value = h2hPodiums1.bronze || 0;
+  if (p2g && document.activeElement !== p2g) p2g.value = h2hPodiums2.gold || 0;
+  if (p2s && document.activeElement !== p2s) p2s.value = h2hPodiums2.silver || 0;
+  if (p2b && document.activeElement !== p2b) p2b.value = h2hPodiums2.bronze || 0;
 }
 
 function onH2HSearchInput(slot, query) {
@@ -3892,6 +3912,7 @@ function selectH2HCompetitor(slot, idOrName) {
     }
   }
 
+  fetchH2HPodiumsFromWCA();
   updateHeadToHeadUI();
   if (headToHeadVisible) {
     sendShowHeadToHead();
@@ -3902,6 +3923,10 @@ function swapHeadToHeadCompetitors() {
   const tmpComp = h2hComp1;
   h2hComp1 = h2hComp2;
   h2hComp2 = tmpComp;
+
+  const tmpPod = h2hPodiums1;
+  h2hPodiums1 = h2hPodiums2;
+  h2hPodiums2 = tmpPod;
 
   const s1 = document.getElementById('h2h-search-1');
   const s2 = document.getElementById('h2h-search-2');
@@ -3916,8 +3941,65 @@ function swapHeadToHeadCompetitors() {
 
 function onH2HEventSelectChange(eid) {
   h2hEventId = eid || '333';
+  fetchH2HPodiumsFromWCA();
   updateHeadToHeadUI();
   if (headToHeadVisible) {
+    sendShowHeadToHead();
+  }
+}
+
+function onH2HPodiumChange() {
+  const p1g = parseInt(document.getElementById('h2h-p1-gold')?.value, 10) || 0;
+  const p1s = parseInt(document.getElementById('h2h-p1-silver')?.value, 10) || 0;
+  const p1b = parseInt(document.getElementById('h2h-p1-bronze')?.value, 10) || 0;
+  const p2g = parseInt(document.getElementById('h2h-p2-gold')?.value, 10) || 0;
+  const p2s = parseInt(document.getElementById('h2h-p2-silver')?.value, 10) || 0;
+  const p2b = parseInt(document.getElementById('h2h-p2-bronze')?.value, 10) || 0;
+
+  h2hPodiums1 = { gold: p1g, silver: p1s, bronze: p1b };
+  h2hPodiums2 = { gold: p2g, silver: p2s, bronze: p2b };
+
+  if (headToHeadVisible) {
+    sendShowHeadToHead();
+  }
+}
+
+async function fetchH2HPodiumsFromWCA() {
+  const eid = h2hEventId || selectedEventId || '333';
+  let updated = false;
+
+  if (h2hComp1 && h2hComp1.wca_id) {
+    try {
+      const res = await fetch(`/api/wca/podiums/${h2hComp1.wca_id}?eventId=${eid}`);
+      const data = await res.json();
+      if (data.ok) {
+        h2hPodiums1 = { gold: data.gold, silver: data.silver, bronze: data.bronze };
+        updated = true;
+      }
+    } catch (e) {
+      console.warn('Error fetching podiums 1:', e);
+    }
+  } else {
+    h2hPodiums1 = { gold: 0, silver: 0, bronze: 0 };
+  }
+
+  if (h2hComp2 && h2hComp2.wca_id) {
+    try {
+      const res = await fetch(`/api/wca/podiums/${h2hComp2.wca_id}?eventId=${eid}`);
+      const data = await res.json();
+      if (data.ok) {
+        h2hPodiums2 = { gold: data.gold, silver: data.silver, bronze: data.bronze };
+        updated = true;
+      }
+    } catch (e) {
+      console.warn('Error fetching podiums 2:', e);
+    }
+  } else {
+    h2hPodiums2 = { gold: 0, silver: 0, bronze: 0 };
+  }
+
+  updateHeadToHeadUI();
+  if (headToHeadVisible && updated) {
     sendShowHeadToHead();
   }
 }
@@ -3931,7 +4013,9 @@ function sendShowHeadToHead() {
   const payload = {
     competitor1: h2hComp1,
     competitor2: h2hComp2,
-    event: { event_id: h2hEventId || selectedEventId || '333' }
+    event: { event_id: h2hEventId || selectedEventId || '333' },
+    podiums1: h2hPodiums1,
+    podiums2: h2hPodiums2
   };
   sendWS({
     type: 'show_head_to_head',
