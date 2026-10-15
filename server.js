@@ -195,40 +195,63 @@ function enrichCompetitorsWithLocalAvatars(competitors) {
   }
 }
 
-function saveLiveState() {
-  try {
-    const state = {
-      compId: liveRankingCompId,
-      roundId: liveRankingRoundId,
-      rounds: liveRankingRounds,
-      top: liveRankingTop,
-      cutoff: liveRankingCutoff,
-      dynamicPaging: liveRankingDynamicPaging,
-      autoBalance: liveRankingAutoBalance,
-      pageSize: liveRankingPageSize,
-      pageDuration: liveRankingPageDuration,
-      pollInterval: liveRankingPollInterval,
-      visible: liveRankingVisible,
-      viewMode: liveRankingViewMode,
-      fsTheme: fsTheme,
-      tournamentLogo: tournamentLogo,
-      bigLogoVisible: bigLogoVisible,
-      bigLogoUrl: bigLogoUrl,
-      bigLogoSize: bigLogoSize,
-      headToHeadVisible: headToHeadVisible,
-      headToHeadSize: headToHeadSize,
-      headToHeadData: headToHeadData,
-      versusBannerVisible: versusBannerVisible,
-      versusRoundId: versusRoundId,
-      versusCompId: versusCompId,
-      versusPollInterval: versusPollInterval,
-      versusComp1Target: versusComp1Target,
-      versusComp2Target: versusComp2Target,
-      versusData: versusData
-    };
-    fs.writeFileSync(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
-  } catch (err) {
-    console.warn('[LiveRanking] Error guardando live_state.json:', err.message);
+let saveLiveStateTimer = null;
+
+function saveLiveState(immediate = false) {
+  if (saveLiveStateTimer) {
+    clearTimeout(saveLiveStateTimer);
+    saveLiveStateTimer = null;
+  }
+
+  const doSave = async () => {
+    try {
+      // Evitar que cadenas Base64 gigantes (>150KB) saturen el archivo de estado
+      const cleanLogo = (typeof tournamentLogo === 'string' && tournamentLogo.length > 150000)
+        ? null
+        : tournamentLogo;
+      const cleanBigLogo = (typeof bigLogoUrl === 'string' && bigLogoUrl.length > 150000)
+        ? null
+        : bigLogoUrl;
+
+      const state = {
+        compId: liveRankingCompId,
+        roundId: liveRankingRoundId,
+        rounds: liveRankingRounds,
+        top: liveRankingTop,
+        cutoff: liveRankingCutoff,
+        dynamicPaging: liveRankingDynamicPaging,
+        autoBalance: liveRankingAutoBalance,
+        pageSize: liveRankingPageSize,
+        pageDuration: liveRankingPageDuration,
+        pollInterval: liveRankingPollInterval,
+        visible: liveRankingVisible,
+        viewMode: liveRankingViewMode,
+        fsTheme: fsTheme,
+        tournamentLogo: cleanLogo,
+        bigLogoVisible: bigLogoVisible,
+        bigLogoUrl: cleanBigLogo,
+        bigLogoSize: bigLogoSize,
+        headToHeadVisible: headToHeadVisible,
+        headToHeadSize: headToHeadSize,
+        headToHeadData: headToHeadData,
+        versusBannerVisible: versusBannerVisible,
+        versusRoundId: versusRoundId,
+        versusCompId: versusCompId,
+        versusPollInterval: versusPollInterval,
+        versusComp1Target: versusComp1Target,
+        versusComp2Target: versusComp2Target,
+        versusData: versusData
+      };
+      await fs.promises.writeFile(LIVE_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
+    } catch (err) {
+      console.warn('[LiveRanking] Error guardando live_state.json:', err.message);
+    }
+  };
+
+  if (immediate) {
+    doSave();
+  } else {
+    saveLiveStateTimer = setTimeout(doSave, 300);
   }
 }
 
@@ -348,8 +371,11 @@ if (liveRankingRoundId) {
 }
 
 // ── Polling y Gestión en Tiempo Real de Banner de Finales Versus (WCA Live) ──
+let isVersusPollingInFlight = false;
+
 async function refreshVersusData() {
-  if (!versusRoundId) return;
+  if (!versusRoundId || isVersusPollingInFlight) return;
+  isVersusPollingInFlight = true;
   try {
     const data = await fetchLiveVersusData(versusRoundId, versusComp1Target, versusComp2Target);
     if (data) {
@@ -372,6 +398,8 @@ async function refreshVersusData() {
     }
   } catch (err) {
     console.warn('[VersusPolling] Error al refrescar datos versus:', err.message);
+  } finally {
+    isVersusPollingInFlight = false;
   }
 }
 
@@ -483,8 +511,15 @@ app.post('/api/tournament', (req, res) => {
 
     tournamentData = data;
     if (tournamentData?.competitors) enrichCompetitorsWithLocalAvatars(tournamentData.competitors);
-    const saveName = filename || `${data.competition_id || 'torneo'}_data.json`;
-    const savePath = path.join(__dirname, saveName);
+
+    let cleanSaveName = 'torneo_data.json';
+    if (filename && typeof filename === 'string') {
+      cleanSaveName = path.basename(filename);
+      if (!cleanSaveName.toLowerCase().endsWith('.json')) cleanSaveName += '.json';
+    } else if (data.competition_id) {
+      cleanSaveName = `${String(data.competition_id).replace(/[^a-zA-Z0-9_-]/g, '_')}_data.json`;
+    }
+    const savePath = path.join(__dirname, cleanSaveName);
 
     fs.writeFileSync(savePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`[Torneo] Guardado en: ${savePath}`);
@@ -1018,38 +1053,79 @@ app.get('/api/demo/status', (req, res) => {
   res.json({ ok: true, active: isDemoActive() });
 });
 
+// Helpers para subida segura y limpieza de archivos multimedia
+const ALLOWED_IMAGE_EXTS = new Set(['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif']);
+
+function deleteUploadedFile(relativeUrl) {
+  if (!relativeUrl || typeof relativeUrl !== 'string') return;
+  if (!relativeUrl.startsWith('/uploads/')) return;
+  const fileName = path.basename(relativeUrl);
+  const fullPath = path.join(__dirname, 'public', 'uploads', fileName);
+  fs.unlink(fullPath, (err) => {
+    if (err && err.code !== 'ENOENT') {
+      console.warn('[Uploads] Error borrando archivo anterior:', err.message);
+    }
+  });
+}
+
+function saveBase64Image(imageBase64, prefix = 'upload', originalFilename = '') {
+  if (!imageBase64 || typeof imageBase64 !== 'string') {
+    throw new Error('Imagen inválida o ausente');
+  }
+
+  const uploadsDir = path.join(__dirname, 'public', 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  let ext = 'png';
+  let base64Data = imageBase64;
+
+  const matches = imageBase64.match(/^data:image\/([A-Za-z0-9+.-]+);base64,(.+)$/);
+  if (matches && matches.length === 3) {
+    const subtype = matches[1].toLowerCase();
+    if (subtype.includes('jpeg') || subtype.includes('jpg')) ext = 'jpg';
+    else if (subtype.includes('png')) ext = 'png';
+    else if (subtype.includes('webp')) ext = 'webp';
+    else if (subtype.includes('svg')) ext = 'svg';
+    else if (subtype.includes('gif')) ext = 'gif';
+    base64Data = matches[2];
+  } else if (imageBase64.includes(';base64,')) {
+    const parts = imageBase64.split(';base64,');
+    base64Data = parts[1];
+  }
+
+  if (originalFilename && originalFilename.includes('.')) {
+    const candidateExt = path.extname(originalFilename).replace('.', '').toLowerCase();
+    if (ALLOWED_IMAGE_EXTS.has(candidateExt)) {
+      ext = candidateExt;
+    }
+  }
+
+  if (!ALLOWED_IMAGE_EXTS.has(ext)) {
+    ext = 'png';
+  }
+
+  const buffer = Buffer.from(base64Data, 'base64');
+  if (buffer.length > 15 * 1024 * 1024) {
+    throw new Error('La imagen excede el límite permitido de 15 MB');
+  }
+
+  const savedFilename = `${prefix}_${Date.now()}.${ext}`;
+  const filePath = path.join(uploadsDir, savedFilename);
+  fs.writeFileSync(filePath, buffer);
+
+  return `/uploads/${savedFilename}`;
+}
+
 // Subir imagen personalizada de fondo para la tabla Fullscreen
 app.post('/api/fs-background', (req, res) => {
   try {
     const { imageBase64 } = req.body;
-    if (!imageBase64) {
-      return res.status(400).json({ error: 'Falta la imagen' });
-    }
+    if (!imageBase64) return res.status(400).json({ error: 'Falta la imagen' });
 
-    const uploadsDir = path.join(__dirname, 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    const matches = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-    let ext = 'jpg';
-    let buffer;
-
-    if (matches && matches.length === 3) {
-      const mime = matches[1];
-      if (mime.includes('png')) ext = 'png';
-      else if (mime.includes('webp')) ext = 'webp';
-      else if (mime.includes('gif')) ext = 'gif';
-      buffer = Buffer.from(matches[2], 'base64');
-    } else {
-      buffer = Buffer.from(imageBase64, 'base64');
-    }
-
-    const savedFilename = `fs_bg_${Date.now()}.${ext}`;
-    const filePath = path.join(uploadsDir, savedFilename);
-    fs.writeFileSync(filePath, buffer);
-
-    const publicUrl = `/uploads/${savedFilename}`;
+    deleteUploadedFile(fsTheme.bgImage);
+    const publicUrl = saveBase64Image(imageBase64, 'fs_bg');
     fsTheme.bgImage = publicUrl;
     saveLiveState();
 
@@ -1066,6 +1142,7 @@ app.post('/api/fs-background', (req, res) => {
 // Eliminar imagen personalizada de fondo
 app.post('/api/fs-background/delete', (req, res) => {
   try {
+    deleteUploadedFile(fsTheme.bgImage);
     fsTheme.bgImage = null;
     saveLiveState();
 
@@ -1082,36 +1159,10 @@ app.post('/api/fs-background/delete', (req, res) => {
 app.post('/api/tournament-logo', (req, res) => {
   try {
     const { imageBase64 } = req.body;
-    if (!imageBase64) {
-      return res.status(400).json({ error: 'Falta la imagen' });
-    }
+    if (!imageBase64) return res.status(400).json({ error: 'Falta la imagen' });
 
-    const uploadsDir = path.join(__dirname, 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    const matches = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-    let ext = 'png';
-    let buffer;
-
-    if (matches && matches.length === 3) {
-      const mime = matches[1];
-      if (mime.includes('png')) ext = 'png';
-      else if (mime.includes('webp')) ext = 'webp';
-      else if (mime.includes('svg')) ext = 'svg';
-      else if (mime.includes('gif')) ext = 'gif';
-      else if (mime.includes('jpeg') || mime.includes('jpg')) ext = 'jpg';
-      buffer = Buffer.from(matches[2], 'base64');
-    } else {
-      buffer = Buffer.from(imageBase64, 'base64');
-    }
-
-    const savedFilename = `tournament_logo_${Date.now()}.${ext}`;
-    const filePath = path.join(uploadsDir, savedFilename);
-    fs.writeFileSync(filePath, buffer);
-
-    const publicUrl = `/uploads/${savedFilename}`;
+    deleteUploadedFile(tournamentLogo);
+    const publicUrl = saveBase64Image(imageBase64, 'tournament_logo');
     tournamentLogo = publicUrl;
     if (currentEvent) {
       currentEvent.tournament_logo = publicUrl;
@@ -1131,6 +1182,7 @@ app.post('/api/tournament-logo', (req, res) => {
 // Eliminar logo del torneo
 app.post('/api/tournament-logo/delete', (req, res) => {
   try {
+    deleteUploadedFile(tournamentLogo);
     tournamentLogo = null;
     if (currentEvent) {
       currentEvent.tournament_logo = null;
@@ -1150,39 +1202,10 @@ app.post('/api/tournament-logo/delete', (req, res) => {
 app.post('/api/big-logo', (req, res) => {
   try {
     const { imageBase64, filename } = req.body;
-    if (!imageBase64) {
-      return res.status(400).json({ error: 'No se recibió ninguna imagen' });
-    }
+    if (!imageBase64) return res.status(400).json({ error: 'No se recibió ninguna imagen' });
 
-    const uploadsDir = path.join(__dirname, 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    let ext = 'png';
-    if (filename && filename.includes('.')) {
-      ext = filename.split('.').pop().toLowerCase();
-    } else if (imageBase64.startsWith('data:image/jpeg')) {
-      ext = 'jpg';
-    } else if (imageBase64.startsWith('data:image/webp')) {
-      ext = 'webp';
-    } else if (imageBase64.startsWith('data:image/svg+xml')) {
-      ext = 'svg';
-    }
-
-    let buffer;
-    if (imageBase64.includes(';base64,')) {
-      const parts = imageBase64.split(';base64,');
-      buffer = Buffer.from(parts[1], 'base64');
-    } else {
-      buffer = Buffer.from(imageBase64, 'base64');
-    }
-
-    const savedFilename = `big_logo_${Date.now()}.${ext}`;
-    const filePath = path.join(uploadsDir, savedFilename);
-    fs.writeFileSync(filePath, buffer);
-
-    const publicUrl = `/uploads/${savedFilename}`;
+    deleteUploadedFile(bigLogoUrl);
+    const publicUrl = saveBase64Image(imageBase64, 'big_logo', filename);
     bigLogoUrl = publicUrl;
     saveLiveState();
 
@@ -1203,6 +1226,7 @@ app.post('/api/big-logo', (req, res) => {
 // Eliminar logo central personalizado
 app.post('/api/big-logo/delete', (req, res) => {
   try {
+    deleteUploadedFile(bigLogoUrl);
     bigLogoUrl = null;
     saveLiveState();
 
@@ -2036,6 +2060,8 @@ function stopLiveRankingPolling() {
   }
 }
 
+let isLiveRankingPollingInFlight = false;
+
 function startLiveRankingPolling(intervalSecs) {
   stopLiveRankingPolling();
   const secs = parseInt(intervalSecs, 10);
@@ -2046,7 +2072,8 @@ function startLiveRankingPolling(intervalSecs) {
   liveRankingPollInterval = secs;
   console.log(`[LiveRanking] Iniciando polling cada ${secs}s para ronda ${liveRankingRoundId}`);
   liveRankingPollTimer = setInterval(async () => {
-    if (!liveRankingRoundId) return;
+    if (!liveRankingRoundId || isLiveRankingPollingInFlight) return;
+    isLiveRankingPollingInFlight = true;
     try {
       const fetchTop = liveRankingDynamicPaging ? 0 : liveRankingTop;
       const ranking = await fetchLiveRoundRanking(liveRankingRoundId, fetchTop, liveRankingCutoff);
@@ -2082,6 +2109,8 @@ function startLiveRankingPolling(intervalSecs) {
       });
     } catch (err) {
       console.warn('[LiveRanking Polling Error]', err.message);
+    } finally {
+      isLiveRankingPollingInFlight = false;
     }
   }, secs * 1000);
 }
@@ -2375,6 +2404,7 @@ function handleSocketConnection(ws, req) {
         const tmp = currentCompetitor;
         currentCompetitor = currentCompetitor2;
         currentCompetitor2 = tmp;
+        saveLiveState();
         broadcastToOverlays({
           type: 'banner_data',
           mode: bannerMode,

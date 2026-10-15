@@ -17,7 +17,8 @@ async function graphql(query, variables = {}) {
       'Accept': 'application/json',
       'User-Agent': 'DirectoOBS/2.0'
     },
-    body: JSON.stringify({ query, variables })
+    body: JSON.stringify({ query, variables }),
+    signal: AbortSignal.timeout(8000)
   });
 
   if (!resp.ok) {
@@ -327,9 +328,8 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
         }
         return getAttemptsDetail(attempts, eventId, totalAttempts, singleRecordIdx, r.singleRecordTag);
       })(),
-      podiumTargets: (totalAttempts === 5 && completedSolves === 4)
-        ? calculatePodiumTargets(attempts, rawResults.filter((_, oIdx) => oIdx !== idx), eventId)
-        : null
+      _rawAttempts: attempts,
+      podiumTargets: null
     };
   });
 
@@ -362,6 +362,15 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
       r.isAdvancing = advancingCutoff > 0 ? (r.ranking <= advancingCutoff) : false;
     });
   }
+
+  // Segunda pasada: Calcular objetivos de podio teniendo en cuenta los promedios proyectados de los rivales
+  rankingList.forEach((r, idx) => {
+    if (totalAttempts === 5 && r.solvesCompleted === 4) {
+      const otherCompetitors = rankingList.filter((_, oIdx) => oIdx !== idx);
+      r.podiumTargets = calculatePodiumTargets(r._rawAttempts, otherCompetitors, eventId);
+    }
+    delete r._rawAttempts;
+  });
 
   return {
     roundId: round.id,
@@ -477,6 +486,22 @@ function calculateProjectedAverage(rawAttempts, eventId = '333') {
   const completeAttempts = (rawAttempts || []).filter(r => typeof r === 'number' && r !== 0);
   if (completeAttempts.length === 0) return null;
 
+  const count = completeAttempts.length;
+
+  // Eventos Bo3 (clasifican por single)
+  if (['333bf', '444bf', '555bf', '333mbf'].includes(eventId)) {
+    const valid = completeAttempts.filter(x => x > 0);
+    return valid.length > 0 ? Math.min(...valid) : -1;
+  }
+
+  // Eventos Mo3 (Mean of 3: 6x6, 7x7, FMC)
+  if (['666', '777', '333fm'].includes(eventId)) {
+    if (completeAttempts.some(x => x < 0)) return -1;
+    const sum = completeAttempts.reduce((acc, v) => acc + v, 0);
+    return Math.round(sum / count);
+  }
+
+  // Formato Ao5 estándar (Forecast View oficial de WCA Live)
   const sorted = [...completeAttempts].sort((a, b) => {
     const isCompA = a > 0;
     const isCompB = b > 0;
@@ -485,8 +510,6 @@ function calculateProjectedAverage(rawAttempts, eventId = '333') {
     if (isCompA && !isCompB) return -1;
     return a - b;
   });
-
-  const count = completeAttempts.length;
 
   if (count < 3) {
     if (completeAttempts.some(x => x < 0)) return -1;

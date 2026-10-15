@@ -873,7 +873,7 @@ function renderSceneSources(items, sceneName) {
     mainRow.innerHTML = `
       <div class="source-item-info">
         <span class="source-icon">${icon}</span>
-        <span class="source-name" title="${item.sourceName}">${item.sourceName}</span>
+        <span class="source-name" title="${escapeHtml(item.sourceName)}">${escapeHtml(item.sourceName)}</span>
         <span class="source-kind-tag">${kind.replace('_source', '').replace('_input', '')}</span>
       </div>
       <button class="btn-source-eye ${isVisible ? 'visible' : ''}" id="btn-eye-${item.sceneItemId}" title="${isVisible ? 'Ocultar capa' : 'Mostrar capa'}">
@@ -895,11 +895,14 @@ function renderSceneSources(items, sceneName) {
 
     if (isMedia) {
       actionsBar.innerHTML = `
-        <button class="btn-source-preset" onclick="triggerMedia('${item.sourceName}', 'restart')" title="Reiniciar video desde el inicio">↺ Reiniciar</button>
-        <button class="btn-source-preset" onclick="triggerMedia('${item.sourceName}', 'pause')" title="Pausar video">⏸ Pausa</button>
-        <button class="btn-source-preset" onclick="triggerMedia('${item.sourceName}', 'play')" title="Reproducir video">▶ Play</button>
-        <button class="btn-source-preset" onclick="triggerMedia('${item.sourceName}', 'stop')" title="Detener video">⏹ Stop</button>
+        <button class="btn-source-preset" data-action="restart" title="Reiniciar video desde el inicio">↺ Reiniciar</button>
+        <button class="btn-source-preset" data-action="pause" title="Pausar video">⏸ Pausa</button>
+        <button class="btn-source-preset" data-action="play" title="Reproducir video">▶ Play</button>
+        <button class="btn-source-preset" data-action="stop" title="Detener video">⏹ Stop</button>
       `;
+      actionsBar.querySelectorAll('button').forEach(btn => {
+        btn.onclick = () => triggerMedia(item.sourceName, btn.dataset.action);
+      });
       card.appendChild(actionsBar);
     } else if (isVisual) {
       actionsBar.innerHTML = `
@@ -1130,7 +1133,7 @@ function renderScenes(scenes, currentProgram) {
 
     tile.innerHTML = `
       <span class="scene-icon">🎬</span>
-      <span class="scene-name">${sceneName}</span>
+      <span class="scene-name">${escapeHtml(sceneName)}</span>
     `;
 
     tile.onclick = () => {
@@ -2011,8 +2014,8 @@ function handleSearchInput(query, targetSlot = 'single') {
       <div class="search-result-left" style="flex:1;min-width:0;">
         ${flagHtml}
         <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;">
-          <div class="search-result-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
-          <div class="search-result-meta">${c.wca_id || 'NUEVO COMPETIDOR'} · ${c.country}</div>
+          <div class="search-result-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(c.name)}</div>
+          <div class="search-result-meta">${escapeHtml(c.wca_id || 'NUEVO COMPETIDOR')} · ${escapeHtml(c.country || '')}</div>
         </div>
       </div>
       <div class="search-result-actions">
@@ -2294,11 +2297,11 @@ function filterCompetitorList() {
         ${avatarHtml}
         ${flagHtml}
         <div>
-          <div class="comp-list-name" style="font-weight:600;">${c.name}</div>
+          <div class="comp-list-name" style="font-weight:600;">${escapeHtml(c.name)}</div>
           <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace;display:flex;align-items:center;gap:6px;">
-            <span>${c.wca_id || 'NUEVO'}</span>
+            <span>${escapeHtml(c.wca_id || 'NUEVO')}</span>
             <span>·</span>
-            <span>${c.country || ''}</span>
+            <span>${escapeHtml(c.country || '')}</span>
           </div>
         </div>
       </div>
@@ -2378,8 +2381,8 @@ function filterBannerCompetitorList() {
       <div class="banner-comp-info" title="Haga clic para seleccionar">
         ${flagHtml}
         <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;">
-          <div class="banner-comp-name">${c.name}</div>
-          <div class="banner-comp-meta">${c.wca_id || 'NUEVO'} · ${c.country || ''}</div>
+          <div class="banner-comp-name">${escapeHtml(c.name)}</div>
+          <div class="banner-comp-meta">${escapeHtml(c.wca_id || 'NUEVO')} · ${escapeHtml(c.country || '')}</div>
         </div>
       </div>
       <div class="search-result-actions">
@@ -3174,6 +3177,10 @@ function renderLiveRankingPreview(rankingObj) {
       }).join('') + '</div>';
     }
 
+    const recTag = (r.recordTag && r.recordTag !== 'PB')
+      ? `<span class="live-record-badge">${escapeHtml(r.recordTag)}</span>`
+      : '';
+
     return `
       <tr style="${isFinalSolve ? 'background:rgba(2, 132, 199, 0.1);' : ''}">
         <td style="text-align:center;">
@@ -3669,7 +3676,7 @@ function onShowcaseSearchInput(query) {
   }
 
   resultsDropdown.innerHTML = filtered.map(c => `
-    <div class="search-item" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'" onclick="selectShowcaseFromSearch('${escapeHtml(c.wca_id || c.name)}')">
+    <div class="search-item" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'" onclick="selectShowcaseFromSearch(decodeURIComponent('${encodeURIComponent(c.wca_id || c.name)}'))">
       <div style="display:flex;align-items:center;gap:8px;">
         ${c.country ? `<img src="https://flagcdn.com/w40/${c.country.toLowerCase()}.png" style="width:20px;height:14px;border-radius:2px;" onerror="this.style.display='none'">` : ''}
         <span style="font-size:12px;font-weight:700;color:var(--text-main);">${escapeHtml(c.name)}</span>
@@ -4003,7 +4010,7 @@ function onH2HSearchInput(slot, query) {
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" 
          onmouseover="this.style.background='rgba(255,255,255,0.08)'" 
          onmouseout="this.style.background='transparent'" 
-         onclick="selectH2HCompetitor(${slot}, '${escapeHtml(c.wca_id || c.name)}')">
+         onclick="selectH2HCompetitor(${slot}, decodeURIComponent('${encodeURIComponent(c.wca_id || c.name)}'))">
       <span style="font-weight:700;font-size:12px;color:#fff;">${escapeHtml(c.name)}</span>
       <span style="font-size:11px;color:var(--text-dim);font-family:'Space Mono',monospace;">${escapeHtml(c.wca_id || 'NUEVO')}</span>
     </div>
@@ -4217,10 +4224,11 @@ function populateVersusRoundSelect(targetRoundId = null) {
 async function fetchVersusDataForRound(roundId) {
   if (!roundId) return;
   try {
-    const res = await fetch(`/api/live/rounds/${roundId}`);
+    const res = await fetch(`/api/live/rounds/${encodeURIComponent(roundId)}?top=0`);
     const data = await res.json();
-    if (data.ok && data.ranking && data.ranking.results) {
-      populateVersusCompetitors(data.ranking.results);
+    const results = data.ranking?.ranking || data.ranking?.results || [];
+    if (data.ok && results.length > 0) {
+      populateVersusCompetitors(results);
     }
   } catch (err) {
     console.warn('[VersusPanel] Error obteniendo competidores de la ronda:', err);

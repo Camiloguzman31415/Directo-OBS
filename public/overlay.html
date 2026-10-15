@@ -1201,7 +1201,8 @@
   body.is-fullscreen-page #live-ranking-overlay,
   body.is-fullscreen-page #competitor-showcase-card,
   body.is-fullscreen-page #tournament-big-logo-overlay,
-  body.is-fullscreen-page #head-to-head-overlay {
+  body.is-fullscreen-page #head-to-head-overlay,
+  body.is-fullscreen-page #versus-banner {
     display: none !important;
   }
 
@@ -4189,7 +4190,7 @@
         } else {
           fsRowsContainer.innerHTML = pageResults.map(r => {
             const pos = r.ranking;
-            const cutoff = liveRankingConfig.cutoff !== undefined ? liveRankingConfig.cutoff : (data && data.advancingCutoff ? data.advancingCutoff : 0);
+            const cutoff = liveRankingConfig.cutoff !== undefined ? liveRankingConfig.cutoff : (currentRawRankingData && currentRawRankingData.advancingCutoff ? currentRawRankingData.advancingCutoff : 0);
             const isAdv = cutoff > 0 && pos <= cutoff;
             const isCutoffLine = cutoff > 0 && pos === cutoff;
 
@@ -4887,6 +4888,7 @@
   }
 
   function showVersusBanner(data) {
+    if (IS_DEDICATED_FULLSCREEN) return;
     if (data) renderVersusBanner(data);
     if (versusBanner) versusBanner.classList.add('visible');
   }
@@ -4932,7 +4934,7 @@
           } else if (msg.type === 'event') {
             setEvent(msg.data);
             eventBadge.classList.add('visible');
-          } else if (msg.type === 'live_ranking_show') {
+          } else if (msg.type === 'live_ranking_show' || msg.type === 'live_ranking_update') {
             renderLiveRanking(msg);
           } else if (msg.type === 'live_ranking_hide') {
             hideLiveRanking();
