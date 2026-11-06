@@ -70,6 +70,7 @@ let eventVisible = false;
 let showcaseCompetitor = null;   // Competidor asignado al Showcase (esquina superior derecha)
 let showcaseVisible = false;      // Visibilidad del Showcase en OBS
 let tournamentLogo = null;        // URL persistente del logo del torneo en servidor
+let tickerSize = 'small';         // Tamaño del banner inferior de noticias: 'small' | 'medium' | 'large'
 let bigLogoVisible = false;       // Visibilidad del Logo Central (Momentos Muertos)
 let bigLogoUrl = null;           // URL específica o personalizada del Logo Central
 let bigLogoSize = 760;           // Tamaño máximo en píxeles (altura) del Logo Central
@@ -120,7 +121,10 @@ let fsTheme = {
   bgImage: null,
   opacity: 100,
   blur: 0,
+  gradientLevel: 70,
+  patternSize: 80,
   colorCycle: false,
+  colombiaCycle: false,
   animation: 'none',
   animSpeed: 'slow'
 };
@@ -228,6 +232,7 @@ function saveLiveState(immediate = false) {
         viewMode: liveRankingViewMode,
         fsTheme: fsTheme,
         tournamentLogo: cleanLogo,
+        tickerSize: tickerSize,
         bigLogoVisible: bigLogoVisible,
         bigLogoUrl: cleanBigLogo,
         bigLogoSize: bigLogoSize,
@@ -275,6 +280,9 @@ function loadLiveState() {
       if (state.visible !== undefined) liveRankingVisible = state.visible;
       if (state.viewMode) liveRankingViewMode = state.viewMode;
       if (state.tournamentLogo !== undefined) tournamentLogo = state.tournamentLogo;
+      if (state.tickerSize && ['small', 'medium', 'large'].includes(state.tickerSize)) {
+        tickerSize = state.tickerSize;
+      }
       if (state.bigLogoVisible !== undefined) bigLogoVisible = state.bigLogoVisible;
       if (state.bigLogoUrl !== undefined) bigLogoUrl = state.bigLogoUrl;
       if (state.bigLogoSize !== undefined) {
@@ -302,7 +310,10 @@ function loadLiveState() {
           bgImage: state.fsTheme.bgImage || null,
           opacity: state.fsTheme.opacity !== undefined ? state.fsTheme.opacity : 100,
           blur: state.fsTheme.blur !== undefined ? state.fsTheme.blur : 0,
+          gradientLevel: state.fsTheme.gradientLevel !== undefined ? state.fsTheme.gradientLevel : 70,
+          patternSize: state.fsTheme.patternSize !== undefined ? state.fsTheme.patternSize : 80,
           colorCycle: state.fsTheme.colorCycle !== undefined ? !!state.fsTheme.colorCycle : false,
+          colombiaCycle: state.fsTheme.colombiaCycle !== undefined ? !!state.fsTheme.colombiaCycle : false,
           animation: state.fsTheme.animation || 'none',
           animSpeed: state.fsTheme.animSpeed || 'slow'
         };
@@ -630,7 +641,9 @@ app.post('/api/wca/fetch', async (req, res) => {
             for (const [eid, rec] of Object.entries(rawRecords)) {
               prs[eid] = {
                 single: rec.single?.best ?? null,
-                average: rec.average?.best ?? null
+                average: rec.average?.best ?? null,
+                single_nr: rec.single?.country_rank ?? null,
+                average_nr: rec.average?.country_rank ?? null
               };
             }
             allPRs[c.wca_id] = prs;
@@ -670,6 +683,8 @@ app.post('/api/wca/fetch', async (req, res) => {
               event_name: EVENT_NAMES[eid] || eid,
               single_cs: raw[eid].single,
               average_cs: raw[eid].average,
+              single_nr: raw[eid].single_nr ?? null,
+              average_nr: raw[eid].average_nr ?? null,
               single_fmt: formatTime(raw[eid].single, eid),
               average_fmt: formatTime(raw[eid].average, eid)
             };
@@ -678,6 +693,8 @@ app.post('/api/wca/fetch', async (req, res) => {
               event_name: EVENT_NAMES[eid] || eid,
               single_cs: null,
               average_cs: null,
+              single_nr: null,
+              average_nr: null,
               single_fmt: '—',
               average_fmt: '—'
             };
@@ -748,6 +765,8 @@ app.get('/api/wca/person/:wcaId', async (req, res) => {
         event_name: EVENT_NAMES[eid] || eid,
         single_cs: rec.single?.best ?? null,
         average_cs: rec.average?.best ?? null,
+        single_nr: rec.single?.country_rank ?? null,
+        average_nr: rec.average?.country_rank ?? null,
         single_fmt: formatTime(rec.single?.best ?? null, eid),
         average_fmt: formatTime(rec.average?.best ?? null, eid)
       };
@@ -848,30 +867,53 @@ app.get('/api/wca/avatar/:wcaId', async (req, res) => {
   }
 });
 
-// Cache en memoria para resultados históricos de competidores WCA
+// Cache en memoria para resultados históricos y récords de competidores WCA
 const wcaResultsCache = new Map();
+const wcaPersonRecordsCache = new Map();
 
-// Obtener medallas y podios por categoría de un competidor
+// Obtener medallas, podios y rankings nacionales (NR) por categoría de un competidor
 app.get('/api/wca/podiums/:wcaId', async (req, res) => {
   const { wcaId } = req.params;
   const eventId = req.query.eventId || '333';
   const cleanId = (wcaId || '').trim().toUpperCase();
 
   if (!cleanId) {
-    return res.json({ ok: true, wca_id: '', event_id: eventId, gold: 0, silver: 0, bronze: 0 });
+    return res.json({ ok: true, wca_id: '', event_id: eventId, gold: 0, silver: 0, bronze: 0, single_nr: null, average_nr: null, records: {} });
   }
 
   try {
+    const WCA_HEADERS = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
+
     let results = wcaResultsCache.get(cleanId);
+    let records = wcaPersonRecordsCache.get(cleanId);
+
+    const promises = [];
     if (!results) {
-      const WCA_HEADERS = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
-      const pRes = await fetch(`${WCA_API}/persons/${cleanId}/results`, { headers: WCA_HEADERS });
-      if (pRes.ok) {
-        results = await pRes.json();
-        wcaResultsCache.set(cleanId, results);
-      } else {
-        results = [];
-      }
+      promises.push(
+        fetch(`${WCA_API}/persons/${cleanId}/results`, { headers: WCA_HEADERS })
+          .then(r => r.ok ? r.json() : [])
+          .then(data => { results = data; wcaResultsCache.set(cleanId, results); })
+          .catch(() => { results = []; })
+      );
+    }
+    if (!records) {
+      promises.push(
+        fetch(`${WCA_API}/persons/${cleanId}`, { headers: WCA_HEADERS })
+          .then(r => r.ok ? r.json() : null)
+          .then(pData => {
+            if (pData) {
+              records = pData.personal_records || (pData.persons && pData.persons[0]?.personal_records) || {};
+              wcaPersonRecordsCache.set(cleanId, records);
+            } else {
+              records = {};
+            }
+          })
+          .catch(() => { records = {}; })
+      );
+    }
+
+    if (promises.length > 0) {
+      await Promise.all(promises);
     }
 
     let gold = 0, silver = 0, bronze = 0;
@@ -883,10 +925,36 @@ app.get('/api/wca/podiums/:wcaId', async (req, res) => {
       }
     }
 
-    res.json({ ok: true, wca_id: cleanId, event_id: eventId, gold, silver, bronze });
+    const evRec = (records && records[eventId]) || {};
+    const single_nr = evRec.single?.country_rank ?? null;
+    const average_nr = evRec.average?.country_rank ?? null;
+
+    // Enriquecer en memoria si existe el competidor en el torneo o en HeadToHead
+    const enrichCompNr = (comp) => {
+      if (!comp || (comp.wca_id || '').toUpperCase() !== cleanId) return;
+      if (records) {
+        comp.personal_records = records;
+        if (comp.prs) {
+          for (const [eid, rObj] of Object.entries(records)) {
+            if (comp.prs[eid]) {
+              comp.prs[eid].single_nr = rObj.single?.country_rank ?? null;
+              comp.prs[eid].average_nr = rObj.average?.country_rank ?? null;
+            }
+          }
+        }
+      }
+    };
+    if (tournamentData?.competitors) {
+      const found = tournamentData.competitors.find(c => (c.wca_id || '').toUpperCase() === cleanId);
+      if (found) enrichCompNr(found);
+    }
+    if (headToHeadData?.competitor1) enrichCompNr(headToHeadData.competitor1);
+    if (headToHeadData?.competitor2) enrichCompNr(headToHeadData.competitor2);
+
+    res.json({ ok: true, wca_id: cleanId, event_id: eventId, gold, silver, bronze, single_nr, average_nr, records: records || {} });
   } catch (err) {
     console.error(`[WCA Podiums Error] ${cleanId}:`, err.message);
-    res.json({ ok: false, gold: 0, silver: 0, bronze: 0 });
+    res.json({ ok: false, gold: 0, silver: 0, bronze: 0, single_nr: null, average_nr: null, records: {} });
   }
 });
 
@@ -2226,7 +2294,11 @@ function handleSocketConnection(ws, req) {
       }));
     }
 
-    // Enviar logo persistente del torneo
+    // Enviar logo persistente del torneo y tamaño del ticker
+    socket.send(JSON.stringify({
+      type: 'ticker_size_updated',
+      size: tickerSize
+    }));
     if (tournamentLogo) {
       socket.send(JSON.stringify({
         type: 'tournament_logo_updated',
@@ -2295,6 +2367,7 @@ function handleSocketConnection(ws, req) {
       showcaseCompetitor,
       showcaseVisible,
       tournamentLogo,
+      tickerSize,
       bigLogoVisible,
       bigLogoUrl: bigLogoUrl || tournamentLogo,
       bigLogoSize,
@@ -2447,6 +2520,12 @@ function handleSocketConnection(ws, req) {
             tournamentLogo = msg.data.tournament_logo;
             saveLiveState();
           }
+          if (msg.data.ticker_size && ['small', 'medium', 'large'].includes(msg.data.ticker_size)) {
+            tickerSize = msg.data.ticker_size;
+            saveLiveState();
+          } else {
+            msg.data.ticker_size = tickerSize;
+          }
           currentEvent = Object.assign({}, currentEvent || {}, msg.data);
         }
         eventVisible = true;
@@ -2455,7 +2534,23 @@ function handleSocketConnection(ws, req) {
           type: 'banner_event',
           event: currentEvent
         });
-        broadcastToPanels({ type: 'sync_state', currentEvent, eventVisible });
+        broadcastToPanels({ type: 'sync_state', currentEvent, eventVisible, tickerSize });
+        break;
+
+      case 'set_ticker_size':
+        if (msg.size && ['small', 'medium', 'large'].includes(msg.size)) {
+          tickerSize = msg.size;
+          if (currentEvent) currentEvent.ticker_size = tickerSize;
+          saveLiveState();
+          broadcastToOverlays({
+            type: 'ticker_size_updated',
+            size: tickerSize
+          });
+          broadcastToPanels({
+            type: 'ticker_size_updated',
+            size: tickerSize
+          });
+        }
         break;
 
       case 'hide_competitor':
@@ -2874,7 +2969,10 @@ function handleSocketConnection(ws, req) {
           if (msg.data.bgImage !== undefined) fsTheme.bgImage = msg.data.bgImage;
           if (msg.data.opacity !== undefined) fsTheme.opacity = parseInt(msg.data.opacity, 10);
           if (msg.data.blur !== undefined) fsTheme.blur = parseInt(msg.data.blur, 10);
+          if (msg.data.gradientLevel !== undefined) fsTheme.gradientLevel = Math.max(0, Math.min(100, parseInt(msg.data.gradientLevel, 10) || 0));
+          if (msg.data.patternSize !== undefined) fsTheme.patternSize = Math.max(40, Math.min(260, parseInt(msg.data.patternSize, 10) || 80));
           if (msg.data.colorCycle !== undefined) fsTheme.colorCycle = !!msg.data.colorCycle;
+          if (msg.data.colombiaCycle !== undefined) fsTheme.colombiaCycle = !!msg.data.colombiaCycle;
           if (msg.data.animation !== undefined) fsTheme.animation = msg.data.animation;
           if (msg.data.animSpeed !== undefined) fsTheme.animSpeed = msg.data.animSpeed;
           saveLiveState();

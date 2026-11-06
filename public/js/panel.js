@@ -36,6 +36,7 @@ let h2hPodiums2 = { gold: 0, silver: 0, bronze: 0 };
 
 // ── Estado del Ticker de Noticias Broadcast (Lower-Third) ──
 let tickerTournamentLogo = localStorage.getItem('directoobs_ticker_logo') || '';
+let tickerSize = localStorage.getItem('directoobs_ticker_size') || 'small';
 let tickerDay = localStorage.getItem('directoobs_ticker_day') || '';
 let tickerVenue = localStorage.getItem('directoobs_ticker_venue') || '';
 let tickerNews = localStorage.getItem('directoobs_ticker_news') || '';
@@ -224,6 +225,9 @@ function handleServerMessage(msg) {
         }
         updateTickerLogoPreview();
       }
+      if (msg.tickerSize) {
+        setTickerSize(msg.tickerSize, false);
+      }
       if (msg.headToHeadVisible !== undefined) {
         headToHeadVisible = !!msg.headToHeadVisible;
       }
@@ -384,6 +388,7 @@ function handleServerMessage(msg) {
       if (msg.bannerPosition !== undefined) setBannerPosition(msg.bannerPosition, false);
       if (msg.bannerAlign !== undefined) setBannerAlign(msg.bannerAlign, false);
       if (msg.bannerFont !== undefined) setBannerFont(msg.bannerFont, false);
+      if (msg.tickerSize !== undefined) setTickerSize(msg.tickerSize, false);
 
       if (msg.currentCompetitor !== undefined) {
         currentCompetitor = msg.currentCompetitor;
@@ -509,6 +514,12 @@ function handleServerMessage(msg) {
       if (msg.data) {
         currentFsTheme = Object.assign({}, currentFsTheme, msg.data);
         updateFsThemeUI();
+      }
+      break;
+
+    case 'ticker_size_updated':
+      if (msg.size) {
+        setTickerSize(msg.size, false);
       }
       break;
 
@@ -1503,8 +1514,40 @@ function initTickerUI() {
   if (dayInput) dayInput.value = tickerDay;
   if (venueInput) venueInput.value = tickerVenue;
 
+  setTickerSize(tickerSize, false);
   updateTickerLogoPreview();
   renderTickerNewsList();
+}
+
+function setTickerSize(size, broadcast = true) {
+  const validSizes = ['small', 'medium', 'large'];
+  tickerSize = validSizes.includes(size) ? size : 'small';
+  try {
+    localStorage.setItem('directoobs_ticker_size', tickerSize);
+  } catch (e) {}
+
+  document.querySelectorAll('#ticker-size-selector .segment-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.size === tickerSize);
+  });
+
+  const badge = document.getElementById('ticker-size-badge');
+  if (badge) {
+    const labels = {
+      'small': 'Pequeño (Por Defecto)',
+      'medium': 'Intermedio',
+      'large': 'Grande'
+    };
+    badge.textContent = labels[tickerSize] || 'Pequeño (Por Defecto)';
+  }
+
+  if (broadcast) {
+    sendWS({
+      type: 'set_ticker_size',
+      size: tickerSize
+    });
+    const toastLabels = { 'small': 'Pequeño', 'medium': 'Intermedio', 'large': 'Grande' };
+    showToast(`Tamaño del banner de noticias: ${toastLabels[tickerSize]}`, 'info');
+  }
 }
 
 function renderTickerNewsList() {
@@ -1703,7 +1746,8 @@ function sendShowEvent() {
     day: dayValue,
     news: activeNews.join(' • '),
     news_list: activeNews,
-    tournament_logo: tickerTournamentLogo || ''
+    tournament_logo: tickerTournamentLogo || '',
+    ticker_size: tickerSize || 'small'
   };
 
   currentEvent = data;
@@ -2114,7 +2158,8 @@ function sendShowCompetitor() {
     day: tickerDay || '',
     venue: tickerVenue || '',
     news_list: (Array.isArray(tickerNewsList) && tickerNewsList.length > 0) ? tickerNewsList : ['Sigue los resultados en directo por WCA Live'],
-    tournament_logo: tickerTournamentLogo || ''
+    tournament_logo: tickerTournamentLogo || '',
+    ticker_size: tickerSize || 'small'
   };
 
   const payload = {
@@ -3262,10 +3307,21 @@ let currentFsTheme = {
   bgImage: null,
   opacity: 100,
   blur: 0,
+  gradientLevel: 70,
+  patternSize: 80,
   colorCycle: false,
+  colombiaCycle: false,
   animation: 'none',
   animSpeed: 'slow'
 };
+
+function formatPatternSizeLabel(s) {
+  const val = parseInt(s, 10) || 80;
+  if (val === 80) return '80px (Por defecto)';
+  if (val < 80) return `${val}px (Pequeño)`;
+  if (val <= 130) return `${val}px (Mediano)`;
+  return `${val}px (Grande)`;
+}
 
 function rgbToHex(rgbStr) {
   if (!rgbStr) return '';
@@ -3283,7 +3339,12 @@ function updateFsThemeUI() {
   const opLabel = document.getElementById('fs-opacity-val');
   const blurSlider = document.getElementById('fs-blur-slider');
   const blurLabel = document.getElementById('fs-blur-val');
+  const gradSlider = document.getElementById('fs-gradient-slider');
+  const gradLabel = document.getElementById('fs-gradient-val');
+  const patSlider = document.getElementById('fs-pattern-size-slider');
+  const patLabel = document.getElementById('fs-pattern-size-val');
   const cycleCheck = document.getElementById('fs-color-cycle-check');
+  const colombiaCheck = document.getElementById('fs-colombia-cycle-check');
   const animSelect = document.getElementById('fs-anim-select');
   const speedSelect = document.getElementById('fs-speed-select');
   const statusLabel = document.getElementById('fs-image-status');
@@ -3294,7 +3355,10 @@ function updateFsThemeUI() {
   const curColor = (currentFsTheme.bgColor || '#0c4ea8').toLowerCase();
   const curOpacity = currentFsTheme.opacity !== undefined ? currentFsTheme.opacity : 100;
   const curBlur = currentFsTheme.blur !== undefined ? currentFsTheme.blur : 0;
+  const curGrad = currentFsTheme.gradientLevel !== undefined ? currentFsTheme.gradientLevel : 70;
+  const curPatSize = currentFsTheme.patternSize !== undefined ? currentFsTheme.patternSize : 80;
   const curCycle = !!currentFsTheme.colorCycle;
+  const curColombia = !!currentFsTheme.colombiaCycle;
   const curAnim = currentFsTheme.animation || 'none';
   const curSpeed = currentFsTheme.animSpeed || 'slow';
 
@@ -3304,7 +3368,12 @@ function updateFsThemeUI() {
   if (opLabel) opLabel.textContent = `${curOpacity}%`;
   if (blurSlider) blurSlider.value = curBlur;
   if (blurLabel) blurLabel.textContent = `${curBlur}px`;
+  if (gradSlider) gradSlider.value = curGrad;
+  if (gradLabel) gradLabel.textContent = `${curGrad}%`;
+  if (patSlider) patSlider.value = curPatSize;
+  if (patLabel) patLabel.textContent = formatPatternSizeLabel(curPatSize);
   if (cycleCheck) cycleCheck.checked = curCycle;
+  if (colombiaCheck) colombiaCheck.checked = curColombia;
   if (animSelect) animSelect.value = curAnim;
   if (speedSelect) speedSelect.value = curSpeed;
 
@@ -3391,13 +3460,66 @@ function onFsBlurChange(val) {
   });
 }
 
-function onFsColorCycleChange(checked) {
-  currentFsTheme.colorCycle = !!checked;
+function onFsGradientLevelChange(val) {
+  const g = Math.max(0, Math.min(100, parseInt(val, 10) || 0));
+  currentFsTheme.gradientLevel = g;
+  const gradLabel = document.getElementById('fs-gradient-val');
+  if (gradLabel) gradLabel.textContent = `${g}%`;
   sendWS({
     type: 'set_fs_theme',
-    data: { colorCycle: currentFsTheme.colorCycle }
+    data: { gradientLevel: g }
   });
-  showToast(`Transición de degradé: ${checked ? 'Activada' : 'Desactivada'}`, 'info');
+}
+
+function onFsPatternSizeChange(val) {
+  const s = Math.max(40, Math.min(260, parseInt(val, 10) || 80));
+  currentFsTheme.patternSize = s;
+  const patLabel = document.getElementById('fs-pattern-size-val');
+  if (patLabel) patLabel.textContent = formatPatternSizeLabel(s);
+  sendWS({
+    type: 'set_fs_theme',
+    data: { patternSize: s }
+  });
+}
+
+function onFsColorCycleChange(checked) {
+  currentFsTheme.colorCycle = !!checked;
+  if (checked) {
+    currentFsTheme.colombiaCycle = false;
+    const colombiaCheck = document.getElementById('fs-colombia-cycle-check');
+    if (colombiaCheck) colombiaCheck.checked = false;
+  }
+  sendWS({
+    type: 'set_fs_theme',
+    data: {
+      colorCycle: currentFsTheme.colorCycle,
+      colombiaCycle: currentFsTheme.colombiaCycle
+    }
+  });
+  showToast(`Transición de degradé multicolor: ${checked ? 'Activada' : 'Desactivada'}`, 'info');
+}
+
+function onFsColombiaCycleChange(checked) {
+  currentFsTheme.colombiaCycle = !!checked;
+  if (checked) {
+    currentFsTheme.colorCycle = false;
+    const cycleCheck = document.getElementById('fs-color-cycle-check');
+    if (cycleCheck) cycleCheck.checked = false;
+    if (!currentFsTheme.animation || currentFsTheme.animation === 'none') {
+      currentFsTheme.animation = 'scroll-right';
+      const animSelect = document.getElementById('fs-anim-select');
+      if (animSelect) animSelect.value = 'scroll-right';
+    }
+  }
+  sendWS({
+    type: 'set_fs_theme',
+    data: {
+      colombiaCycle: currentFsTheme.colombiaCycle,
+      colorCycle: currentFsTheme.colorCycle,
+      animation: currentFsTheme.animation
+    }
+  });
+  showToast(`Degradé Bandera de Colombia: ${checked ? 'Activado (Flujo Izq ➔ Der) 🇨🇴' : 'Desactivado'}`, 'info');
 }
 
 function onFsAnimationChange(anim) {
@@ -3503,7 +3625,10 @@ function resetFsTheme() {
     bgImage: null,
     opacity: 100,
     blur: 0,
+    gradientLevel: 70,
+    patternSize: 80,
     colorCycle: false,
+    colombiaCycle: false,
     animation: 'none',
     animSpeed: 'slow'
   };
@@ -3515,7 +3640,9 @@ function resetFsTheme() {
       bgImage: null,
       opacity: 100,
       blur: 0,
+      gradientLevel: 70,
       colorCycle: false,
+      colombiaCycle: false,
       animation: 'none',
       animSpeed: 'slow'
     }
@@ -3940,27 +4067,21 @@ function updateHeadToHeadUI() {
     name2El.textContent = (h2hComp2 && h2hComp2.name) ? h2hComp2.name.toUpperCase() : 'COMPETIDOR 2';
   }
 
-  if (pr1El) {
-    if (h2hComp1) {
-      const pr = h2hComp1.prs && h2hComp1.prs[currentEid];
-      const s = (pr && pr.single_fmt) ? pr.single_fmt : '—';
-      const a = (pr && pr.average_fmt) ? pr.average_fmt : '—';
-      pr1El.textContent = `${s} / ${a}`;
-    } else {
-      pr1El.textContent = '— / —';
-    }
-  }
+  const fmtPanelPr = (comp, eid) => {
+    if (!comp) return '— / —';
+    const pr = comp.prs && comp.prs[eid];
+    const rec = comp.personal_records && comp.personal_records[eid];
+    const s = (pr && pr.single_fmt) ? pr.single_fmt : '—';
+    const a = (pr && pr.average_fmt) ? pr.average_fmt : '—';
+    const sNr = pr?.single_nr ?? rec?.single?.country_rank ?? null;
+    const aNr = pr?.average_nr ?? rec?.average?.country_rank ?? null;
+    const sTxt = (s !== '—' && s !== '-' && sNr) ? `${s} (NR ${sNr})` : s;
+    const aTxt = (a !== '—' && a !== '-' && aNr) ? `${a} (NR ${aNr})` : a;
+    return `${sTxt} / ${aTxt}`;
+  };
 
-  if (pr2El) {
-    if (h2hComp2) {
-      const pr = h2hComp2.prs && h2hComp2.prs[currentEid];
-      const s = (pr && pr.single_fmt) ? pr.single_fmt : '—';
-      const a = (pr && pr.average_fmt) ? pr.average_fmt : '—';
-      pr2El.textContent = `${s} / ${a}`;
-    } else {
-      pr2El.textContent = '— / —';
-    }
-  }
+  if (pr1El) pr1El.textContent = fmtPanelPr(h2hComp1, currentEid);
+  if (pr2El) pr2El.textContent = fmtPanelPr(h2hComp2, currentEid);
 
   const sizeSlider = document.getElementById('h2h-size-slider');
   const sizeVal = document.getElementById('h2h-size-val');
@@ -4105,12 +4226,31 @@ async function fetchH2HPodiumsFromWCA() {
   const eid = h2hEventId || selectedEventId || '333';
   let updated = false;
 
+  const applyRecordsToComp = (comp, data) => {
+    if (!comp || !data) return;
+    if (data.records && Object.keys(data.records).length > 0) {
+      comp.personal_records = data.records;
+      if (comp.prs) {
+        for (const [evKey, rObj] of Object.entries(data.records)) {
+          if (comp.prs[evKey]) {
+            comp.prs[evKey].single_nr = rObj.single?.country_rank ?? null;
+            comp.prs[evKey].average_nr = rObj.average?.country_rank ?? null;
+          }
+        }
+      }
+    } else if (comp.prs && comp.prs[eid]) {
+      if (data.single_nr !== undefined) comp.prs[eid].single_nr = data.single_nr;
+      if (data.average_nr !== undefined) comp.prs[eid].average_nr = data.average_nr;
+    }
+  };
+
   if (h2hComp1 && h2hComp1.wca_id) {
     try {
       const res = await fetch(`/api/wca/podiums/${h2hComp1.wca_id}?eventId=${eid}`);
       const data = await res.json();
       if (data.ok) {
         h2hPodiums1 = { gold: data.gold, silver: data.silver, bronze: data.bronze };
+        applyRecordsToComp(h2hComp1, data);
         updated = true;
       }
     } catch (e) {
@@ -4126,6 +4266,7 @@ async function fetchH2HPodiumsFromWCA() {
       const data = await res.json();
       if (data.ok) {
         h2hPodiums2 = { gold: data.gold, silver: data.silver, bronze: data.bronze };
+        applyRecordsToComp(h2hComp2, data);
         updated = true;
       }
     } catch (e) {
