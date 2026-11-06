@@ -3312,7 +3312,9 @@ let currentFsTheme = {
   colorCycle: false,
   colombiaCycle: false,
   animation: 'none',
-  animSpeed: 'slow'
+  animSpeed: 'slow',
+  scene: 'ranking',
+  lunchText: 'Hora de almuerzo'
 };
 
 function formatPatternSizeLabel(s) {
@@ -3407,6 +3409,49 @@ function updateFsThemeUI() {
     if (btnRemove) btnRemove.style.display = 'none';
     if (previewBox) previewBox.style.display = 'none';
   }
+
+  // Escena activa en Pantalla Completa (Tabla de Resultados vs Hora de Almuerzo)
+  const curScene = currentFsTheme.scene === 'lunch' ? 'lunch' : 'ranking';
+  const curLunchText = currentFsTheme.lunchText || 'Hora de almuerzo';
+  const btnSceneRanking = document.getElementById('btn-fs-scene-ranking');
+  const btnSceneLunch = document.getElementById('btn-fs-scene-lunch');
+  const lunchSettingsRow = document.getElementById('fs-lunch-settings-row');
+  const lunchTextInput = document.getElementById('fs-lunch-text-input');
+
+  if (btnSceneRanking && btnSceneLunch) {
+    btnSceneRanking.classList.toggle('active', curScene === 'ranking');
+    btnSceneLunch.classList.toggle('active', curScene === 'lunch');
+  }
+  if (lunchSettingsRow) {
+    lunchSettingsRow.style.display = curScene === 'lunch' ? 'flex' : 'none';
+  }
+  if (lunchTextInput && document.activeElement !== lunchTextInput) {
+    lunchTextInput.value = curLunchText;
+  }
+}
+
+function setFsScene(scene) {
+  const cleanScene = scene === 'lunch' ? 'lunch' : 'ranking';
+  currentFsTheme.scene = cleanScene;
+  updateFsThemeUI();
+  sendWS({
+    type: 'set_fs_theme',
+    data: { scene: cleanScene, lunchText: currentFsTheme.lunchText || 'Hora de almuerzo' }
+  });
+  showToast(
+    cleanScene === 'lunch'
+      ? '🍽️ Escena "Hora de almuerzo" activa en Pantalla Completa (/fullscreen)'
+      : '📊 Tabla de Resultados activa en Pantalla Completa (/fullscreen)',
+    'info'
+  );
+}
+
+function onFsLunchTextChange(val) {
+  currentFsTheme.lunchText = val || 'Hora de almuerzo';
+  sendWS({
+    type: 'set_fs_theme',
+    data: { lunchText: currentFsTheme.lunchText }
+  });
 }
 
 function onFsColorPickerChange(color) {
@@ -3620,6 +3665,8 @@ function removeFsImage() {
 }
 
 function resetFsTheme() {
+  const prevScene = currentFsTheme.scene || 'ranking';
+  const prevLunchText = currentFsTheme.lunchText || 'Hora de almuerzo';
   currentFsTheme = {
     bgColor: '#0c4ea8',
     bgImage: null,
@@ -3630,7 +3677,9 @@ function resetFsTheme() {
     colorCycle: false,
     colombiaCycle: false,
     animation: 'none',
-    animSpeed: 'slow'
+    animSpeed: 'slow',
+    scene: prevScene,
+    lunchText: prevLunchText
   };
   fetch('/api/fs-background/delete', { method: 'POST' }).catch(() => {});
   sendWS({

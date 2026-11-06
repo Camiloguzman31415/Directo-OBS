@@ -126,7 +126,9 @@ let fsTheme = {
   colorCycle: false,
   colombiaCycle: false,
   animation: 'none',
-  animSpeed: 'slow'
+  animSpeed: 'slow',
+  scene: 'ranking',
+  lunchText: 'Hora de almuerzo'
 };
 
 const LIVE_STATE_FILE = path.join(__dirname, 'live_state.json');
@@ -315,7 +317,9 @@ function loadLiveState() {
           colorCycle: state.fsTheme.colorCycle !== undefined ? !!state.fsTheme.colorCycle : false,
           colombiaCycle: state.fsTheme.colombiaCycle !== undefined ? !!state.fsTheme.colombiaCycle : false,
           animation: state.fsTheme.animation || 'none',
-          animSpeed: state.fsTheme.animSpeed || 'slow'
+          animSpeed: state.fsTheme.animSpeed || 'slow',
+          scene: state.fsTheme.scene || 'ranking',
+          lunchText: state.fsTheme.lunchText || 'Hora de almuerzo'
         };
       }
       console.log(`[LiveRanking] Estado restaurado: compId=${liveRankingCompId}, roundId=${liveRankingRoundId}`);
@@ -494,6 +498,10 @@ app.get('/overlay', (req, res) => {
 });
 
 app.get('/fullscreen', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'overlay.html'));
+});
+
+app.get('/almuerzo', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'overlay.html'));
 });
 
@@ -2975,6 +2983,8 @@ function handleSocketConnection(ws, req) {
           if (msg.data.colombiaCycle !== undefined) fsTheme.colombiaCycle = !!msg.data.colombiaCycle;
           if (msg.data.animation !== undefined) fsTheme.animation = msg.data.animation;
           if (msg.data.animSpeed !== undefined) fsTheme.animSpeed = msg.data.animSpeed;
+          if (msg.data.scene !== undefined) fsTheme.scene = msg.data.scene === 'lunch' ? 'lunch' : 'ranking';
+          if (msg.data.lunchText !== undefined) fsTheme.lunchText = String(msg.data.lunchText || 'Hora de almuerzo');
           saveLiveState();
           broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
           broadcastToPanels({ type: 'fs_theme_updated', data: fsTheme });

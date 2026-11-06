@@ -2995,6 +2995,85 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* ━━━ ESCENA FULLSCREEN: HORA DE ALMUERZO ━━━ */
+  .fs-lunch-scene {
+    position: relative;
+    z-index: 3;
+    width: 1920px;
+    height: 1080px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 40px;
+    animation: fsPageSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .fs-lunch-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+  }
+
+  .fs-lunch-video-wrap {
+    width: 1240px;
+    height: 715px;
+    padding: 18px 24px;
+    box-sizing: border-box;
+    border-radius: 30px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 5px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 30px 75px rgba(0, 0, 0, 0.82), 0 8px 24px rgba(0, 0, 0, 0.6);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fs-lunch-video-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 115px;
+    height: 58px;
+    background: #ffffff;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .fs-lunch-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: none;
+    display: block;
+  }
+
+  .fs-lunch-title {
+    font-family: 'Barlow', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 76px;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: 1.5px;
+    line-height: 1.1;
+    text-align: center;
+    padding: 8px 64px 14px;
+    border-radius: 999px;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.28) 55%, rgba(0, 0, 0, 0) 78%);
+    paint-order: stroke fill;
+    -webkit-text-stroke: 6px #0b0d12;
+    text-shadow:
+      0 3px 0 #0b0d12,
+      0 6px 0 #06070a,
+      0 10px 24px rgba(0, 0, 0, 0.95),
+      0 18px 42px rgba(0, 0, 0, 0.85);
+  }
+
   /* ━━━ BANNER DE FINALES VERSUS (CARA A CARA WCA LIVE CON WPA/BPA/AVG) ━━━ */
   #versus-banner {
     position: absolute;
@@ -3583,7 +3662,7 @@
     <div class="fs-cubes-pattern" id="fs-cubes-pattern"></div>
   </div>
 
-  <div class="fs-content-container">
+  <div class="fs-content-container" id="fs-ranking-scene">
     <!-- Columna Izquierda: Branding de Torneo y Evento -->
     <div class="fs-branding-col">
       <div class="fs-tournament-name" id="fs-tournament-name">RUBIK'S WCA&#10;EUROPEAN&#10;CHAMPIONSHIP&#10;2026</div>
@@ -3622,6 +3701,16 @@
       <div class="fs-table-footer" id="fs-table-footer" style="display: none;">
         <span class="fs-page-badge" id="fs-page-badge" style="color: #FFFFFF !important; opacity: 1 !important; text-shadow: none !important; font-weight: 900;">PÁGINA 1 / 3</span>
       </div>
+    </div>
+  </div>
+
+  <!-- Escena Fullscreen: Hora de Almuerzo -->
+  <div class="fs-lunch-scene" id="fs-lunch-scene" style="display: none;">
+    <div class="fs-lunch-card">
+      <div class="fs-lunch-video-wrap">
+        <video id="fs-lunch-video" class="fs-lunch-video" src="/videos/Almuerzo%20animaci%C3%B3n.mp4" autoplay loop muted playsinline></video>
+      </div>
+      <div class="fs-lunch-title" id="fs-lunch-title">Hora de almuerzo</div>
     </div>
   </div>
 </div>
@@ -4036,7 +4125,11 @@
   const fsPageBadge = document.getElementById('fs-page-badge');
 
   const urlParams = new URLSearchParams(window.location.search);
-  const isDedicatedFullscreen = window.location.pathname.includes('/fullscreen') ||
+  const isDedicatedLunch = window.location.pathname.includes('/almuerzo') ||
+    urlParams.get('scene') === 'lunch' ||
+    urlParams.get('scene') === 'almuerzo';
+  const isDedicatedFullscreen = isDedicatedLunch ||
+    window.location.pathname.includes('/fullscreen') ||
     urlParams.get('mode') === 'fullscreen' ||
     urlParams.get('view') === 'fullscreen' ||
     urlParams.get('fullscreen') === '1';
@@ -4683,7 +4776,9 @@
   function hideLiveRanking() {
     stopRankingPaging();
     if (lrOverlay) lrOverlay.classList.remove('visible');
-    if (fsOverlay) fsOverlay.classList.remove('visible');
+    if (fsOverlay && !isDedicatedLunch && activeFsThemeState.scene !== 'lunch') {
+      fsOverlay.classList.remove('visible');
+    }
     if (typeof updateTopBannersAntiCollision === 'function') {
       requestAnimationFrame(updateTopBannersAntiCollision);
     }
@@ -5553,10 +5648,49 @@
     }
 
     applyFsBgAnimation(theme.animation || 'none', theme.animSpeed || 'slow');
+
+    if (theme.scene !== undefined) activeFsThemeState.scene = theme.scene;
+    if (theme.lunchText !== undefined) activeFsThemeState.lunchText = theme.lunchText;
+    applyFsScene(activeFsThemeState.scene, activeFsThemeState.lunchText);
+  }
+
+  function applyFsScene(scene, lunchText) {
+    const rankingScene = document.getElementById('fs-ranking-scene');
+    const lunchScene = document.getElementById('fs-lunch-scene');
+    const lunchVideo = document.getElementById('fs-lunch-video');
+    const lunchTitle = document.getElementById('fs-lunch-title');
+
+    if (lunchTitle && lunchText !== undefined) {
+      lunchTitle.textContent = lunchText || 'Hora de almuerzo';
+    }
+
+    const targetScene = isDedicatedLunch ? 'lunch' : (scene === 'lunch' ? 'lunch' : 'ranking');
+
+    if (targetScene === 'lunch') {
+      if (rankingScene) rankingScene.style.display = 'none';
+      if (lunchScene) lunchScene.style.display = 'flex';
+      if (isDedicatedFullscreen && fsOverlay) {
+        fsOverlay.classList.add('visible');
+      }
+      if (lunchVideo) {
+        lunchVideo.play().catch(() => {});
+      }
+    } else {
+      if (lunchScene) lunchScene.style.display = 'none';
+      if (rankingScene) rankingScene.style.display = 'flex';
+      if (lunchVideo) {
+        lunchVideo.pause();
+      }
+      if (isDedicatedFullscreen && fsOverlay) {
+        fsOverlay.classList.add('visible');
+      }
+    }
   }
 
   if (isDedicatedFullscreen) {
     document.body.classList.add('is-fullscreen-page');
+    if (fsOverlay) fsOverlay.classList.add('visible');
+    applyFsScene(isDedicatedLunch ? 'lunch' : 'ranking', 'Hora de almuerzo');
   }
 
   applyFont('barlow_slim');
