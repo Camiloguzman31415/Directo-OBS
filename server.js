@@ -365,24 +365,7 @@ if (specifiedDataFile) {
     console.warn(`[Torneo] Archivo especificado no encontrado: ${specifiedDataFile}`);
   }
 } else {
-  // Buscar archivos locales de torneos previos automáticamente para conveniencia del operador
-  const fallbackFiles = ['RegionalesSantander2026_data.json', 'RoadToSACSantander2026_data.json'];
-  let loadedFallback = false;
-  for (const f of fallbackFiles) {
-    const p = path.join(__dirname, f);
-    if (fs.existsSync(p)) {
-      try {
-        tournamentData = JSON.parse(fs.readFileSync(p, 'utf8'));
-        if (tournamentData?.competitors) enrichCompetitorsWithLocalAvatars(tournamentData.competitors);
-        console.log(`[Torneo] Auto-precargado: ${tournamentData.name} (${tournamentData.competitors?.length || 0} competidores)`);
-        loadedFallback = true;
-        break;
-      } catch (err) {}
-    }
-  }
-  if (!loadedFallback) {
-    console.log('[Torneo] Servidor iniciado sin torneo por defecto. Carga uno desde el panel web o con --data <archivo.json>');
-  }
+  console.log('[Torneo] Servidor iniciado sin torneo por defecto. Carga uno desde el panel web o con --data <archivo.json>');
 }
 
 // Si había una ronda de WCA Live guardada en estado previo, precargar su ranking
