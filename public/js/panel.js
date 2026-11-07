@@ -3314,7 +3314,13 @@ let currentFsTheme = {
   animation: 'none',
   animSpeed: 'slow',
   scene: 'ranking',
-  lunchText: 'Hora de almuerzo'
+  startingCustomTitle: '',
+  startingDay: 'Día 1',
+  startingText: 'Iniciando en unos minutos',
+  startingMode: 'both',
+  lunchText: 'Hora de almuerzo',
+  reconnectingText: 'Reconectando',
+  endingText: 'Gracias por vernos'
 };
 
 function formatPatternSizeLabel(s) {
@@ -3410,40 +3416,142 @@ function updateFsThemeUI() {
     if (previewBox) previewBox.style.display = 'none';
   }
 
-  // Escena activa en Pantalla Completa (Tabla de Resultados vs Hora de Almuerzo)
-  const curScene = currentFsTheme.scene === 'lunch' ? 'lunch' : 'ranking';
-  const curLunchText = currentFsTheme.lunchText || 'Hora de almuerzo';
-  const btnSceneRanking = document.getElementById('btn-fs-scene-ranking');
-  const btnSceneLunch = document.getElementById('btn-fs-scene-lunch');
-  const lunchSettingsRow = document.getElementById('fs-lunch-settings-row');
-  const lunchTextInput = document.getElementById('fs-lunch-text-input');
+  // Escenas activas en Pantalla Completa (/fullscreen)
+  const curScene = currentFsTheme.scene || 'ranking';
+  const scenesList = ['ranking', 'starting', 'lunch', 'reconnecting', 'ending'];
+  
+  scenesList.forEach(sc => {
+    const btn = document.getElementById(`btn-fs-scene-${sc}`);
+    if (btn) btn.classList.toggle('active', curScene === sc);
+    const row = document.getElementById(`fs-${sc}-settings-row`);
+    if (row) row.style.display = (curScene === sc && sc !== 'ranking') ? 'flex' : 'none';
+  });
 
-  if (btnSceneRanking && btnSceneLunch) {
-    btnSceneRanking.classList.toggle('active', curScene === 'ranking');
-    btnSceneLunch.classList.toggle('active', curScene === 'lunch');
+  // Sincronizar textos en inputs si el usuario no los está editando
+  const startingCustomTitleInput = document.getElementById('fs-starting-custom-title-input');
+  if (startingCustomTitleInput && document.activeElement !== startingCustomTitleInput) {
+    startingCustomTitleInput.value = currentFsTheme.startingCustomTitle || '';
   }
-  if (lunchSettingsRow) {
-    lunchSettingsRow.style.display = curScene === 'lunch' ? 'flex' : 'none';
+
+  const startingDaySelect = document.getElementById('fs-starting-day-select');
+  const startingDayCustomCont = document.getElementById('fs-starting-custom-day-container');
+  const startingDayCustomInput = document.getElementById('fs-starting-custom-day-input');
+  const curDay = currentFsTheme.startingDay !== undefined ? currentFsTheme.startingDay : 'Día 1';
+  const standardDays = ['Día 1', 'Día 2', 'Día 3', 'Día 4', 'Día 5', 'none'];
+
+  if (startingDaySelect) {
+    if (standardDays.includes(curDay)) {
+      startingDaySelect.value = curDay;
+      if (startingDayCustomCont) startingDayCustomCont.style.display = 'none';
+    } else {
+      startingDaySelect.value = 'custom';
+      if (startingDayCustomCont) startingDayCustomCont.style.display = 'flex';
+      if (startingDayCustomInput && document.activeElement !== startingDayCustomInput) {
+        startingDayCustomInput.value = curDay;
+      }
+    }
   }
-  if (lunchTextInput && document.activeElement !== lunchTextInput) {
-    lunchTextInput.value = curLunchText;
+
+  const startingInput = document.getElementById('fs-starting-text-input');
+  if (startingInput && document.activeElement !== startingInput) {
+    startingInput.value = currentFsTheme.startingText || 'Iniciando en unos minutos';
+  }
+  const startingModeSelect = document.getElementById('fs-starting-mode-select');
+  if (startingModeSelect) {
+    startingModeSelect.value = currentFsTheme.startingMode || 'both';
+  }
+  const lunchInput = document.getElementById('fs-lunch-text-input');
+  if (lunchInput && document.activeElement !== lunchInput) {
+    lunchInput.value = currentFsTheme.lunchText || 'Hora de almuerzo';
+  }
+  const recInput = document.getElementById('fs-reconnecting-text-input');
+  if (recInput && document.activeElement !== recInput) {
+    recInput.value = currentFsTheme.reconnectingText || 'Reconectando';
+  }
+  const endingInput = document.getElementById('fs-ending-text-input');
+  if (endingInput && document.activeElement !== endingInput) {
+    endingInput.value = currentFsTheme.endingText || 'Gracias por vernos';
   }
 }
 
 function setFsScene(scene) {
-  const cleanScene = scene === 'lunch' ? 'lunch' : 'ranking';
+  const validScenes = ['ranking', 'starting', 'lunch', 'reconnecting', 'ending'];
+  const cleanScene = validScenes.includes(scene) ? scene : 'ranking';
   currentFsTheme.scene = cleanScene;
   updateFsThemeUI();
   sendWS({
     type: 'set_fs_theme',
-    data: { scene: cleanScene, lunchText: currentFsTheme.lunchText || 'Hora de almuerzo' }
+    data: {
+      scene: cleanScene,
+      startingCustomTitle: currentFsTheme.startingCustomTitle || '',
+      startingDay: currentFsTheme.startingDay || 'Día 1',
+      startingText: currentFsTheme.startingText || 'Iniciando en unos minutos',
+      startingMode: currentFsTheme.startingMode || 'both',
+      lunchText: currentFsTheme.lunchText || 'Hora de almuerzo',
+      reconnectingText: currentFsTheme.reconnectingText || 'Reconectando',
+      endingText: currentFsTheme.endingText || 'Gracias por vernos'
+    }
   });
-  showToast(
-    cleanScene === 'lunch'
-      ? '🍽️ Escena "Hora de almuerzo" activa en Pantalla Completa (/fullscreen)'
-      : '📊 Tabla de Resultados activa en Pantalla Completa (/fullscreen)',
-    'info'
-  );
+
+  const toastLabels = {
+    ranking: '📊 Tabla de Resultados activa en Pantalla Completa (/fullscreen)',
+    starting: '⏳ Escena "Iniciando en unos minutos" activa en Pantalla Completa (/fullscreen)',
+    lunch: '🍽️ Escena "Hora de almuerzo" activa en Pantalla Completa (/fullscreen)',
+    reconnecting: '🔌 Escena "Reconectando" activa en Pantalla Completa (/fullscreen)',
+    ending: '👋 Escena "Gracias por vernos" activa en Pantalla Completa (/fullscreen)'
+  };
+  showToast(toastLabels[cleanScene] || cleanScene, 'info');
+}
+
+function onFsStartingCustomTitleChange(val) {
+  currentFsTheme.startingCustomTitle = val ? val.trim() : '';
+  sendWS({
+    type: 'set_fs_theme',
+    data: { startingCustomTitle: currentFsTheme.startingCustomTitle }
+  });
+}
+
+function setFsStartingDay(val) {
+  const customCont = document.getElementById('fs-starting-custom-day-container');
+  const customInput = document.getElementById('fs-starting-custom-day-input');
+  if (val === 'custom') {
+    if (customCont) customCont.style.display = 'flex';
+    const customVal = customInput ? (customInput.value.trim() || 'Finales') : 'Finales';
+    currentFsTheme.startingDay = customVal;
+  } else {
+    if (customCont) customCont.style.display = 'none';
+    currentFsTheme.startingDay = val;
+  }
+  sendWS({
+    type: 'set_fs_theme',
+    data: { startingDay: currentFsTheme.startingDay }
+  });
+  showToast(`Día a mostrar actualizado: ${currentFsTheme.startingDay === 'none' ? 'Oculto' : currentFsTheme.startingDay}`, 'info');
+}
+
+function onFsStartingCustomDayInput(val) {
+  currentFsTheme.startingDay = val ? val.trim() : 'Día 1';
+  sendWS({
+    type: 'set_fs_theme',
+    data: { startingDay: currentFsTheme.startingDay }
+  });
+}
+
+function onFsStartingTextChange(val) {
+  currentFsTheme.startingText = val || 'Iniciando en unos minutos';
+  sendWS({
+    type: 'set_fs_theme',
+    data: { startingText: currentFsTheme.startingText }
+  });
+}
+
+function setFsStartingMode(mode) {
+  currentFsTheme.startingMode = mode || 'both';
+  sendWS({
+    type: 'set_fs_theme',
+    data: { startingMode: currentFsTheme.startingMode }
+  });
+  showToast('Modo de animación de inicio actualizado', 'info');
 }
 
 function onFsLunchTextChange(val) {
@@ -3451,6 +3559,22 @@ function onFsLunchTextChange(val) {
   sendWS({
     type: 'set_fs_theme',
     data: { lunchText: currentFsTheme.lunchText }
+  });
+}
+
+function onFsReconnectingTextChange(val) {
+  currentFsTheme.reconnectingText = val || 'Reconectando';
+  sendWS({
+    type: 'set_fs_theme',
+    data: { reconnectingText: currentFsTheme.reconnectingText }
+  });
+}
+
+function onFsEndingTextChange(val) {
+  currentFsTheme.endingText = val || 'Gracias por vernos';
+  sendWS({
+    type: 'set_fs_theme',
+    data: { endingText: currentFsTheme.endingText }
   });
 }
 
@@ -3666,7 +3790,13 @@ function removeFsImage() {
 
 function resetFsTheme() {
   const prevScene = currentFsTheme.scene || 'ranking';
+  const prevStartingCustomTitle = currentFsTheme.startingCustomTitle || '';
+  const prevStartingDay = currentFsTheme.startingDay || 'Día 1';
+  const prevStartingText = currentFsTheme.startingText || 'Iniciando en unos minutos';
+  const prevStartingMode = currentFsTheme.startingMode || 'both';
   const prevLunchText = currentFsTheme.lunchText || 'Hora de almuerzo';
+  const prevReconnectingText = currentFsTheme.reconnectingText || 'Reconectando';
+  const prevEndingText = currentFsTheme.endingText || 'Gracias por vernos';
   currentFsTheme = {
     bgColor: '#0c4ea8',
     bgImage: null,
@@ -3679,7 +3809,13 @@ function resetFsTheme() {
     animation: 'none',
     animSpeed: 'slow',
     scene: prevScene,
-    lunchText: prevLunchText
+    startingCustomTitle: prevStartingCustomTitle,
+    startingDay: prevStartingDay,
+    startingText: prevStartingText,
+    startingMode: prevStartingMode,
+    lunchText: prevLunchText,
+    reconnectingText: prevReconnectingText,
+    endingText: prevEndingText
   };
   fetch('/api/fs-background/delete', { method: 'POST' }).catch(() => {});
   sendWS({

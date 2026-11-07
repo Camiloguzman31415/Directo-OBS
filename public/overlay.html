@@ -2359,6 +2359,13 @@
     justify-content: center;
     width: 440px;
     flex-shrink: 0;
+    box-sizing: border-box;
+  }
+
+  .fs-branding-top {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
   }
 
   .fs-tournament-name {
@@ -2995,7 +3002,8 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* ━━━ ESCENA FULLSCREEN: HORA DE ALMUERZO ━━━ */
+  /* ━━━ ESCENAS FULLSCREEN CON VIDEO Y TÍTULO BROADCAST ━━━ */
+  .fs-video-scene,
   .fs-lunch-scene {
     position: relative;
     z-index: 3;
@@ -3010,42 +3018,124 @@
     animation: fsPageSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
+  .fs-video-card,
   .fs-lunch-card {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 26px;
+    gap: 20px;
+    transform: translateY(-24px);
   }
 
-  .fs-lunch-video-wrap {
-    width: 1240px;
-    height: 715px;
-    padding: 18px 24px;
+  .fs-dual-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    transform: translateY(-38px);
+  }
+
+  .fs-starting-top-header {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 6px 12px;
+    background: transparent;
+    text-align: center;
+    max-width: 1800px;
+    margin-top: -30px;
+    margin-bottom: 42px;
+  }
+
+  .fs-starting-top-title {
+    font-family: 'Barlow', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 70px;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: 2px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    paint-order: stroke fill;
+    -webkit-text-stroke: 11px #000000;
+    text-shadow: none;
+  }
+
+  .fs-starting-top-day-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 70px;
+    font-weight: 900;
+    color: #FFFFFF;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    paint-order: stroke fill;
+    -webkit-text-stroke: 11px #000000;
+    text-shadow: none;
+    box-shadow: none;
+    line-height: 1.1;
+  }
+
+  .fs-starting-top-day-badge::before {
+    content: '•';
+    color: #FFFFFF;
+    margin-right: 20px;
+    paint-order: stroke fill;
+    -webkit-text-stroke: 11px #000000;
+  }
+
+  .fs-dual-videos-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 36px;
+    width: 100%;
+    max-width: 1840px;
+  }
+
+  .fs-dual-video-wrap {
+    width: 840px;
+    height: 470px;
+    padding: 12px 18px;
     box-sizing: border-box;
-    border-radius: 30px;
+    border-radius: 28px;
     overflow: hidden;
     background: #ffffff;
     border: 5px solid rgba(255, 255, 255, 0.95);
-    box-shadow: 0 30px 75px rgba(0, 0, 0, 0.82), 0 8px 24px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.20);
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  .fs-lunch-video-wrap::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 115px;
-    height: 58px;
+  .fs-video-wrap,
+  .fs-lunch-video-wrap {
+    width: 1160px;
+    height: 660px;
+    padding: 18px 24px;
+    box-sizing: border-box;
+    border-radius: 30px;
+    overflow: hidden;
     background: #ffffff;
-    pointer-events: none;
-    z-index: 2;
+    border: 5px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.20);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
+  .fs-video-player,
   .fs-lunch-video {
     width: 100%;
     height: 100%;
@@ -3054,25 +3144,234 @@
     display: block;
   }
 
+  .fs-video-title,
   .fs-lunch-title {
     font-family: 'Barlow', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 76px;
     font-weight: 900;
     color: #FFFFFF;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     line-height: 1.1;
     text-align: center;
-    padding: 8px 64px 14px;
-    border-radius: 999px;
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.28) 55%, rgba(0, 0, 0, 0) 78%);
+    padding: 4px 30px;
+    background: transparent;
     paint-order: stroke fill;
-    -webkit-text-stroke: 6px #0b0d12;
-    text-shadow:
-      0 3px 0 #0b0d12,
-      0 6px 0 #06070a,
-      0 10px 24px rgba(0, 0, 0, 0.95),
-      0 18px 42px rgba(0, 0, 0, 0.85);
+    -webkit-text-stroke: 11px #000000;
+    text-shadow: none;
+    margin-top: 10px;
   }
+
+  /* ━━━ CAJA BASE DE PATROCINADORES (ESCENAS DE TRANSICIÓN: HORIZONTAL Y CENTRADA) ━━━ */
+  .fs-bottom-sponsors-slot {
+    width: 100%;
+    display: contents;
+  }
+
+  .fs-sponsors-bar-wrap {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 1860px;
+    width: auto;
+  }
+
+  .fs-sponsors-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 3.5px solid #ffffff;
+    border-radius: 24px;
+    padding: 12px 32px;
+    box-shadow: 0 14px 42px rgba(0, 0, 0, 0.70), 0 3px 10px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+  }
+
+  .fs-sponsors-label-badge {
+    font-family: 'Barlow', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #ffffff !important;
+    background: #0b0f19 !important;
+    padding: 10px 22px;
+    border-radius: 12px;
+    line-height: 1.1;
+    white-space: nowrap;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .fs-sponsors-divider {
+    width: 2.5px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.16);
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .fs-sponsors-track {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: nowrap;
+  }
+
+  .fs-sponsor-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 64px;
+    min-width: 50px;
+    max-width: 210px;
+    flex-shrink: 0;
+  }
+
+  .fs-sponsor-item img {
+    height: 100%;
+    max-height: 60px;
+    max-width: 190px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  /* Normalización óptica por proporción de logo en la barra horizontal de transiciones */
+  .fs-sponsors-bar-wrap:not(.in-sidebar) .fs-sponsor-item[title*="Instituto"] img,
+  .fs-sponsors-bar-wrap:not(.in-sidebar) .fs-sponsor-item[title*="x-man"] img,
+  .fs-sponsors-bar-wrap:not(.in-sidebar) .fs-sponsor-item[title*="MoFangGe"] img,
+  .fs-sponsors-bar-wrap:not(.in-sidebar) .fs-sponsor-item[title*="mfgcube"] img {
+    max-height: 64px;
+    max-width: 72px;
+    transform: scale(1.08);
+  }
+
+  .fs-sponsors-bar-wrap:not(.in-sidebar) .fs-sponsor-item[title*="QiYi"] img,
+  .fs-sponsors-bar-wrap:not(.in-sidebar) .fs-sponsor-item[title*="qy toys"] img {
+    max-height: 54px;
+    max-width: 145px;
+  }
+
+  .fs-sponsors-bar-wrap:not(.in-sidebar) .fs-sponsor-item[title*="Edurubiks"] img {
+    max-height: 56px;
+    max-width: 200px;
+  }
+
+  .fs-sponsors-bar-wrap:not(.in-sidebar) .fs-sponsor-item[title*="Paipa"] img {
+    max-height: 56px;
+    max-width: 190px;
+  }
+
+  /* ━━━ MODO SIDEBAR (DEBAJO DE ICONO Y EVENTO EN FULLSCREEN RANKING) ━━━ */
+  .fs-branding-sponsors-slot {
+    width: 100%;
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .fs-sponsors-bar-wrap.in-sidebar {
+    position: static;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    justify-content: flex-start;
+    z-index: 10;
+  }
+
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsors-box {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px 20px 20px 20px;
+    border-radius: 22px;
+    border: 3.5px solid #ffffff;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 14px 42px rgba(0, 0, 0, 0.70), 0 3px 10px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+  }
+
+  /* Badge PATROCINADORES: FONDO NEGRO Y TEXTO BLANCO */
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsors-label-badge {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 2.2px;
+    color: #ffffff !important;
+    background: #0b0f19 !important;
+    padding: 6px 20px;
+    border-radius: 9px;
+    align-self: center;
+    text-align: center;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  }
+
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsors-divider {
+    width: 100%;
+    height: 1.5px;
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 2px;
+    margin: 0;
+  }
+
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsors-track {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 18px;
+    align-items: center;
+    justify-items: center;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsor-item {
+    height: 48px;
+    width: 100%;
+    max-width: 175px;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 4px;
+    box-sizing: border-box;
+  }
+
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsor-item img {
+    max-height: 44px !important;
+    max-width: 100% !important;
+    height: auto !important;
+    width: auto !important;
+    object-fit: contain !important;
+    transform: none !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
+  }
+
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsor-item[title*="Instituto"] img,
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsor-item[title*="x-man"] img,
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsor-item[title*="MoFangGe"] img,
+  .fs-sponsors-bar-wrap.in-sidebar .fs-sponsor-item[title*="mfgcube"] img {
+    max-height: 48px !important;
+    max-width: 56px !important;
+    transform: scale(1.05) !important;
+  }
+
 
   /* ━━━ BANNER DE FINALES VERSUS (CARA A CARA WCA LIVE CON WPA/BPA/AVG) ━━━ */
   #versus-banner {
@@ -3664,8 +3963,9 @@
 
   <div class="fs-content-container" id="fs-ranking-scene">
     <!-- Columna Izquierda: Branding de Torneo y Evento -->
-    <div class="fs-branding-col">
-      <div class="fs-tournament-name" id="fs-tournament-name">RUBIK'S WCA&#10;EUROPEAN&#10;CHAMPIONSHIP&#10;2026</div>
+    <div class="fs-branding-col" id="fs-branding-col">
+      <div class="fs-branding-top">
+        <div class="fs-tournament-name" id="fs-tournament-name">RUBIK'S WCA&#10;EUROPEAN&#10;CHAMPIONSHIP&#10;2026</div>
 
       <div class="fs-event-showcase">
         <div class="fs-event-icon-card">
@@ -3674,6 +3974,9 @@
         <div class="fs-event-name" id="fs-event-name">Skewb</div>
         <div class="fs-round-name" id="fs-round-name">Final</div>
       </div>
+      </div>
+      <!-- Slot de patrocinadores debajo de icono y evento en Fullscreen Ranking -->
+      <div class="fs-branding-sponsors-slot" id="fs-branding-sponsors-slot"></div>
     </div>
 
     <!-- Columna Derecha: Tabla Completa de Resultados -->
@@ -3704,15 +4007,77 @@
     </div>
   </div>
 
-  <!-- Escena Fullscreen: Hora de Almuerzo -->
-  <div class="fs-lunch-scene" id="fs-lunch-scene" style="display: none;">
-    <div class="fs-lunch-card">
-      <div class="fs-lunch-video-wrap">
-        <video id="fs-lunch-video" class="fs-lunch-video" src="/videos/Almuerzo%20animaci%C3%B3n.mp4" autoplay loop muted playsinline></video>
+  <!-- Escena 1: Iniciando en unos minutos (Videos duales: Izquierda y Derecha a la vez) -->
+  <div class="fs-video-scene fs-lunch-scene" id="fs-starting-scene" style="display: none;">
+    <div class="fs-video-card fs-dual-card">
+      <!-- Título Superior: [Nombre del Torneo] + [Día #] -->
+      <div class="fs-starting-top-header" id="fs-starting-top-header">
+        <span class="fs-starting-top-title" id="fs-starting-top-title">Regionales Santander 2026</span>
+        <span class="fs-starting-top-day-badge" id="fs-starting-top-day-badge">DÍA 1</span>
       </div>
-      <div class="fs-lunch-title" id="fs-lunch-title">Hora de almuerzo</div>
+
+      <div class="fs-dual-videos-row" id="fs-starting-dual-row">
+        <div class="fs-dual-video-wrap" id="fs-starting-wrap-1">
+          <video id="fs-starting-video-1" class="fs-video-player fs-lunch-video" src="/videos/Oveja%20preparandose.mp4" autoplay loop muted playsinline></video>
+        </div>
+        <div class="fs-dual-video-wrap" id="fs-starting-wrap-2">
+          <video id="fs-starting-video-2" class="fs-video-player fs-lunch-video" src="/videos/Oveja%20ordenando.mp4" autoplay loop muted playsinline></video>
+        </div>
+      </div>
+      <div class="fs-video-title fs-lunch-title" id="fs-starting-title">Iniciando en unos minutos</div>
     </div>
   </div>
+
+  <!-- Escena 2: Hora de Almuerzo -->
+  <div class="fs-video-scene fs-lunch-scene" id="fs-lunch-scene" style="display: none;">
+    <div class="fs-video-card fs-lunch-card">
+      <div class="fs-video-wrap fs-lunch-video-wrap">
+        <video id="fs-lunch-video" class="fs-video-player fs-lunch-video" src="/videos/Almuerzo%20animaci%C3%B3n.mp4" autoplay loop muted playsinline></video>
+      </div>
+      <div class="fs-video-title fs-lunch-title" id="fs-lunch-title">Hora de almuerzo</div>
+    </div>
+  </div>
+
+  <!-- Escena 3: Reconectando -->
+  <div class="fs-video-scene fs-lunch-scene" id="fs-reconnecting-scene" style="display: none;">
+    <div class="fs-video-card fs-lunch-card">
+      <div class="fs-video-wrap fs-lunch-video-wrap">
+        <video id="fs-reconnecting-video" class="fs-video-player fs-lunch-video" src="/videos/Oveja%20con%20cables.mp4" autoplay loop muted playsinline></video>
+      </div>
+      <div class="fs-video-title fs-lunch-title" id="fs-reconnecting-title">Reconectando</div>
+    </div>
+  </div>
+
+  <!-- Escena 4: Gracias por vernos -->
+  <div class="fs-video-scene fs-lunch-scene" id="fs-ending-scene" style="display: none;">
+    <div class="fs-video-card fs-lunch-card">
+      <div class="fs-video-wrap fs-lunch-video-wrap">
+        <video id="fs-ending-video" class="fs-video-player fs-lunch-video" src="/videos/Oveja%20Despidiendose.mp4" autoplay loop muted playsinline></video>
+      </div>
+      <div class="fs-video-title fs-lunch-title" id="fs-ending-title">Gracias por vernos</div>
+    </div>
+  </div>
+
+  <!-- Caja Inferior de Patrocinadores (Presente en todas las escenas Fullscreen) -->
+  <div class="fs-bottom-sponsors-slot" id="fs-bottom-sponsors-slot">
+  <div class="fs-sponsors-bar-wrap" id="fs-sponsors-bar-wrap">
+    <div class="fs-sponsors-box">
+      <div class="fs-sponsors-label-badge">PATROCINADORES</div>
+      <div class="fs-sponsors-divider"></div>
+      <div class="fs-sponsors-track" id="fs-sponsors-track">
+        <div class="fs-sponsor-item" title="Alcaldía de Paipa"><img src="/logos/Alcaldia-de-paipa.png" alt="Alcaldía de Paipa"></div>
+        <div class="fs-sponsor-item" title="Instituto de Deporte Paipa"><img src="/logos/Instituto-de-Deporte-Paipa.png" alt="Instituto de Deporte Paipa"></div>
+        <div class="fs-sponsor-item" title="Paipa Vivir"><img src="/logos/Paipa-vivir.png" alt="Paipa Vivir"></div>
+        <div class="fs-sponsor-item" title="Paipa Entrenar"><img src="/logos/Paipa-entrenar.png" alt="Paipa Entrenar"></div>
+        <div class="fs-sponsor-item" title="Edurubiks"><img src="/logos/Edurubiks.png" alt="Edurubiks"></div>
+        <div class="fs-sponsor-item" title="QiYi Toys"><img src="/logos/qy-toys.png" alt="QiYi Toys"></div>
+        <div class="fs-sponsor-item" title="X-Man Design"><img src="/logos/x-man-design.png" alt="X-Man Design"></div>
+        <div class="fs-sponsor-item" title="MoFangGe"><img src="/logos/mfgcube.jpg" alt="MoFangGe"></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
 </div>
 
 <script>
@@ -3728,6 +4093,7 @@
 
   let ws = null;
   let reconnectTimer = null;
+  let tournamentData = null;
   let currentEventData = {
     event_id: '333',
     event_name: '3x3',
@@ -4125,11 +4491,26 @@
   const fsPageBadge = document.getElementById('fs-page-badge');
 
   const urlParams = new URLSearchParams(window.location.search);
-  const isDedicatedLunch = window.location.pathname.includes('/almuerzo') ||
-    urlParams.get('scene') === 'lunch' ||
-    urlParams.get('scene') === 'almuerzo';
-  const isDedicatedFullscreen = isDedicatedLunch ||
-    window.location.pathname.includes('/fullscreen') ||
+  const path = window.location.pathname.toLowerCase();
+  const sceneParam = (urlParams.get('scene') || '').toLowerCase();
+
+  let dedicatedScene = null;
+  if (path.includes('/iniciando') || sceneParam === 'starting' || sceneParam === 'iniciando') {
+    dedicatedScene = 'starting';
+  } else if (path.includes('/almuerzo') || sceneParam === 'lunch' || sceneParam === 'almuerzo') {
+    dedicatedScene = 'lunch';
+  } else if (path.includes('/reconectando') || sceneParam === 'reconnecting' || sceneParam === 'reconectando') {
+    dedicatedScene = 'reconnecting';
+  } else if (path.includes('/gracias') || path.includes('/despedida') || sceneParam === 'ending' || sceneParam === 'gracias' || sceneParam === 'despedida') {
+    dedicatedScene = 'ending';
+  }
+
+  const isTransitionPage = path.includes('/transicion') || path.includes('/transiciones');
+  const isFullscreenPage = path.includes('/fullscreen');
+  const isDedicatedScene = !!dedicatedScene;
+  const isDedicatedFullscreen = isDedicatedScene ||
+    isTransitionPage ||
+    isFullscreenPage ||
     urlParams.get('mode') === 'fullscreen' ||
     urlParams.get('view') === 'fullscreen' ||
     urlParams.get('fullscreen') === '1';
@@ -4776,7 +5157,8 @@
   function hideLiveRanking() {
     stopRankingPaging();
     if (lrOverlay) lrOverlay.classList.remove('visible');
-    if (fsOverlay && !isDedicatedLunch && activeFsThemeState.scene !== 'lunch') {
+    const isVideoSceneActive = ['starting', 'lunch', 'reconnecting', 'ending'].includes(activeFsThemeState.scene);
+    if (fsOverlay && !isDedicatedScene && !isVideoSceneActive) {
       fsOverlay.classList.remove('visible');
     }
     if (typeof updateTopBannersAntiCollision === 'function') {
@@ -5651,46 +6033,150 @@
 
     if (theme.scene !== undefined) activeFsThemeState.scene = theme.scene;
     if (theme.lunchText !== undefined) activeFsThemeState.lunchText = theme.lunchText;
-    applyFsScene(activeFsThemeState.scene, activeFsThemeState.lunchText);
+    Object.assign(activeFsThemeState, theme); applyFsScene(activeFsThemeState.scene, activeFsThemeState);
   }
 
-  function applyFsScene(scene, lunchText) {
-    const rankingScene = document.getElementById('fs-ranking-scene');
-    const lunchScene = document.getElementById('fs-lunch-scene');
-    const lunchVideo = document.getElementById('fs-lunch-video');
-    const lunchTitle = document.getElementById('fs-lunch-title');
-
-    if (lunchTitle && lunchText !== undefined) {
-      lunchTitle.textContent = lunchText || 'Hora de almuerzo';
+  function applyFsScene(scene, themeData) {
+    const td = themeData || activeFsThemeState || {};
+    let targetScene = dedicatedScene || td.scene || 'ranking';
+    if (typeof isFullscreenPage !== 'undefined' && isFullscreenPage) {
+      targetScene = 'ranking';
+    } else if (typeof isTransitionPage !== 'undefined' && isTransitionPage) {
+      if (targetScene === 'ranking') {
+        targetScene = (td.scene && td.scene !== 'ranking') ? td.scene : 'starting';
+      }
     }
 
-    const targetScene = isDedicatedLunch ? 'lunch' : (scene === 'lunch' ? 'lunch' : 'ranking');
+    const startingTitle = document.getElementById('fs-starting-title');
+    if (startingTitle && td.startingText !== undefined) startingTitle.textContent = td.startingText || 'Iniciando en unos minutos';
 
-    if (targetScene === 'lunch') {
-      if (rankingScene) rankingScene.style.display = 'none';
-      if (lunchScene) lunchScene.style.display = 'flex';
-      if (isDedicatedFullscreen && fsOverlay) {
-        fsOverlay.classList.add('visible');
+    // Título superior de Iniciando: [Nombre del Torneo] + [Día #]
+    const startingTopTitle = document.getElementById('fs-starting-top-title');
+    const startingTopDay = document.getElementById('fs-starting-top-day-badge');
+    if (startingTopTitle) {
+      const activeName = (td.startingCustomTitle || (tournamentData && tournamentData.name) || 'Regionales Santander 2026').trim();
+      startingTopTitle.textContent = activeName;
+    }
+    if (startingTopDay) {
+      const dayVal = (td.startingDay !== undefined ? td.startingDay : 'Día 1').trim();
+      if (dayVal && dayVal.toLowerCase() !== 'none' && dayVal.toLowerCase() !== 'sin día' && dayVal.toLowerCase() !== 'sin dia' && dayVal !== '') {
+        startingTopDay.textContent = dayVal;
+        startingTopDay.style.display = 'inline-flex';
+      } else {
+        startingTopDay.style.display = 'none';
       }
-      if (lunchVideo) {
-        lunchVideo.play().catch(() => {});
+    }
+
+    const lunchTitle = document.getElementById('fs-lunch-title');
+    if (lunchTitle && td.lunchText !== undefined) lunchTitle.textContent = td.lunchText || 'Hora de almuerzo';
+
+    const recTitle = document.getElementById('fs-reconnecting-title');
+    if (recTitle && td.reconnectingText !== undefined) recTitle.textContent = td.reconnectingText || 'Reconectando';
+
+    const endingTitle = document.getElementById('fs-ending-title');
+    if (endingTitle && td.endingText !== undefined) endingTitle.textContent = td.endingText || 'Gracias por vernos';
+
+    const sceneEls = {
+      ranking: document.getElementById('fs-ranking-scene'),
+      starting: document.getElementById('fs-starting-scene'),
+      lunch: document.getElementById('fs-lunch-scene'),
+      reconnecting: document.getElementById('fs-reconnecting-scene'),
+      ending: document.getElementById('fs-ending-scene')
+    };
+
+    const videos = {
+      lunch: document.getElementById('fs-lunch-video'),
+      reconnecting: document.getElementById('fs-reconnecting-video'),
+      ending: document.getElementById('fs-ending-video')
+    };
+
+    Object.keys(sceneEls).forEach(k => {
+      const el = sceneEls[k];
+      if (el) el.style.display = (k === targetScene) ? 'flex' : 'none';
+    });
+
+    Object.keys(videos).forEach(k => {
+      const vid = videos[k];
+      if (!vid) return;
+      if (k === targetScene) {
+        vid.play().catch(() => {});
+      } else {
+        vid.pause();
+      }
+    });
+
+    // Control de videos de la escena 'Iniciando' (Dual: Izquierda y Derecha a la vez)
+    const vid1 = document.getElementById('fs-starting-video-1');
+    const vid2 = document.getElementById('fs-starting-video-2');
+    const wrap1 = document.getElementById('fs-starting-wrap-1');
+    const wrap2 = document.getElementById('fs-starting-wrap-2');
+    const startingMode = td.startingMode || 'both';
+
+    if (wrap1 && wrap2) {
+      if (startingMode === 'prep') {
+        wrap1.style.display = 'flex';
+        wrap1.style.width = '1240px';
+        wrap1.style.height = '715px';
+        wrap2.style.display = 'none';
+      } else if (startingMode === 'order') {
+        wrap1.style.display = 'none';
+        wrap2.style.display = 'flex';
+        wrap2.style.width = '1240px';
+        wrap2.style.height = '715px';
+      } else {
+        // 'both' (ambos a la vez: uno a la izquierda y otro a la derecha)
+        wrap1.style.display = 'flex';
+        wrap1.style.width = '840px';
+        wrap1.style.height = '490px';
+        wrap2.style.display = 'flex';
+        wrap2.style.width = '840px';
+        wrap2.style.height = '490px';
+      }
+    }
+
+    if (targetScene === 'starting') {
+      if (vid1 && (startingMode === 'both' || startingMode === 'prep')) {
+        vid1.play().catch(() => {});
+      } else if (vid1) {
+        vid1.pause();
+      }
+      if (vid2 && (startingMode === 'both' || startingMode === 'order')) {
+        vid2.play().catch(() => {});
+      } else if (vid2) {
+        vid2.pause();
       }
     } else {
-      if (lunchScene) lunchScene.style.display = 'none';
-      if (rankingScene) rankingScene.style.display = 'flex';
-      if (lunchVideo) {
-        lunchVideo.pause();
+      if (vid1) vid1.pause();
+      if (vid2) vid2.pause();
+    }
+
+        // Mover caja de patrocinadores: a la columna izquierda en 'ranking' y abajo en transiciones
+    const sponsorsWrap = document.getElementById('fs-sponsors-bar-wrap');
+    const brandingSlot = document.getElementById('fs-branding-sponsors-slot');
+    const bottomSlot = document.getElementById('fs-bottom-sponsors-slot');
+    if (sponsorsWrap && brandingSlot && bottomSlot) {
+      if (targetScene === 'ranking') {
+        if (sponsorsWrap.parentElement !== brandingSlot) {
+          brandingSlot.appendChild(sponsorsWrap);
+        }
+        sponsorsWrap.classList.add('in-sidebar');
+      } else {
+        if (sponsorsWrap.parentElement !== bottomSlot) {
+          bottomSlot.appendChild(sponsorsWrap);
+        }
+        sponsorsWrap.classList.remove('in-sidebar');
       }
-      if (isDedicatedFullscreen && fsOverlay) {
-        fsOverlay.classList.add('visible');
-      }
+    }
+
+    if (isDedicatedFullscreen && fsOverlay) {
+      fsOverlay.classList.add('visible');
     }
   }
 
   if (isDedicatedFullscreen) {
     document.body.classList.add('is-fullscreen-page');
     if (fsOverlay) fsOverlay.classList.add('visible');
-    applyFsScene(isDedicatedLunch ? 'lunch' : 'ranking', 'Hora de almuerzo');
+    applyFsScene(dedicatedScene || 'ranking', activeFsThemeState);
   }
 
   applyFont('barlow_slim');
@@ -5727,6 +6213,11 @@
           const comp = currentRawRankingData.competitionName || tournamentData.name;
           fsTournamentName.textContent = formatTournamentTitle(comp);
         }
+        const startingTopTitle = document.getElementById('fs-starting-top-day-badge');
+        const fsStTitle = document.getElementById('fs-starting-top-title');
+        if (fsStTitle && (!activeFsThemeState || !activeFsThemeState.startingCustomTitle)) {
+          fsStTitle.textContent = (tournamentData.name || 'Regionales Santander 2026').trim();
+        }
       }
     })
     .catch(() => {});
@@ -5745,6 +6236,24 @@
       autoFitFullscreenTable();
     }
   });
+
+  function loadSponsors() {
+    fetch('/api/sponsors')
+      .then(r => r.json())
+      .then(res => {
+        if (!res || !res.ok || !Array.isArray(res.sponsors) || res.sponsors.length === 0) return;
+        const track = document.getElementById('fs-sponsors-track');
+        if (!track) return;
+        track.innerHTML = res.sponsors.map(sp => `
+          <div class="fs-sponsor-item" title="${escapeHtml(sp.name)}">
+            <img src="${escapeHtml(sp.url)}" alt="${escapeHtml(sp.name)}">
+          </div>
+        `).join('');
+      })
+      .catch(() => {});
+  }
+  loadSponsors();
+
 </script>
 </body>
 </html>

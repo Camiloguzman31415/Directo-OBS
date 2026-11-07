@@ -128,7 +128,13 @@ let fsTheme = {
   animation: 'none',
   animSpeed: 'slow',
   scene: 'ranking',
-  lunchText: 'Hora de almuerzo'
+  startingCustomTitle: '',
+  startingDay: 'Día 1',
+  startingText: 'Iniciando en unos minutos',
+  startingMode: 'both',
+  lunchText: 'Hora de almuerzo',
+  reconnectingText: 'Reconectando',
+  endingText: 'Gracias por vernos'
 };
 
 const LIVE_STATE_FILE = path.join(__dirname, 'live_state.json');
@@ -319,7 +325,13 @@ function loadLiveState() {
           animation: state.fsTheme.animation || 'none',
           animSpeed: state.fsTheme.animSpeed || 'slow',
           scene: state.fsTheme.scene || 'ranking',
-          lunchText: state.fsTheme.lunchText || 'Hora de almuerzo'
+          startingCustomTitle: state.fsTheme.startingCustomTitle || '',
+          startingDay: state.fsTheme.startingDay || 'Día 1',
+          startingText: state.fsTheme.startingText || 'Iniciando en unos minutos',
+          startingMode: state.fsTheme.startingMode || 'both',
+          lunchText: state.fsTheme.lunchText || 'Hora de almuerzo',
+          reconnectingText: state.fsTheme.reconnectingText || 'Reconectando',
+          endingText: state.fsTheme.endingText || 'Gracias por vernos'
         };
       }
       console.log(`[LiveRanking] Estado restaurado: compId=${liveRankingCompId}, roundId=${liveRankingRoundId}`);
@@ -501,11 +513,39 @@ app.get('/fullscreen', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'overlay.html'));
 });
 
-app.get('/almuerzo', (req, res) => {
+app.get(['/transicion', '/transiciones'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'overlay.html'));
 });
 
+// Redirigir accesos individuales antiguos al enlace unificado de transiciones
+app.get(['/iniciando', '/almuerzo', '/reconectando', '/gracias', '/despedida'], (req, res) => {
+  res.redirect(302, '/transicion');
+});
+
 // ── Rutas API REST ──
+
+// Obtener lista de patrocinadores desde /public/logos
+app.get('/api/sponsors', (req, res) => {
+  const logosDir = path.join(__dirname, 'public', 'logos');
+  try {
+    if (!fs.existsSync(logosDir)) {
+      return res.json({ ok: true, sponsors: [] });
+    }
+    const files = fs.readdirSync(logosDir)
+      .filter(f => /\.(png|jpe?g|svg|webp)$/i.test(f));
+    const sponsors = files.map(file => {
+      const name = path.parse(file).name.replace(/[-_]/g, ' ');
+      return {
+        filename: file,
+        url: `/logos/${encodeURIComponent(file)}`,
+        name: name
+      };
+    });
+    res.json({ ok: true, sponsors });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
 
 // Obtener datos del torneo activo
 app.get('/api/tournament', (req, res) => {
@@ -2983,8 +3023,17 @@ function handleSocketConnection(ws, req) {
           if (msg.data.colombiaCycle !== undefined) fsTheme.colombiaCycle = !!msg.data.colombiaCycle;
           if (msg.data.animation !== undefined) fsTheme.animation = msg.data.animation;
           if (msg.data.animSpeed !== undefined) fsTheme.animSpeed = msg.data.animSpeed;
-          if (msg.data.scene !== undefined) fsTheme.scene = msg.data.scene === 'lunch' ? 'lunch' : 'ranking';
+          if (msg.data.scene !== undefined) {
+            const validScenes = ['ranking', 'starting', 'lunch', 'reconnecting', 'ending'];
+            fsTheme.scene = validScenes.includes(msg.data.scene) ? msg.data.scene : 'ranking';
+          }
+          if (msg.data.startingCustomTitle !== undefined) fsTheme.startingCustomTitle = String(msg.data.startingCustomTitle || '');
+          if (msg.data.startingDay !== undefined) fsTheme.startingDay = String(msg.data.startingDay || 'Día 1');
+          if (msg.data.startingText !== undefined) fsTheme.startingText = String(msg.data.startingText || 'Iniciando en unos minutos');
+          if (msg.data.startingMode !== undefined) fsTheme.startingMode = msg.data.startingMode;
           if (msg.data.lunchText !== undefined) fsTheme.lunchText = String(msg.data.lunchText || 'Hora de almuerzo');
+          if (msg.data.reconnectingText !== undefined) fsTheme.reconnectingText = String(msg.data.reconnectingText || 'Reconectando');
+          if (msg.data.endingText !== undefined) fsTheme.endingText = String(msg.data.endingText || 'Gracias por vernos');
           saveLiveState();
           broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
           broadcastToPanels({ type: 'fs_theme_updated', data: fsTheme });

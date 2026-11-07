@@ -716,33 +716,103 @@
               </div>
 
 
-              <!-- Enlace Directo para Escena OBS -->
-              <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,132,199,0.08);border:1px solid rgba(2,132,199,0.2);padding:6px 12px;border-radius:6px;font-size:11px;color:#94a3b8;">
-                <span>Fuente OBS Fullscreen:</span>
-                <a href="/fullscreen" target="_blank" style="color:#38bdf8;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:4px;">
-                  http://localhost:3000/fullscreen ↗
-                </a>
-              </div>
-
-              <!-- Selector de Escena Activa en Pantalla Completa (/fullscreen) -->
-              <div style="margin-top:10px;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.28);padding:10px 12px;border-radius:6px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                  <label class="form-label" style="margin:0;font-size:11.5px;color:#fbbf24;font-weight:800;">🎬 Escena en Pantalla Completa (/fullscreen):</label>
-                  <a href="/almuerzo" target="_blank" style="color:#fbbf24;text-decoration:none;font-size:10.5px;font-weight:700;" title="Abrir vista dedicada de Hora de Almuerzo">
-                    /almuerzo ↗
+              <!-- 1. SECCIÓN FULLSCREEN: DEDICADA A LA TABLA DE CLASIFICACIÓN -->
+              <div style="margin-top:10px;background:rgba(2,132,199,0.08);border:1px solid rgba(2,132,199,0.28);padding:10px 12px;border-radius:8px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:4px;">
+                  <label class="form-label" style="margin:0;font-size:11.5px;color:#38bdf8;font-weight:800;display:flex;align-items:center;gap:6px;">
+                    🖥️ Fullscreen (Tabla de Clasificación):
+                  </label>
+                  <a href="/fullscreen" target="_blank" style="color:#38bdf8;text-decoration:none;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;">
+                    /fullscreen ↗
                   </a>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <button type="button" class="btn-tactile btn-mode-toggle active" id="btn-fs-scene-ranking" onclick="setFsScene('ranking')" style="height:34px;font-size:12px;font-weight:700;">
-                    📊 Tabla de Resultados
+                <button type="button" class="btn-tactile btn-mode-toggle active" id="btn-fs-scene-ranking" onclick="setFsScene('ranking')" style="width:100%;height:36px;font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;">
+                  📊 Mostrar Tabla de Clasificación en Pantalla Completa
+                </button>
+              </div>
+
+              <!-- 2. SECCIÓN TRANSICIONES: DEDICADA A INICIANDO, ALMUERZO, RECONECTANDO, DESPEDIDA -->
+              <div style="margin-top:10px;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.28);padding:10px 12px;border-radius:8px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:4px;">
+                  <label class="form-label" style="margin:0;font-size:11.5px;color:#fbbf24;font-weight:800;display:flex;align-items:center;gap:6px;">
+                    🎬 Escena de Transición en Vivo:
+                  </label>
+                  <a href="/transicion" target="_blank" style="color:#fbbf24;text-decoration:none;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;" title="Abrir fuente OBS para todas las transiciones">
+                    /transicion ↗
+                  </a>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:6px;">
+                  <button type="button" class="btn-tactile btn-mode-toggle" id="btn-fs-scene-starting" onclick="setFsScene('starting')" style="height:34px;font-size:11px;font-weight:700;">
+                    ⏳ Iniciando
                   </button>
-                  <button type="button" class="btn-tactile btn-mode-toggle" id="btn-fs-scene-lunch" onclick="setFsScene('lunch')" style="height:34px;font-size:12px;font-weight:700;">
-                    🍽️ Hora de Almuerzo
+                  <button type="button" class="btn-tactile btn-mode-toggle" id="btn-fs-scene-lunch" onclick="setFsScene('lunch')" style="height:34px;font-size:11px;font-weight:700;">
+                    🍽️ Almuerzo
+                  </button>
+                  <button type="button" class="btn-tactile btn-mode-toggle" id="btn-fs-scene-reconnecting" onclick="setFsScene('reconnecting')" style="height:34px;font-size:11px;font-weight:700;">
+                    🔌 Reconectando
+                  </button>
+                  <button type="button" class="btn-tactile btn-mode-toggle" id="btn-fs-scene-ending" onclick="setFsScene('ending')" style="height:34px;font-size:11px;font-weight:700;">
+                    👋 Despedida
                   </button>
                 </div>
-                <div id="fs-lunch-settings-row" style="margin-top:8px;display:none;align-items:center;gap:8px;">
+
+                <!-- Configuración de escena: Iniciando -->
+                <div id="fs-starting-settings-row" style="margin-top:10px;display:none;flex-direction:column;gap:8px;padding-top:8px;border-top:1px dashed rgba(245,158,11,0.25);">
+                  <!-- Título Superior: Torneo + Día -->
+                  <div style="display:grid;grid-template-columns:1fr 140px;gap:8px;">
+                    <div>
+                      <label class="form-label" style="margin:0 0 3px 0;font-size:10.5px;white-space:nowrap;">Título Superior (Torneo):</label>
+                      <input type="text" class="form-input" id="fs-starting-custom-title-input" placeholder="Automático (Nombre del torneo)" oninput="onFsStartingCustomTitleChange(this.value)" style="height:28px;font-size:11.5px;padding:4px 8px;width:100%;">
+                    </div>
+                    <div>
+                      <label class="form-label" style="margin:0 0 3px 0;font-size:10.5px;white-space:nowrap;">Día a mostrar:</label>
+                      <select class="select-filter" id="fs-starting-day-select" onchange="setFsStartingDay(this.value)" style="height:28px;font-size:11px;padding:2px 6px;width:100%;">
+                        <option value="Día 1" selected>Día 1</option>
+                        <option value="Día 2">Día 2</option>
+                        <option value="Día 3">Día 3</option>
+                        <option value="Día 4">Día 4</option>
+                        <option value="Día 5">Día 5</option>
+                        <option value="none">Sin día (Ocultar)</option>
+                        <option value="custom">Otro (Personalizado...)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div id="fs-starting-custom-day-container" style="display:none;align-items:center;gap:8px;">
+                    <label class="form-label" style="margin:0;font-size:10.5px;white-space:nowrap;">Texto del Día:</label>
+                    <input type="text" class="form-input" id="fs-starting-custom-day-input" placeholder="Ej: Finales / Jornada 1" oninput="onFsStartingCustomDayInput(this.value)" style="height:28px;font-size:11.5px;padding:4px 8px;flex:1;">
+                  </div>
+
+                  <!-- Texto inferior y modo de animación -->
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <label class="form-label" style="margin:0;font-size:10.5px;white-space:nowrap;">Texto inferior:</label>
+                    <input type="text" class="form-input" id="fs-starting-text-input" value="Iniciando en unos minutos" oninput="onFsStartingTextChange(this.value)" style="height:28px;font-size:12px;padding:4px 8px;flex:1;">
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <label class="form-label" style="margin:0;font-size:10.5px;white-space:nowrap;">Animación:</label>
+                    <select class="select-filter" id="fs-starting-mode-select" onchange="setFsStartingMode(this.value)" style="height:28px;font-size:11px;padding:2px 8px;flex:1;">
+                      <option value="both" selected>👥 Pantalla dual (Ambos videos a la vez: Izquierda y Derecha)</option>
+                      <option value="prep">Oveja preparándose (Solo izquierda / Estiramiento)</option>
+                      <option value="order">Oveja ordenando (Solo derecha / Mesa y Stackmat)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Configuración de escena: Almuerzo -->
+                <div id="fs-lunch-settings-row" style="margin-top:10px;display:none;align-items:center;gap:8px;padding-top:8px;border-top:1px dashed rgba(245,158,11,0.25);">
                   <label class="form-label" style="margin:0;font-size:10.5px;white-space:nowrap;">Texto inferior:</label>
                   <input type="text" class="form-input" id="fs-lunch-text-input" value="Hora de almuerzo" oninput="onFsLunchTextChange(this.value)" style="height:28px;font-size:12px;padding:4px 8px;flex:1;">
+                </div>
+
+                <!-- Configuración de escena: Reconectando -->
+                <div id="fs-reconnecting-settings-row" style="margin-top:10px;display:none;align-items:center;gap:8px;padding-top:8px;border-top:1px dashed rgba(245,158,11,0.25);">
+                  <label class="form-label" style="margin:0;font-size:10.5px;white-space:nowrap;">Texto inferior:</label>
+                  <input type="text" class="form-input" id="fs-reconnecting-text-input" value="Reconectando" oninput="onFsReconnectingTextChange(this.value)" style="height:28px;font-size:12px;padding:4px 8px;flex:1;">
+                </div>
+
+                <!-- Configuración de escena: Despedida -->
+                <div id="fs-ending-settings-row" style="margin-top:10px;display:none;align-items:center;gap:8px;padding-top:8px;border-top:1px dashed rgba(245,158,11,0.25);">
+                  <label class="form-label" style="margin:0;font-size:10.5px;white-space:nowrap;">Texto inferior:</label>
+                  <input type="text" class="form-input" id="fs-ending-text-input" value="Gracias por vernos" oninput="onFsEndingTextChange(this.value)" style="height:28px;font-size:12px;padding:4px 8px;flex:1;">
                 </div>
               </div>
 
@@ -1678,6 +1748,6 @@
   <!-- Contenedor para avisos flotantes (Toasts) -->
   <div id="toast-container"></div>
 
-  <script src="js/panel.js?v=3.0"></script>
+  <script src="js/panel.js?v=3.4"></script>
 </body>
 </html>
