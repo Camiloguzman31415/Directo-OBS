@@ -1940,12 +1940,66 @@ function renderPill(slot, comp) {
   }
 }
 
+function formatCustomRoundName(rNumOrName, total, fullText = false) {
+  let rNum = null;
+  let tot = parseInt(total, 10);
+
+  if (typeof rNumOrName === 'number') {
+    rNum = rNumOrName;
+  } else if (typeof rNumOrName === 'string') {
+    const s = rNumOrName.trim().toLowerCase();
+    if (s.includes('semi')) return 'Semi final';
+    if (s.includes('final') && !s.includes('semi')) return 'Final';
+
+    const m = s.match(/(?:round|ronda|r)\s*(\d+)/i) || s.match(/(\d+)/);
+    if (m) {
+      rNum = parseInt(m[1], 10);
+    } else if (s.includes('first') || s.includes('primera')) {
+      rNum = 1;
+    } else if (s.includes('second') || s.includes('segunda')) {
+      rNum = 2;
+    } else if (s.includes('third') || s.includes('tercera')) {
+      rNum = 3;
+    } else if (s.includes('fourth') || s.includes('cuarta')) {
+      rNum = 4;
+    }
+  }
+
+  if (!rNum) {
+    return rNumOrName ? String(rNumOrName) : 'Final';
+  }
+
+  const prefix = fullText ? 'Ronda ' : 'R';
+
+  if (!tot || isNaN(tot) || tot < 1) {
+    return rNum === 1 ? (fullText ? 'Ronda 1' : 'R1') : `${prefix}${rNum}`;
+  }
+
+  // 1 Ronda:
+  if (tot === 1) return 'Final';
+
+  // 2 Rondas:
+  if (tot === 2) return rNum >= 2 ? 'Final' : (fullText ? 'Ronda 1' : 'R1');
+
+  // 3 Rondas:
+  if (tot === 3) {
+    if (rNum >= 3) return 'Final';
+    if (rNum === 2) return 'Semi final';
+    return fullText ? 'Ronda 1' : 'R1';
+  }
+
+  // 4 Rondas (o más):
+  if (tot >= 4) {
+    if (rNum >= tot) return 'Final';
+    if (rNum === tot - 1) return 'Semi final';
+    return `${prefix}${rNum}`;
+  }
+
+  return `${prefix}${rNum}`;
+}
+
 function formatRoundName(rNum, total) {
-  if (!rNum) return '';
-  if (rNum === 1) return total === 1 ? 'FINAL' : 'FIRST ROUND';
-  if (rNum === total) return 'FINAL';
-  if (rNum === total - 1) return 'SEMI FINAL';
-  return `ROUND ${rNum}`;
+  return formatCustomRoundName(rNum, total);
 }
 
 function renderSimulatedRow(slot, comp) {

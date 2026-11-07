@@ -1,14 +1,61 @@
-/**
- * DirectoOBS - Servicio de WCA Live para Ranking en Tiempo Real
- * Extrae y formatea resultados en vivo desde WCA Live (GraphQL) y Live WCA Oficial.
- */
+function formatCustomRoundName(rNumOrName, total, fullText = false) {
+  let rNum = null;
+  let tot = parseInt(total, 10);
 
-const WCA_LIVE_URL = 'https://live.worldcubeassociation.org/api';
-const WCA_BASE_API = 'https://www.worldcubeassociation.org/api/v0';
+  if (typeof rNumOrName === 'number') {
+    rNum = rNumOrName;
+  } else if (typeof rNumOrName === 'string') {
+    const s = rNumOrName.trim().toLowerCase();
+    if (s.includes('semi')) return 'Semi final';
+    if (s.includes('final') && !s.includes('semi')) return 'Final';
 
-/**
- * Consulta a la API GraphQL de WCA Live
- */
+    const m = s.match(/(?:round|ronda|r)\s*(\d+)/i) || s.match(/(\d+)/);
+    if (m) {
+      rNum = parseInt(m[1], 10);
+    } else if (s.includes('first') || s.includes('primera')) {
+      rNum = 1;
+    } else if (s.includes('second') || s.includes('segunda')) {
+      rNum = 2;
+    } else if (s.includes('third') || s.includes('tercera')) {
+      rNum = 3;
+    } else if (s.includes('fourth') || s.includes('cuarta')) {
+      rNum = 4;
+    }
+  }
+
+  if (!rNum) {
+    return rNumOrName ? String(rNumOrName) : 'Final';
+  }
+
+  const prefix = fullText ? 'Ronda ' : 'R';
+
+  if (!tot || isNaN(tot) || tot < 1) {
+    return rNum === 1 ? (fullText ? 'Ronda 1' : 'R1') : `${prefix}${rNum}`;
+  }
+
+  // 1 Ronda:
+  if (tot === 1) return 'Final';
+
+  // 2 Rondas:
+  if (tot === 2) return rNum >= 2 ? 'Final' : (fullText ? 'Ronda 1' : 'R1');
+
+  // 3 Rondas:
+  if (tot === 3) {
+    if (rNum >= 3) return 'Final';
+    if (rNum === 2) return 'Semi final';
+    return fullText ? 'Ronda 1' : 'R1';
+  }
+
+  // 4 Rondas (o más):
+  if (tot >= 4) {
+    if (rNum >= tot) return 'Final';
+    if (rNum === tot - 1) return 'Semi final';
+    return `${prefix}${rNum}`;
+  }
+
+  return `${prefix}${rNum}`;
+}
+
 async function graphql(query, variables = {}) {
   const resp = await fetch(WCA_LIVE_URL, {
     method: 'POST',
@@ -136,11 +183,13 @@ async function fetchLiveCompetitionRounds(compId) {
 
   const roundsList = [];
   for (const ev of comp.competitionEvents || []) {
+    const totalRoundsForEv = (ev.rounds || []).length || 1;
     for (const r of ev.rounds || []) {
       roundsList.push({
         roundId: r.id,
         roundNumber: r.number,
-        roundName: r.name,
+        totalRounds: totalRoundsForEv,
+        roundName: formatCustomRoundName(r.number, totalRoundsForEv),
         eventId: ev.event.id,
         eventName: ev.event.name,
         isOpen: !!r.open,
@@ -232,7 +281,11 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
   const q = `query($id: ID!) {
     round(id: $id) {
       id
+      number
       name
+      competitionEvent {
+        rounds { id number }
+      }
       open
       finished
       competitionEvent {
@@ -374,7 +427,9 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
 
   return {
     roundId: round.id,
-    roundName: round.name,
+    roundNumber: round.number,
+    totalRounds,
+    roundName,
     eventId,
     eventName,
     competitionName: compName,
@@ -650,7 +705,8 @@ async function fetchLiveVersusData(roundId, comp1IdOrName, comp2IdOrName) {
   const eventId = round.competitionEvent?.event?.id || '333';
   const eventName = round.competitionEvent?.event?.name || '3x3';
   const compName = round.competitionEvent?.competition?.name || '';
-  const roundName = round.name || 'Final';
+  const totalRounds = round.competitionEvent?.rounds?.length || (round.number >= 3 ? round.number : 3);
+  const roundName = formatCustomRoundName(round.number || round.name, totalRounds);
   const rawResults = round.results || [];
 
   function findResult(target) {
