@@ -2870,7 +2870,7 @@
     font-variant-numeric: tabular-nums;
     color: #FFFFFF;
     border-left: 1.5px solid rgba(255, 255, 255, 0.22);
-    background: rgba(36, 40, 49, 0.90);
+    background: rgba(2, 132, 199, 0.88);
     height: 100%;
     display: flex;
     align-items: center;
@@ -2883,14 +2883,15 @@
   }
 
   .fs-row:nth-child(even) .fs-col-avg {
-    background: rgba(48, 53, 64, 0.92);
+    background: rgba(3, 105, 161, 0.94);
   }
 
-  .fs-col-avg.has-record {
-    background: rgba(2, 132, 199, 0.92);
+  .fs-col-avg.has-record,
+  .fs-row:nth-child(even) .fs-col-avg.has-record {
+    background: rgba(2, 132, 199, 0.95);
   }
 
-  /* Celda BEST (Gris carbón más claro distintivo en Dark Theme) */
+  /* Celda BEST (Columna completa en Verde con sutil alternado) */
   .fs-col-best {
     grid-column: 6 / 7;
     text-align: center;
@@ -2898,7 +2899,7 @@
     font-variant-numeric: tabular-nums;
     color: #FFFFFF;
     border-left: 1.5px solid rgba(255, 255, 255, 0.22);
-    background: rgba(36, 40, 49, 0.90);
+    background: rgba(22, 163, 74, 0.88);
     height: 100%;
     display: flex;
     align-items: center;
@@ -2911,11 +2912,12 @@
   }
 
   .fs-row:nth-child(even) .fs-col-best {
-    background: rgba(48, 53, 64, 0.92);
+    background: rgba(21, 128, 61, 0.94);
   }
 
-  .fs-col-best.has-record {
-    background: rgba(16, 138, 90, 0.92);
+  .fs-col-best.has-record,
+  .fs-row:nth-child(even) .fs-col-best.has-record {
+    background: rgba(22, 163, 74, 0.95);
   }
 
   /* Estilos para el texto de tiempo en AVG y BEST (Fiel al Original: blanco puro y negrita 900) */
