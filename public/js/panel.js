@@ -2420,9 +2420,9 @@ function filterCompetitorList() {
 
     const eventsCount = Array.isArray(c.events) ? c.events.length : 0;
     const eventsBadges = Array.isArray(c.events)
-      ? c.events.slice(0, 4).map(ev => `<span style="font-size:10px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;color:var(--text-muted);">${ev}</span>`).join(' ')
+      ? c.events.slice(0, 4).map(ev => `<span style="font-size:10.5px;font-weight:600;background:rgba(255,255,255,0.11);border:1px solid rgba(255,255,255,0.16);padding:2px 6px;border-radius:4px;color:var(--admin-text-primary);font-family:var(--admin-font-mono);">${ev}</span>`).join(' ')
       : '';
-    const moreEvents = eventsCount > 4 ? `<span style="font-size:10px;color:var(--text-dim);font-weight:700;">+${eventsCount - 4}</span>` : '';
+    const moreEvents = eventsCount > 4 ? `<span style="font-size:10.5px;color:var(--admin-accent);font-weight:700;font-family:var(--admin-font-mono);">+${eventsCount - 4}</span>` : '';
 
     const avatarHtml = c.avatar_url && !c.avatar_url.includes('missing_avatar')
       ? `<img src="${c.avatar_url}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.18);flex-shrink:0;" onerror="this.style.display='none'">`
@@ -2434,14 +2434,14 @@ function filterCompetitorList() {
         ${flagHtml}
         <div>
           <div class="comp-list-name" style="font-weight:600;">${escapeHtml(c.name)}</div>
-          <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace;display:flex;align-items:center;gap:6px;">
+          <div style="font-size:11.5px;font-weight:500;color:var(--admin-text-secondary);font-family:var(--admin-font-mono);display:flex;align-items:center;gap:6px;">
             <span>${escapeHtml(c.wca_id || 'NUEVO')}</span>
             <span>·</span>
             <span>${escapeHtml(c.country || '')}</span>
           </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
         <div style="display:flex;align-items:center;gap:4px;">
           ${eventsBadges} ${moreEvents}
         </div>
@@ -4111,11 +4111,11 @@ function onShowcaseSearchInput(query) {
 
   resultsDropdown.innerHTML = filtered.map(c => `
     <div class="search-item" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'" onclick="selectShowcaseFromSearch(decodeURIComponent('${encodeURIComponent(c.wca_id || c.name)}'))">
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
         ${c.country ? `<img src="https://flagcdn.com/w40/${c.country.toLowerCase()}.png" style="width:20px;height:14px;border-radius:2px;" onerror="this.style.display='none'">` : ''}
         <span style="font-size:12px;font-weight:700;color:var(--text-main);">${escapeHtml(c.name)}</span>
       </div>
-      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text-dim);">${escapeHtml(c.wca_id || 'NUEVO')}</span>
+      <span style="font-family:var(--admin-font-mono);font-size:11px;font-weight:500;color:var(--admin-text-secondary);">${escapeHtml(c.wca_id || 'NUEVO')}</span>
     </div>
   `).join('');
   resultsDropdown.style.display = 'block';
@@ -4418,7 +4418,7 @@ function onH2HSearchInput(slot, query) {
          onmouseout="this.style.background='transparent'" 
          onclick="selectH2HCompetitor(${slot}, decodeURIComponent('${encodeURIComponent(c.wca_id || c.name)}'))">
       <span style="font-weight:700;font-size:12px;color:#fff;">${escapeHtml(c.name)}</span>
-      <span style="font-size:11px;color:var(--text-dim);font-family:'Space Mono',monospace;">${escapeHtml(c.wca_id || 'NUEVO')}</span>
+      <span style="font-size:11px;font-weight:500;color:var(--admin-text-secondary);font-family:var(--admin-font-mono);">${escapeHtml(c.wca_id || 'NUEVO')}</span>
     </div>
   `).join('');
   dropdown.style.display = 'block';

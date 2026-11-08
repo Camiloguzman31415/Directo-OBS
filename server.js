@@ -631,84 +631,83 @@ app.post('/api/wca/fetch', async (req, res) => {
         rounds: (ev.rounds || []).length
       }));
 
-      // Parsear competidores aceptados
+      // Parsear competidores aceptados extrayendo PRs y foto directamente del WCIF público
+      // (Evita el rate limit de 60 req/min en /api/v0/persons/:wcaId en torneos grandes)
       const rawPersons = wcif.persons || [];
       const competitors = [];
+      const allPRs = {};
+      const allAvatars = {};
+
       for (const p of rawPersons) {
         if (p.registration && p.registration.status === 'accepted') {
           const wcaId = p.wcaId || null;
+          const remoteAvatar = (
+            p.avatar &&
+            !p.avatar.isDefault &&
+            !p.avatar.is_default &&
+            (p.avatar.url || p.avatar.thumbUrl) &&
+            !String(p.avatar.url || p.avatar.thumbUrl).includes('missing_avatar') &&
+            !String(p.avatar.url || p.avatar.thumbUrl).includes('default_avatar')
+          ) ? (p.avatar.url || p.avatar.thumbUrl) : null;
+
+          if (wcaId) {
+            const prs = {};
+            for (const pb of (p.personalBests || [])) {
+              const eid = pb.eventId;
+              if (!eid) continue;
+              if (!prs[eid]) {
+                prs[eid] = { single: null, average: null, single_nr: null, average_nr: null };
+              }
+              if (pb.type === 'single') {
+                prs[eid].single = pb.best ?? null;
+                prs[eid].single_nr = pb.nationalRanking ?? pb.country_rank ?? null;
+              } else if (pb.type === 'average') {
+                prs[eid].average = pb.best ?? null;
+                prs[eid].average_nr = pb.nationalRanking ?? pb.country_rank ?? null;
+              }
+            }
+            allPRs[wcaId] = prs;
+          }
+
           competitors.push({
             name: p.name,
             wca_id: wcaId,
             is_new: !wcaId,
             registrant_id: p.registrantId,
             events: p.registration.eventIds || [],
-            country: p.countryIso2 || ''
+            country: p.countryIso2 || '',
+            remote_avatar: remoteAvatar
           });
         }
       }
       competitors.sort((a, b) => a.name.localeCompare(b.name));
 
-      const veterans = competitors.filter(c => !c.is_new);
-      emitProgress(30, `Descargando récords y fotos de ${veterans.length} competidores veteranos...`);
+      const withRemoteAvatar = competitors.filter(c => c.wca_id && c.remote_avatar);
+      emitProgress(30, `Descargando fotos de perfil de ${withRemoteAvatar.length} competidores desde CDN WCA...`);
 
-      // Descargar PRs y fotos con pequeña pausa
-      const allPRs = {};
-      const allAvatars = {};
       let avatarsSavedCount = 0;
+      for (let i = 0; i < withRemoteAvatar.length; i++) {
+        const c = withRemoteAvatar[i];
+        const pct = 30 + Math.round(((i + 1) / Math.max(withRemoteAvatar.length, 1)) * 62);
+        emitProgress(pct, `[${i + 1}/${withRemoteAvatar.length}] ${c.name} (${c.wca_id}) - Guardando foto...`);
 
-      for (let i = 0; i < veterans.length; i++) {
-        const c = veterans[i];
-        const pct = 30 + Math.round((i / Math.max(veterans.length, 1)) * 60);
-        emitProgress(pct, `[${i + 1}/${veterans.length}] ${c.name} (${c.wca_id}) - Sincronizando datos y foto...`);
-
-        try {
-          const pRes = await fetch(`${WCA_API}/persons/${c.wca_id}`, { headers: WCA_HEADERS });
-          if (pRes.ok) {
-            const pData = await pRes.json();
-            const personObj = pData.person || (pData.persons && pData.persons[0]) || {};
-            const rawRecords = pData.personal_records || (pData.persons && pData.persons[0]?.personal_records) || {};
-            const prs = {};
-            for (const [eid, rec] of Object.entries(rawRecords)) {
-              prs[eid] = {
-                single: rec.single?.best ?? null,
-                average: rec.average?.best ?? null,
-                single_nr: rec.single?.country_rank ?? null,
-                average_nr: rec.average?.country_rank ?? null
-              };
-            }
-            allPRs[c.wca_id] = prs;
-
-            // Foto oficial WCA -> descargar localmente
-            const remoteAvatar = (personObj.avatar && !personObj.avatar.is_default && personObj.avatar.url && !personObj.avatar.url.includes('missing_avatar')) ? personObj.avatar.url : null;
-            if (remoteAvatar) {
-              const localUrl = await downloadAvatarLocally(remoteAvatar, c.wca_id, true);
-              if (localUrl) {
-                allAvatars[c.wca_id] = localUrl;
-                avatarsSavedCount++;
-              } else {
-                allAvatars[c.wca_id] = getLocalAvatarIfExists(c.wca_id);
-              }
-            } else {
-              allAvatars[c.wca_id] = getLocalAvatarIfExists(c.wca_id);
-            }
-          }
-        } catch {
-          allPRs[c.wca_id] = {};
-          allAvatars[c.wca_id] = getLocalAvatarIfExists(c.wca_id);
+        const localUrl = await downloadAvatarLocally(c.remote_avatar, c.wca_id, true);
+        if (localUrl) {
+          allAvatars[c.wca_id] = localUrl;
+          avatarsSavedCount++;
+        } else {
+          allAvatars[c.wca_id] = getLocalAvatarIfExists(c.wca_id) || c.remote_avatar;
         }
-
-        // Pequeño retardo de 200ms para respetar la API WCA
-        await new Promise(r => setTimeout(r, 200));
       }
 
       emitProgress(95, 'Ensamblando estructura final...');
 
       const competitorsFull = competitors.map(c => {
-        const raw = allPRs[c.wca_id] || {};
+        const raw = (c.wca_id && allPRs[c.wca_id]) ? allPRs[c.wca_id] : {};
         const prsDisplay = {};
+        const allEventIds = new Set([...(c.events || []), ...Object.keys(raw)]);
 
-        for (const eid of c.events) {
+        for (const eid of allEventIds) {
           if (raw[eid]) {
             prsDisplay[eid] = {
               event_name: EVENT_NAMES[eid] || eid,
@@ -732,7 +731,7 @@ app.post('/api/wca/fetch', async (req, res) => {
           }
         }
 
-        const avatarLocal = allAvatars[c.wca_id] || getLocalAvatarIfExists(c.wca_id) || null;
+        const avatarLocal = (c.wca_id && (allAvatars[c.wca_id] || getLocalAvatarIfExists(c.wca_id))) || c.remote_avatar || null;
 
         return {
           name: c.name,

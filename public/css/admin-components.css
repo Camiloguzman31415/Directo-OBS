@@ -33,12 +33,12 @@
     block-size: 20px;
     padding-inline: 6px;
     border-radius: 5px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.10);
     border: 1px solid var(--admin-border-default);
-    color: var(--admin-text-secondary);
+    color: var(--admin-text-primary);
     font-family: var(--admin-font-mono);
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1;
     letter-spacing: 0.01em;
     font-variant-numeric: tabular-nums;
@@ -104,7 +104,8 @@
 
   #admin-root .admin-brand-sub {
     font-size: var(--admin-text-2xs);
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
+    font-weight: 500;
     line-height: 1.2;
   }
 
@@ -131,10 +132,10 @@
     padding-inline: 10px;
     margin-block-end: 4px;
     font-size: var(--admin-text-2xs);
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
   }
 
   #admin-root .deck-nav-tab {
@@ -186,8 +187,8 @@
     block-size: 18px;
     padding-inline: 6px;
     border-radius: var(--admin-radius-pill);
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--admin-text-secondary);
+    background: rgba(255, 255, 255, 0.11);
+    color: var(--admin-text-primary);
     font-family: var(--admin-font-mono);
     font-size: 11px;
     font-weight: 600;
@@ -213,8 +214,8 @@
     align-items: center;
     gap: 6px;
     font-size: var(--admin-text-2xs);
-    font-weight: 600;
-    color: var(--admin-text-muted);
+    font-weight: 700;
+    color: var(--admin-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
@@ -230,7 +231,8 @@
     align-items: center;
     gap: 6px;
     font-size: var(--admin-text-xs);
-    color: var(--admin-text-secondary);
+    font-weight: 500;
+    color: var(--admin-text-primary);
     min-inline-size: 0;
   }
 
@@ -462,7 +464,8 @@
   #admin-root .live-status-pill.offline {
     background: var(--admin-bg-elevated);
     border-color: var(--admin-border-default);
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
+    font-weight: 600;
   }
 
   #admin-root .admin-status-pill--standby::before,
@@ -471,7 +474,7 @@
     inline-size: 7px;
     block-size: 7px;
     border-radius: 50%;
-    background: var(--admin-text-disabled);
+    background: var(--admin-text-muted);
     flex-shrink: 0;
   }
 
@@ -556,7 +559,8 @@
 
   #admin-root .admin-live-now-empty {
     font-size: var(--admin-text-xs);
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
+    font-weight: 500;
   }
 
   #admin-root .admin-live-chip {
@@ -716,7 +720,8 @@
 
   #admin-root .admin-card-subtitle {
     font-size: var(--admin-text-xs);
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
+    font-weight: 500;
     line-height: 1.35;
   }
 
@@ -820,7 +825,7 @@
   #admin-root .admin-btn--secondary {
     background: var(--admin-bg-elevated);
     border-color: var(--admin-border-default);
-    color: var(--admin-text-secondary);
+    color: var(--admin-text-primary);
   }
 
   #admin-root .admin-btn--secondary:hover:not(:disabled) {
@@ -832,11 +837,11 @@
     min-block-size: 32px;
     padding: 6px 10px;
     border-radius: var(--admin-radius-sm);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.03);
     border-color: var(--admin-border-default);
-    color: var(--admin-text-secondary);
+    color: var(--admin-text-primary);
     font-size: var(--admin-text-xs);
-    font-weight: 500;
+    font-weight: 600;
   }
 
   #admin-root .admin-btn--ghost:hover:not(:disabled) {
@@ -900,13 +905,13 @@
     justify-content: space-between;
     gap: 8px;
     font-size: var(--admin-text-xs);
-    font-weight: 500;
-    color: var(--admin-text-secondary);
+    font-weight: 600;
+    color: var(--admin-text-primary);
   }
 
   #admin-root .admin-hint {
     font-size: var(--admin-text-xs);
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
     line-height: 1.4;
   }
 
@@ -924,6 +929,7 @@
 
   #admin-root :where(.admin-input, .admin-select, .text-input, .select-input)::placeholder {
     color: var(--admin-text-muted);
+    opacity: 0.92;
   }
 
   #admin-root :where(.admin-input, .admin-select, .text-input, .select-input):hover:not(:disabled) {
@@ -933,7 +939,7 @@
   #admin-root :where(.admin-select, .select-input) {
     appearance: none;
     padding-inline-end: 34px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23d8e2f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
   }
@@ -1207,7 +1213,7 @@
   #admin-root .pill-stats {
     font-family: var(--admin-font-mono);
     font-size: 11px;
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
     font-variant-numeric: tabular-nums;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1219,7 +1225,7 @@
      ------------------------------------------------------------------------ */
   #admin-root .admin-collapsible {
     border-radius: var(--admin-radius-md);
-    border: 1px solid var(--admin-border-subtle);
+    border: 1px solid var(--admin-border-default);
     background: var(--admin-bg-surface-subtle);
     overflow: clip;
   }
@@ -1234,7 +1240,7 @@
     padding: 8px 12px;
     border: 0;
     background: transparent;
-    color: var(--admin-text-secondary);
+    color: var(--admin-text-primary);
     font-size: var(--admin-text-xs);
     font-weight: 600;
     text-align: left;
@@ -1293,10 +1299,10 @@
     justify-content: space-between;
     gap: 8px;
     font-size: var(--admin-text-2xs);
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
   }
 
   #admin-root .admin-preview-canvas {
@@ -1386,7 +1392,7 @@
 
   #admin-root .admin-empty-desc {
     font-size: var(--admin-text-xs);
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
     max-inline-size: 36ch;
   }
 
