@@ -1,0 +1,305 @@
+/* ==========================================================================
+   DirectoOBS Admin Console — Design System Tokens & AppShell Base
+   Scope estricto: #admin-root (Cero impacto en /overlay, /fullscreen, /transicion)
+   ========================================================================== */
+
+@layer admin.tokens, admin.base, admin.layout, admin.components, admin.utilities;
+
+@layer admin.tokens {
+  #admin-root {
+    color-scheme: dark;
+
+    /* Superficies oscuras azuladas en capas (sin #000 ni #fff puros) */
+    --admin-bg-base: #0b0f17;
+    --admin-bg-surface: #111826;
+    --admin-bg-surface-subtle: #141d2e;
+    --admin-bg-elevated: #182234;
+    --admin-bg-hover: #1f2b40;
+    --admin-bg-active: #24324a;
+    --admin-bg-preview: #0d1320;
+    --admin-backdrop: rgba(7, 10, 17, 0.72);
+
+    /* Bordes sutiles de 1px (blanco 6-10% opacidad + estados) */
+    --admin-border-subtle: rgba(255, 255, 255, 0.06);
+    --admin-border-default: rgba(255, 255, 255, 0.09);
+    --admin-border-strong: rgba(255, 255, 255, 0.16);
+
+    /* Jerarquia de texto verificada WCAG 2.2 AA sobre #0b0f17 y #111826 */
+    --admin-text-primary: #e6edf7;     /* ~14.2:1 */
+    --admin-text-secondary: #94a3b8;   /* ~6.1:1 */
+    --admin-text-muted: #7c8ea6;       /* ~4.6:1 (pasa AA normal text) */
+    --admin-text-disabled: #55657d;
+
+    /* Unico acento principal: Cian afinado (accion primaria y estado AL AIRE) */
+    --admin-accent: #38bdf8;
+    --admin-accent-hover: #7dd3fc;
+    --admin-accent-strong: #0ea5e9;
+    --admin-accent-soft: rgba(56, 189, 248, 0.12);
+    --admin-accent-soft-hover: rgba(56, 189, 248, 0.18);
+    --admin-accent-border: rgba(56, 189, 248, 0.34);
+    --admin-on-accent: #06131f;        /* ~9.7:1 sobre #38bdf8 */
+
+    /* Colores semanticos exclusivos para estados y accion destructiva */
+    --admin-danger: #f87171;           /* Texto/icono de alerta en oscuro (~6.2:1) */
+    --admin-danger-solid: #dc2626;     /* Boton Ocultar todo F10 (~5.4:1 con #f8fafc) */
+    --admin-danger-solid-hover: #ef4444;
+    --admin-danger-soft: rgba(239, 68, 68, 0.13);
+    --admin-danger-border: rgba(248, 113, 113, 0.34);
+    --admin-on-danger: #f8fafc;
+
+    --admin-success: #4ade80;          /* Conectado / Sincronizado (~9.8:1) */
+    --admin-success-soft: rgba(74, 222, 128, 0.12);
+    --admin-success-border: rgba(74, 222, 128, 0.30);
+
+    --admin-warning: #fbbf24;          /* Advertencia / Desconectado (~10.5:1) */
+    --admin-warning-soft: rgba(251, 191, 36, 0.12);
+    --admin-warning-border: rgba(251, 191, 36, 0.30);
+
+    /* Medallas en edicion de podios (sutiles sobre oscuro) */
+    --admin-medal-gold: #fbbf24;
+    --admin-medal-silver: #cbd5e1;
+    --admin-medal-bronze: #d97706;
+
+    /* Tipografia: 1 sola familia sans + mono tabular solo para valores tecnicos */
+    --admin-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --admin-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Escala tipografica */
+    --admin-text-2xs: 0.6875rem; /* 11px */
+    --admin-text-xs: 0.75rem;    /* 12px */
+    --admin-text-sm: 0.8125rem;  /* 13px */
+    --admin-text-base: 0.875rem; /* 14px */
+    --admin-text-md: 0.9375rem;  /* 15px */
+    --admin-text-lg: 1.0625rem;  /* 17px */
+    --admin-text-xl: 1.25rem;    /* 20px */
+
+    /* Escala de espaciado 4/8px */
+    --admin-space-1: 4px;
+    --admin-space-2: 8px;
+    --admin-space-3: 12px;
+    --admin-space-4: 16px;
+    --admin-space-5: 20px;
+    --admin-space-6: 24px;
+    --admin-space-8: 32px;
+
+    /* Radios (10-12px para superficies principales) */
+    --admin-radius-xs: 6px;
+    --admin-radius-sm: 8px;
+    --admin-radius-md: 10px;
+    --admin-radius-lg: 12px;
+    --admin-radius-pill: 999px;
+
+    /* Sombras minimas (solo flotantes/popovers) */
+    --admin-shadow-popover: 0 12px 28px rgba(4, 7, 14, 0.55);
+
+    /* Dimensiones estructurales */
+    --admin-sidebar-width: 244px;
+    --admin-topbar-height: 56px;
+
+    /* Movimiento */
+    --admin-transition-fast: 150ms cubic-bezier(0.2, 0, 0, 1);
+    --admin-transition-base: 180ms cubic-bezier(0.2, 0, 0, 1);
+
+    /* Aliases locales de compatibilidad con referencias en panel.js */
+    --live: var(--admin-accent);
+    --warning: var(--admin-warning);
+    --danger: var(--admin-danger);
+    --success: var(--admin-success);
+    --accent: var(--admin-accent);
+    --text-main: var(--admin-text-primary);
+    --text-secondary: var(--admin-text-secondary);
+    --text-muted: var(--admin-text-muted);
+    --text-dim: var(--admin-text-muted);
+    --border-subtle: var(--admin-border-subtle);
+    --border-medium: var(--admin-border-default);
+
+    accent-color: var(--admin-accent);
+  }
+}
+
+@layer admin.base {
+  html:has(#admin-root),
+  body:has(#admin-root) {
+    margin: 0;
+    padding: 0;
+    background-color: #0b0f17;
+    color: #e6edf7;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-block-size: 100dvh;
+  }
+
+  #admin-root,
+  #admin-root :where(*, *::before, *::after) {
+    box-sizing: border-box;
+  }
+
+  #admin-root {
+    min-block-size: 100dvh;
+    background-color: var(--admin-bg-base);
+    color: var(--admin-text-primary);
+    font-family: var(--admin-font-sans);
+    font-size: var(--admin-text-base);
+    line-height: 1.45;
+  }
+
+  #admin-root :where(h1, h2, h3, h4, p, ul, ol, figure) {
+    margin: 0;
+    padding: 0;
+  }
+
+  #admin-root :where(ul, ol) {
+    list-style: none;
+  }
+
+  #admin-root :where(img, svg, canvas, video) {
+    display: block;
+    max-inline-size: 100%;
+  }
+
+  #admin-root :where(button, input, select, textarea) {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  #admin-root button {
+    cursor: pointer;
+  }
+
+  #admin-root button:disabled,
+  #admin-root [aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.52;
+  }
+
+  /* Valores tecnicos, metricas, px, tiempos, WCA IDs y atajos */
+  #admin-root :where(code, kbd, .admin-mono, .tabular-nums) {
+    font-family: var(--admin-font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Foco visible accesible WCAG 2.2 AA (>= 3:1) */
+  #admin-root :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--admin-accent);
+    outline-offset: 2px;
+  }
+
+  /* Scrollbars discretas sobre fondo oscuro */
+  #admin-root :where(.admin-scroll, .admin-main, .admin-sidebar-nav, .competitors-list, .dropdown-results, .table-scroll-box) {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.24) transparent;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
+
+  /* Estado inert para fondo bloqueado cuando el drawer movil esta abierto */
+  #admin-root :where([inert], [inert] *) {
+    opacity: 0.55;
+    user-select: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #admin-root :where(*, *::before, *::after) {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer admin.layout {
+  /* Skip link accesible */
+  #admin-root .admin-skip-link {
+    position: fixed;
+    inset-block-start: var(--admin-space-2);
+    inset-inline-start: var(--admin-space-2);
+    z-index: 1200;
+    padding: var(--admin-space-2) var(--admin-space-4);
+    background: var(--admin-accent);
+    color: var(--admin-on-accent);
+    font-weight: 600;
+    border-radius: var(--admin-radius-sm);
+    text-decoration: none;
+  }
+
+  #admin-root .visually-hidden:where(:not(:focus-within, :active)) {
+    position: absolute !important;
+    clip-path: inset(50%) !important;
+    overflow: hidden !important;
+    inline-size: 1px !important;
+    block-size: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* AppShell principal: Sidebar fija + Columna operativa */
+  #admin-root .admin-shell {
+    display: grid;
+    grid-template-columns: var(--admin-sidebar-width) minmax(0, 1fr);
+    min-block-size: 100dvh;
+    background: var(--admin-bg-base);
+  }
+
+  #admin-root .admin-workspace {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    min-block-size: 100dvh;
+  }
+
+  #admin-root .admin-sticky-chrome {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 40;
+    background: var(--admin-bg-base);
+    border-block-end: 1px solid var(--admin-border-subtle);
+  }
+
+  #admin-root .admin-main {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    padding: var(--admin-space-5) var(--admin-space-6) var(--admin-space-8);
+  }
+
+  /* Vistas de navegacion */
+  #admin-root .main-view-panel {
+    display: none;
+    flex-direction: column;
+    gap: var(--admin-space-4);
+  }
+
+  #admin-root .main-view-panel.active {
+    display: flex;
+  }
+
+  /* Grid adaptable sin huecos (align-items: start + auto-fit) */
+  #admin-root .admin-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr));
+    gap: var(--admin-space-4);
+    align-items: start;
+  }
+
+  #admin-root .admin-cards-grid--wide {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr));
+  }
+
+  #admin-root .admin-col-span-full {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 1024px) {
+    #admin-root .admin-shell {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    #admin-root .admin-main {
+      padding: var(--admin-space-4);
+    }
+  }
+}

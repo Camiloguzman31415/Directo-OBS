@@ -476,27 +476,27 @@ function handleServerMessage(msg) {
       if (msg.demoNote) {
         demoRunning = true;
         const btnDemo = document.getElementById('btn-demo-final');
-        if (btnDemo) btnDemo.innerHTML = '<span>⏹ DETENER SIMULACIÓN</span>';
+        if (btnDemo) btnDemo.innerHTML = '<span>Detener simulación</span>';
         const pillDemo = document.getElementById('demo-status-pill');
         if (pillDemo) {
           pillDemo.style.display = 'block';
-          pillDemo.innerHTML = `⏱ <strong>Paso ${msg.demoStep}/${msg.demoTotalSteps}:</strong> ${escapeHtml(msg.demoNote)}`;
+          pillDemo.innerHTML = `<strong>Paso ${msg.demoStep}/${msg.demoTotalSteps}:</strong> ${escapeHtml(msg.demoNote)}`;
         }
       }
       if (msg.data && msg.data.isFinished) {
         demoRunning = false;
         const btnDemo = document.getElementById('btn-demo-final');
-        if (btnDemo) btnDemo.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+        if (btnDemo) btnDemo.innerHTML = '<span>Demo en vivo: Final 3x3 (60s)</span>';
         const pillDemo = document.getElementById('demo-status-pill');
         if (pillDemo) {
-          pillDemo.innerHTML = '✅ <strong>¡Simulación Finalizada!</strong> Podio oficial definido.';
+          pillDemo.innerHTML = '<strong>Simulación finalizada:</strong> Podio oficial definido.';
           setTimeout(() => { if (pillDemo && !demoRunning) pillDemo.style.display = 'none'; }, 6000);
         }
       }
       if (!msg.visible) {
         demoRunning = false;
         const btnDemo = document.getElementById('btn-demo-final');
-        if (btnDemo) btnDemo.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+        if (btnDemo) btnDemo.innerHTML = '<span>Demo en vivo: Final 3x3 (60s)</span>';
         const pillDemo = document.getElementById('demo-status-pill');
         if (pillDemo) pillDemo.style.display = 'none';
       }
@@ -549,13 +549,17 @@ function updateOBSUI(status) {
   const deck = document.getElementById('scenes-grid');
   const noObsNotice = document.getElementById('obs-disconnected-box');
   const videoBox = document.getElementById('obs-video-box');
+  const camEmptyHint = document.getElementById('camera-director-empty-hint');
+  const srcEmptyHint = document.getElementById('sources-empty-hint');
 
   if (status.connected) {
     dot.className = 'status-dot active';
-    text.textContent = 'OBS Conectado';
+    text.textContent = 'OBS conectado';
     noObsNotice.style.display = 'none';
     deck.style.display = 'grid';
-    if (videoBox) videoBox.style.display = 'flex';
+    if (videoBox) videoBox.style.display = 'block';
+    if (camEmptyHint) camEmptyHint.style.display = 'none';
+    if (srcEmptyHint) srcEmptyHint.style.display = 'none';
 
     renderScenes(status.scenes, status.currentProgramScene);
     if (status.currentSceneItems) {
@@ -566,17 +570,23 @@ function updateOBSUI(status) {
     updateStreamButton(status.isStreaming);
     updateRecordButton(status.isRecording);
   } else {
-    dot.className = 'status-dot danger';
-    text.textContent = 'OBS Desconectado';
+    dot.className = 'status-dot warning';
+    text.textContent = 'OBS desconectado';
     deck.style.display = 'none';
     if (videoBox) videoBox.style.display = 'none';
     const sourcesBox = document.getElementById('active-scene-sources-box');
     if (sourcesBox) sourcesBox.style.display = 'none';
+    const directorBox = document.getElementById('camera-layout-director-box');
+    if (directorBox) directorBox.style.display = 'none';
+    if (camEmptyHint) camEmptyHint.style.display = 'flex';
+    if (srcEmptyHint) srcEmptyHint.style.display = 'flex';
     updateStudioModeUI();
     noObsNotice.style.display = 'flex';
     updateStreamButton(false);
     updateRecordButton(false);
   }
+
+  window.AdminUI?.syncAdminLiveNowUI();
 }
 
 function updateOBSVideoUI(status) {
@@ -592,12 +602,12 @@ function updateOBSVideoUI(status) {
 
   if (isBusy) {
     if (hint) {
-      hint.textContent = '⚠️ Detén la transmisión o grabación para cambiar resolución o FPS en OBS.';
+      hint.textContent = 'Detén la transmisión o grabación activa para cambiar resolución o FPS en OBS.';
       hint.style.color = 'var(--warning)';
     }
   } else {
     if (hint) {
-      hint.textContent = '* Aplica a la resolución del lienzo/salida y framerate de OBS.';
+      hint.textContent = 'Aplica a la resolución de salida y framerate de OBS.';
       hint.style.color = 'var(--text-dim)';
     }
   }
@@ -827,14 +837,15 @@ async function refreshStudioScreenshots(showNotice = false) {
 // ── Control de Fuentes, Cámaras y Multimedia en OBS ──
 function getSourceIcon(kind) {
   const k = (kind || '').toLowerCase();
-  if (k.includes('dshow') || k.includes('video_capture') || k.includes('camera') || k.includes('avfoundation')) return '📷';
-  if (k.includes('ffmpeg') || k.includes('vlc') || k.includes('media')) return '🎬';
-  if (k.includes('browser')) return '🌐';
-  if (k.includes('image')) return '🖼️';
-  if (k.includes('text') || k.includes('gdiplus')) return '🔤';
-  if (k.includes('color')) return '🎨';
-  if (k.includes('group')) return '📁';
-  return '📺';
+  const render = (name) => (window.Icon ? window.Icon(name, { size: 15 }) : '');
+  if (k.includes('dshow') || k.includes('video_capture') || k.includes('camera') || k.includes('avfoundation')) return render('video');
+  if (k.includes('ffmpeg') || k.includes('vlc') || k.includes('media')) return render('film');
+  if (k.includes('browser')) return render('globe');
+  if (k.includes('image')) return render('image');
+  if (k.includes('text') || k.includes('gdiplus')) return render('newspaper');
+  if (k.includes('color')) return render('palette');
+  if (k.includes('group')) return render('layers');
+  return render('monitor');
 }
 
 function renderSceneSources(items, sceneName) {
@@ -862,7 +873,7 @@ function renderSceneSources(items, sceneName) {
   populateCameraLayoutSelectors(items, sceneName);
 
   if (!items || items.length === 0) {
-    container.innerHTML = '<div style="color:var(--text-muted);font-size:var(--type-xs);padding:8px 0;">No hay fuentes en esta escena</div>';
+    container.innerHTML = '<div class="admin-hint" style="padding:8px 0;">No hay fuentes en esta escena</div>';
     return;
   }
 
@@ -876,6 +887,9 @@ function renderSceneSources(items, sceneName) {
     const kind = item.inputKind || 'fuente';
     const isMedia = kind.includes('ffmpeg') || kind.includes('vlc') || kind.includes('media');
     const isVisual = !kind.includes('wasapi') && !kind.includes('audio');
+    const eyeIconHtml = window.Icon
+      ? window.Icon(isVisible ? 'eye' : 'eye-off', { size: 15 })
+      : (isVisible ? 'ON' : 'OFF');
 
     // Fila principal
     const mainRow = document.createElement('div');
@@ -887,8 +901,8 @@ function renderSceneSources(items, sceneName) {
         <span class="source-name" title="${escapeHtml(item.sourceName)}">${escapeHtml(item.sourceName)}</span>
         <span class="source-kind-tag">${kind.replace('_source', '').replace('_input', '')}</span>
       </div>
-      <button class="btn-source-eye ${isVisible ? 'visible' : ''}" id="btn-eye-${item.sceneItemId}" title="${isVisible ? 'Ocultar capa' : 'Mostrar capa'}">
-        ${isVisible ? '👁️' : '👁️‍🗨️'}
+      <button type="button" class="btn-source-eye ${isVisible ? 'visible' : ''}" id="btn-eye-${item.sceneItemId}" title="${isVisible ? 'Ocultar capa' : 'Mostrar capa'}" aria-label="${isVisible ? 'Ocultar' : 'Mostrar'} capa ${escapeHtml(item.sourceName)}">
+        ${eyeIconHtml}
       </button>
     `;
 
@@ -903,13 +917,14 @@ function renderSceneSources(items, sceneName) {
     // Barra de acciones / presets
     const actionsBar = document.createElement('div');
     actionsBar.className = 'source-actions-bar';
+    const ic = (n) => (window.Icon ? window.Icon(n, { size: 12 }) : '');
 
     if (isMedia) {
       actionsBar.innerHTML = `
-        <button class="btn-source-preset" data-action="restart" title="Reiniciar video desde el inicio">↺ Reiniciar</button>
-        <button class="btn-source-preset" data-action="pause" title="Pausar video">⏸ Pausa</button>
-        <button class="btn-source-preset" data-action="play" title="Reproducir video">▶ Play</button>
-        <button class="btn-source-preset" data-action="stop" title="Detener video">⏹ Stop</button>
+        <button type="button" class="btn-source-preset" data-action="restart" title="Reiniciar video desde el inicio">${ic('rotate-ccw')}<span>Reiniciar</span></button>
+        <button type="button" class="btn-source-preset" data-action="pause" title="Pausar video">${ic('pause')}<span>Pausa</span></button>
+        <button type="button" class="btn-source-preset" data-action="play" title="Reproducir video">${ic('play')}<span>Play</span></button>
+        <button type="button" class="btn-source-preset" data-action="stop" title="Detener video">${ic('square')}<span>Stop</span></button>
       `;
       actionsBar.querySelectorAll('button').forEach(btn => {
         btn.onclick = () => triggerMedia(item.sourceName, btn.dataset.action);
@@ -917,12 +932,12 @@ function renderSceneSources(items, sceneName) {
       card.appendChild(actionsBar);
     } else if (isVisual) {
       actionsBar.innerHTML = `
-        <button class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'fullscreen')" title="Pantalla completa (1920x1080)">⛶ Full</button>
-        <button class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'pip_br')" title="Picture-in-Picture: Esquina inferior">◲ PiP Abajo</button>
-        <button class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'pip_tr')" title="Picture-in-Picture: Esquina superior">◳ PiP Arriba</button>
-        <button class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'split_left')" title="Mitad izquierda de pantalla">◫ Izq</button>
-        <button class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'split_right')" title="Mitad derecha de pantalla">◫ Der</button>
-        <button class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'center_boxed')" title="Centrado con marco">▣ Centro</button>
+        <button type="button" class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'fullscreen')" title="Pantalla completa (1920x1080)">${ic('maximize-2')}<span>Full</span></button>
+        <button type="button" class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'pip_br')" title="Picture-in-Picture: Esquina inferior">${ic('picture-in-picture-2')}<span>PiP Abajo</span></button>
+        <button type="button" class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'pip_tr')" title="Picture-in-Picture: Esquina superior">${ic('picture-in-picture-2')}<span>PiP Arriba</span></button>
+        <button type="button" class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'split_left')" title="Mitad izquierda de pantalla">${ic('columns-2')}<span>Izq.</span></button>
+        <button type="button" class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'split_right')" title="Mitad derecha de pantalla">${ic('columns-2')}<span>Der.</span></button>
+        <button type="button" class="btn-source-preset" onclick="setSourceTransformPreset(${item.sceneItemId}, 'center_boxed')" title="Centrado con marco">${ic('layout-grid')}<span>Centro</span></button>
       `;
       card.appendChild(actionsBar);
     }
@@ -935,7 +950,9 @@ function updateItemVisibilityUI(sceneItemId, enabled) {
   const eyeBtn = document.getElementById(`btn-eye-${sceneItemId}`);
   if (eyeBtn) {
     eyeBtn.classList.toggle('visible', !!enabled);
-    eyeBtn.innerHTML = enabled ? '👁️' : '👁️‍🗨️';
+    eyeBtn.innerHTML = window.Icon
+      ? window.Icon(enabled ? 'eye' : 'eye-off', { size: 15 })
+      : (enabled ? 'ON' : 'OFF');
     eyeBtn.title = enabled ? 'Ocultar capa' : 'Mostrar capa';
   }
 }
@@ -1135,7 +1152,8 @@ function renderScenes(scenes, currentProgram) {
   }
 
   scenes.forEach(sceneName => {
-    const tile = document.createElement('div');
+    const tile = document.createElement('button');
+    tile.type = 'button';
     const isProg = sceneName === currentProgram;
     const isPrev = !!(obsStatus.studioMode && sceneName === obsStatus.currentPreviewScene);
 
@@ -1143,7 +1161,7 @@ function renderScenes(scenes, currentProgram) {
     tile.dataset.scene = sceneName;
 
     tile.innerHTML = `
-      <span class="scene-icon">🎬</span>
+      <span class="scene-icon">${window.Icon ? window.Icon('tv', { size: 15 }) : ''}</span>
       <span class="scene-name">${escapeHtml(sceneName)}</span>
     `;
 
@@ -1185,23 +1203,26 @@ function toggleRecord() {
 
 function updateStreamButton(active) {
   const btn = document.getElementById('btn-stream-toggle');
+  if (!btn) return;
   if (active) {
-    btn.classList.add('active');
-    btn.innerHTML = `<span class="status-dot live"></span> STREAM EN VIVO`;
+    btn.classList.add('active', 'live');
+    btn.innerHTML = `<span class="status-dot danger"></span><span>Stream en vivo</span>`;
   } else {
-    btn.classList.remove('active');
-    btn.innerHTML = `<span class="status-dot"></span> INICIAR STREAM`;
+    btn.classList.remove('active', 'live');
+    btn.innerHTML = `<span class="status-dot"></span><span>Stream</span>`;
   }
 }
 
 function updateRecordButton(active) {
   const btn = document.getElementById('btn-record-toggle');
+  if (!btn) return;
   if (active) {
-    btn.classList.add('active');
-    btn.innerHTML = `<span class="status-dot live"></span> GRABANDO`;
+    btn.classList.add('active', 'live');
+    btn.innerHTML = `<span class="status-dot danger"></span><span>Grabando</span>`;
   } else {
     btn.classList.remove('active');
-    btn.innerHTML = `<span class="status-dot"></span> GRABAR`;
+    btn.classList.remove('live');
+    btn.innerHTML = `<span class="status-dot"></span><span>Grabar</span>`;
   }
 }
 
@@ -1244,15 +1265,29 @@ function loadTournament(data) {
   const clearBtn = document.getElementById('btn-clear-header');
 
   if (!data) {
-    titleEl.textContent = 'Sin Torneo Cargado';
+    titleEl.textContent = 'Sin torneo cargado';
     titleEl.title = 'No hay datos de torneo activos';
     if (clearBtn) clearBtn.style.display = 'none';
 
-    document.getElementById('event-chips-bar').innerHTML =
-      '<div style="color:var(--text-muted);font-size:var(--type-xs);padding:10px 0;grid-column:1/-1;">No hay torneo cargado. Descarga uno desde la pestaña <b>🌐 API WCA</b> o sube un archivo en <b>📂 Archivos</b>.</div>';
+    const emptyIcon = window.Icon ? window.Icon('database', { size: 18 }) : '';
+    const dlIcon = window.Icon ? window.Icon('download', { size: 14 }) : '';
 
-    document.getElementById('competitors-scroll-list').innerHTML =
-      '<div style="color:var(--text-muted);font-size:var(--type-xs);padding:18px 12px;text-align:center;">Sin datos de torneo.<br>Ingresa un ID de competencia o carga un archivo JSON para listar competidores.</div>';
+    document.getElementById('event-chips-bar').innerHTML = `
+      <div class="admin-empty-state" style="width:100%;">
+        <div class="admin-empty-icon">${emptyIcon}</div>
+        <div class="admin-empty-title">No hay torneo cargado</div>
+        <div class="admin-empty-desc">Importa una competencia oficial desde la WCA o carga un respaldo JSON local.</div>
+        <button type="button" class="admin-btn admin-btn--ghost" onclick="switchMainMenu('database'); setTimeout(() => document.getElementById('wca-comp-id-input')?.focus(), 60);">
+          ${dlIcon}<span>Importar torneo WCA</span>
+        </button>
+      </div>`;
+
+    document.getElementById('competitors-scroll-list').innerHTML = `
+      <div class="admin-empty-state">
+        <div class="admin-empty-icon">${emptyIcon}</div>
+        <div class="admin-empty-title">Directorio vacío</div>
+        <div class="admin-empty-desc">Ingresa un WCA ID a la izquierda y descarga la competencia para listar los inscritos.</div>
+      </div>`;
 
     const badgeEl = document.getElementById('tab-directory-count');
     if (badgeEl) badgeEl.textContent = '0';
@@ -1573,7 +1608,7 @@ function renderTickerNewsList() {
     row.innerHTML = `
       <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--text-muted);width:16px;text-align:center;">${index + 1}.</span>
       <input type="text" class="search-input news-item-input" value="${escapeHtml(text)}" placeholder="Escribe un aviso especial (ej: Próxima ronda a las 14:00)..." style="height:30px;font-size:12px;padding:3px 8px;flex:1;">
-      <button type="button" class="btn-tactile btn-secondary btn-sm remove-news-btn" title="Quitar este aviso" style="height:30px;width:30px;padding:0;color:var(--danger);display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
+      <button type="button" class="admin-icon-btn remove-news-btn" title="Quitar este aviso" aria-label="Quitar este aviso">${window.Icon ? window.Icon('x', { size: 14 }) : '×'}</button>
     `;
 
     const input = row.querySelector('.news-item-input');
@@ -2156,14 +2191,14 @@ function handleSearchInput(query, targetSlot = 'single') {
     directWcaItem.style.borderTop = '1px dashed var(--accent)';
     directWcaItem.innerHTML = `
       <div class="search-result-left">
-        <span style="font-size:16px;">🌐</span>
+        <span style="color:var(--admin-accent);display:inline-flex;">${window.Icon ? window.Icon('globe', { size: 16 }) : ''}</span>
         <div>
-          <div class="search-result-name" style="color:var(--accent);">Buscar WCA ID "${q.toUpperCase()}" en vivo</div>
+          <div class="search-result-name" style="color:var(--admin-accent);">Buscar WCA ID "${q.toUpperCase()}" en vivo</div>
           <div class="search-result-meta">Consultar tiempos y PRs en la base oficial WCA</div>
         </div>
       </div>
       <div>
-        <span class="comp-list-badge" style="background:var(--accent);color:#000;font-weight:700;">CONSULTAR</span>
+        <span class="comp-list-badge new">Consultar</span>
       </div>
     `;
 
@@ -2260,12 +2295,17 @@ function sendHideAll() {
   showcaseVisible = false;
   bigLogoVisible = false;
   headToHeadVisible = false;
+  liveRankingVisible = false;
+  versusBannerVisible = false;
   sendWS({ type: 'hide_all' });
   updateVisibilityStates(false, false);
   updateShowcaseUI();
   updateBigLogoUI();
   updateHeadToHeadUI();
-  showToast('Todos los overlays ocultados');
+  updateLiveRankingUI();
+  updateVersusUI();
+  window.AdminUI?.syncAdminLiveNowUI();
+  showToast('Todos los overlays ocultados de OBS', 'warning');
 }
 
 function updateVisibilityStates(compVis, evVis) {
@@ -2274,30 +2314,27 @@ function updateVisibilityStates(compVis, evVis) {
 
   const btnShowComp = document.getElementById('btn-show-competitor');
   const btnShowEv = document.getElementById('btn-show-event');
+  const playIc = window.Icon ? window.Icon('play', { size: 15 }) : '';
+  const checkIc = window.Icon ? window.Icon('check', { size: 15 }) : '';
 
-  if (competitorVisible) {
-    btnShowComp.style.background = 'linear-gradient(135deg, #10B981, #059669)';
-    btnShowComp.innerHTML = '<span>✓ EN VIVO EN OBS</span>';
-  } else {
-    btnShowComp.style.background = 'linear-gradient(135deg, #00C8FF, #0077FF)';
-    btnShowComp.innerHTML = '<span>▲ MOSTRAR EN PANTALLA</span>';
+  if (btnShowComp) {
+    btnShowComp.innerHTML = competitorVisible
+      ? `${checkIc}<span>Al aire en OBS</span><kbd>F8</kbd>`
+      : `${playIc}<span>Mostrar en OBS</span><kbd>F8</kbd>`;
   }
 
   const deckCard = document.getElementById('event-deck-card');
 
-  if (eventVisible) {
-    btnShowEv.style.background = 'linear-gradient(135deg, #0d8250, #10a364)';
-    btnShowEv.style.borderColor = '#10B981';
-    btnShowEv.style.color = '#FFFFFF';
-    btnShowEv.innerHTML = '<span>✓ EVENTO EN VIVO EN OBS</span>';
-    if (deckCard) deckCard.classList.add('is-live');
-  } else {
-    btnShowEv.style.background = 'var(--surface-card)';
-    btnShowEv.style.borderColor = 'var(--border)';
-    btnShowEv.style.color = 'var(--text-main)';
-    btnShowEv.innerHTML = '<span>▲ MOSTRAR EVENTO EN OBS</span>';
-    if (deckCard) deckCard.classList.remove('is-live');
+  if (btnShowEv) {
+    btnShowEv.innerHTML = eventVisible
+      ? `${checkIc}<span>Al aire en OBS</span><kbd>F9</kbd>`
+      : `${playIc}<span>Mostrar en OBS</span><kbd>F9</kbd>`;
   }
+  if (deckCard) {
+    deckCard.classList.toggle('is-live', eventVisible);
+  }
+
+  window.AdminUI?.syncAdminLiveNowUI();
 }
 
 // ── Lista y Filtros de Competidores ──
@@ -2429,10 +2466,12 @@ function toggleBannerCompList() {
     drawer.style.display = bannerCompListOpen ? 'block' : 'none';
   }
   if (icon) {
-    icon.textContent = bannerCompListOpen ? '▼' : '▶';
+    icon.innerHTML = window.Icon
+      ? window.Icon(bannerCompListOpen ? 'chevron-down' : 'chevron-right', { size: 14 })
+      : '';
   }
   if (btnText) {
-    btnText.textContent = bannerCompListOpen ? 'Cerrar Lista' : 'Abrir Lista';
+    btnText.textContent = bannerCompListOpen ? 'Cerrar lista' : 'Abrir lista';
   }
 
   if (bannerCompListOpen) {
@@ -2714,30 +2753,38 @@ function updateWsIndicator(connected) {
   const text = document.getElementById('ws-status-text');
   if (connected) {
     dot.className = 'status-dot active';
-    text.textContent = 'Servidor Conectado';
+    text.textContent = 'Servidor conectado';
   } else {
     dot.className = 'status-dot danger';
-    text.textContent = 'Servidor Desconectado';
+    text.textContent = 'Servidor desconectado';
   }
+  window.AdminUI?.syncAdminLiveNowUI();
 }
 
 function updateOverlayCount(count) {
   const badge = document.getElementById('overlay-count-badge');
-  badge.textContent = `${count} overlay(s) OBS`;
+  if (badge) badge.textContent = `${count} overlay(s) OBS`;
 }
 
 function switchMainMenu(menuKey) {
+  if (window.AdminUI && typeof window.AdminUI.activateAdminView === 'function') {
+    window.AdminUI.activateAdminView(menuKey);
+    return;
+  }
+  const normalized = (!menuKey || menuKey === 'banners') ? 'mesa' : menuKey;
   document.querySelectorAll('.deck-nav-tab').forEach(tab => {
-    tab.classList.toggle('active', tab.dataset.nav === menuKey);
+    tab.classList.toggle('active', tab.dataset.nav === normalized);
   });
   document.querySelectorAll('.main-view-panel').forEach(view => {
-    view.classList.toggle('active', view.id === `view-${menuKey}`);
+    const active = view.id === `view-${normalized}`;
+    view.classList.toggle('active', active);
+    view.hidden = !active;
   });
-  localStorage.setItem('directoobs_active_menu', menuKey);
+  localStorage.setItem('directoobs_active_menu', normalized);
 }
 
 function switchTab(tabId) {
-  if (['database', 'scenes', 'banners'].includes(tabId)) {
+  if (['database', 'scenes', 'banners', 'mesa', 'clasificacion', 'finales', 'pantalla'].includes(tabId)) {
     switchMainMenu(tabId);
     return;
   }
@@ -2754,17 +2801,39 @@ function switchTab(tabId) {
 
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const iconMap = {
+    success: 'check-circle-2',
+    error: 'alert-circle',
+    warning: 'alert-triangle',
+    info: 'info'
+  };
+  const iconHtml = window.Icon ? window.Icon(iconMap[type] || 'info', { size: 16 }) : '';
+
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.textContent = message;
+  toast.tabIndex = 0;
+  toast.innerHTML = `${iconHtml}<span style="flex:1;min-width:0;">${escapeHtml(message)}</span>`;
   container.appendChild(toast);
 
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(10px)';
-    toast.style.transition = 'all 0.25s ease';
-    setTimeout(() => toast.remove(), 250);
-  }, 3200);
+  let timerId = null;
+  const scheduleDismiss = (delay = 3400) => {
+    clearTimeout(timerId);
+    timerId = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(8px)';
+      toast.style.transition = 'opacity 180ms ease, transform 180ms ease';
+      setTimeout(() => toast.remove(), 190);
+    }, delay);
+  };
+
+  toast.addEventListener('mouseenter', () => clearTimeout(timerId));
+  toast.addEventListener('mouseleave', () => scheduleDismiss(1800));
+  toast.addEventListener('focusin', () => clearTimeout(timerId));
+  toast.addEventListener('focusout', () => scheduleDismiss(1800));
+
+  scheduleDismiss();
 }
 
 // ── Event Listeners y Atajos de Teclado ──
@@ -2824,9 +2893,13 @@ function setupKeyboardShortcuts() {
     const searchInputSingle = document.getElementById('competitor-search-input');
     const targetSearch = (bannerMode === 'dual' ? searchInput1 : searchInputSingle) || searchInput1 || searchInputSingle;
 
-    // Atajo '/' para enfocar buscador de competidores
-    if (e.key === '/' && targetSearch && document.activeElement !== targetSearch) {
+    // Atajo '/' para enfocar buscador de competidores sin interferir con inputs activos
+    if (e.key === '/' && targetSearch && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {
       e.preventDefault();
+      const mesaPanel = document.getElementById('view-mesa');
+      if (mesaPanel && mesaPanel.hidden) {
+        switchMainMenu('mesa');
+      }
       targetSearch.focus();
       targetSearch.select();
     }
@@ -3152,7 +3225,7 @@ function sendHideLiveRanking() {
   liveRankingVisible = false;
   demoRunning = false;
   const btn = document.getElementById('btn-demo-final');
-  if (btn) btn.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+  if (btn) btn.innerHTML = '<span>Demo en vivo: Final 3x3 (60s)</span>';
   const statusPill = document.getElementById('demo-status-pill');
   if (statusPill) statusPill.style.display = 'none';
   updateLiveRankingUI();
@@ -3168,7 +3241,7 @@ async function triggerFinalsDemo() {
     try {
       await fetch('/api/demo/stop-final-simulation', { method: 'POST' });
       demoRunning = false;
-      if (btn) btn.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+      if (btn) btn.innerHTML = '<span>Demo en vivo: Final 3x3 (60s)</span>';
       if (statusPill) statusPill.style.display = 'none';
       showToast('Simulación de final detenida', 'info');
     } catch (e) {
@@ -3179,17 +3252,17 @@ async function triggerFinalsDemo() {
 
   try {
     demoRunning = true;
-    if (btn) btn.innerHTML = '<span>⏹ DETENER SIMULACIÓN</span>';
+    if (btn) btn.innerHTML = '<span>Detener simulación</span>';
     if (statusPill) {
       statusPill.style.display = 'block';
-      statusPill.innerHTML = '⚡ <em>Iniciando simulación de Final 3x3 (60s)...</em>';
+      statusPill.innerHTML = '<em>Iniciando simulación de Final 3x3 (60s)...</em>';
     }
     showToast('Iniciando demostración en vivo de Final 3x3...', 'success');
     await fetch('/api/demo/start-final-simulation', { method: 'POST' });
   } catch (err) {
     showToast('Error al iniciar simulación: ' + err.message, 'error');
     demoRunning = false;
-    if (btn) btn.innerHTML = '<span>⚡ DEMO EN VIVO: FINAL 3X3 (60s)</span>';
+    if (btn) btn.innerHTML = '<span>Demo en vivo: Final 3x3 (60s)</span>';
     if (statusPill) statusPill.style.display = 'none';
   }
 }
@@ -3309,15 +3382,18 @@ function updateLiveRankingUI() {
   updateViewModeButtons();
 
   const btnShow = document.getElementById('btn-show-live-ranking');
+  const playIc = window.Icon ? window.Icon('play', { size: 15 }) : '';
+  const checkIc = window.Icon ? window.Icon('check', { size: 15 }) : '';
   if (btnShow) {
     if (liveRankingVisible) {
       btnShow.classList.add('active');
-      btnShow.innerHTML = '<span>● AL AIRE EN OBS</span>';
+      btnShow.innerHTML = `${checkIc}<span>Al aire en OBS</span>`;
     } else {
       btnShow.classList.remove('active');
-      btnShow.innerHTML = liveRankingViewMode === 'fullscreen' ? '<span>▲ MOSTRAR PANTALLA COMPLETA</span>' : '<span>▲ MOSTRAR EN OBS</span>';
+      btnShow.innerHTML = `${playIc}<span>Mostrar en OBS</span>`;
     }
   }
+  window.AdminUI?.syncAdminLiveNowUI();
 
   const compInput = document.getElementById('live-comp-id-input');
   if (compInput && !compInput.value && liveRankingCompId) {
@@ -3526,6 +3602,7 @@ function updateFsThemeUI() {
   if (endingInput && document.activeElement !== endingInput) {
     endingInput.value = currentFsTheme.endingText || 'Gracias por vernos';
   }
+  window.AdminUI?.syncAdminLiveNowUI();
 }
 
 function setFsScene(scene) {
@@ -3548,11 +3625,11 @@ function setFsScene(scene) {
   });
 
   const toastLabels = {
-    ranking: '📊 Tabla de Resultados activa en Pantalla Completa (/fullscreen)',
-    starting: '⏳ Escena "Iniciando en unos minutos" activa en Pantalla Completa (/fullscreen)',
-    lunch: '🍽️ Escena "Hora de almuerzo" activa en Pantalla Completa (/fullscreen)',
-    reconnecting: '🔌 Escena "Reconectando" activa en Pantalla Completa (/fullscreen)',
-    ending: '👋 Escena "Gracias por vernos" activa en Pantalla Completa (/fullscreen)'
+    ranking: 'Tabla de clasificación activa en /fullscreen',
+    starting: 'Escena "Iniciando en unos minutos" activa en /transicion',
+    lunch: 'Escena "Hora de almuerzo" activa en /transicion',
+    reconnecting: 'Escena "Reconectando" activa en /transicion',
+    ending: 'Escena "Gracias por vernos" activa en /transicion'
   };
   showToast(toastLabels[cleanScene] || cleanScene, 'info');
 }
@@ -3742,7 +3819,7 @@ function onFsColombiaCycleChange(checked) {
       animation: currentFsTheme.animation
     }
   });
-  showToast(`Degradé Bandera de Colombia: ${checked ? 'Activado (Flujo Izq ➔ Der) 🇨🇴' : 'Desactivado'}`, 'info');
+  showToast(`Degradé Bandera de Colombia: ${checked ? 'Activado (flujo continuo)' : 'Desactivado'}`, 'info');
 }
 
 function onFsAnimationChange(anim) {
@@ -3752,13 +3829,13 @@ function onFsAnimationChange(anim) {
     data: { animation: anim }
   });
   const labelMap = {
-    'none': 'Estático (Sin movimiento)',
+    'none': 'Estático (sin movimiento)',
     'ken-burns': 'Cinemático Ken Burns',
-    'scroll-left': 'Flujo Izquierda ⬅️',
-    'scroll-right': 'Flujo Derecha ➡️',
-    'scroll-up': 'Flujo Arriba ⬆️',
-    'scroll-down': 'Flujo Abajo ⬇️',
-    'diagonal': 'Flujo Diagonal ↗️'
+    'scroll-left': 'Flujo continuo: Izquierda',
+    'scroll-right': 'Flujo continuo: Derecha',
+    'scroll-up': 'Flujo continuo: Arriba',
+    'scroll-down': 'Flujo continuo: Abajo',
+    'diagonal': 'Flujo continuo: Diagonal'
   };
   showToast(`Movimiento de fondo: ${labelMap[anim] || anim}`, 'info');
 }
@@ -3927,30 +4004,21 @@ function setShowcaseCompetitor(comp) {
 function updateShowcaseUI() {
   const badge = document.getElementById('showcase-status-badge');
   const btnShow = document.getElementById('btn-show-showcase');
-  const btnHide = document.getElementById('btn-hide-showcase');
+  const playIc = window.Icon ? window.Icon('play', { size: 15 }) : '';
+  const checkIc = window.Icon ? window.Icon('check', { size: 15 }) : '';
 
   // 1. Estado en Vivo
   if (badge) {
-    if (showcaseVisible) {
-      badge.textContent = 'AL AIRE';
-      badge.className = 'live-status-pill online';
-    } else {
-      badge.textContent = 'EN ESPERA';
-      badge.className = 'live-status-pill offline';
-    }
+    badge.textContent = showcaseVisible ? 'Al aire' : 'En espera';
+    badge.className = showcaseVisible ? 'live-status-pill online' : 'live-status-pill offline';
   }
 
   if (btnShow) {
-    if (showcaseVisible) {
-      btnShow.classList.remove('btn-primary');
-      btnShow.classList.add('btn-tactile-active');
-      btnShow.innerHTML = '● AL AIRE EN OBS';
-    } else {
-      btnShow.classList.add('btn-primary');
-      btnShow.classList.remove('btn-tactile-active');
-      btnShow.innerHTML = '▲ MOSTRAR EN OBS';
-    }
+    btnShow.innerHTML = showcaseVisible
+      ? `${checkIc}<span>Al aire en OBS</span>`
+      : `${playIc}<span>Mostrar en OBS</span>`;
   }
+  window.AdminUI?.syncAdminLiveNowUI();
 
   // 2. Previsualización de la tarjeta
   const elFlag = document.getElementById('panel-showcase-bg-flag');
@@ -4034,7 +4102,7 @@ function onShowcaseSearchInput(query) {
     resultsDropdown.innerHTML = `
       <div style="padding:10px;font-size:12px;color:var(--text-dim);text-align:center;">
         No encontrado en lista de inscritos.
-        ${isWcaId ? `<button type="button" class="btn-tactile btn-primary" style="margin-top:6px;width:100%;font-size:11px;padding:4px;" onclick="fetchAndSelectShowcaseWCA('${q.toUpperCase()}')">🔍 Buscar WCA ID ${q.toUpperCase()}</button>` : ''}
+        ${isWcaId ? `<button type="button" class="admin-btn admin-btn--ghost" style="margin-top:8px;width:100%;" onclick="fetchAndSelectShowcaseWCA('${q.toUpperCase()}')">${window.Icon ? window.Icon('search', { size: 14 }) : ''}<span>Buscar WCA ID ${q.toUpperCase()}</span></button>` : ''}
       </div>
     `;
     resultsDropdown.style.display = 'block';
@@ -4118,28 +4186,17 @@ function updateBigLogoUI() {
   const emptyPlaceholder = document.getElementById('panel-big-logo-empty');
 
   if (badge) {
-    if (bigLogoVisible) {
-      badge.textContent = 'EN VIVO';
-      badge.className = 'live-status-pill online';
-    } else {
-      badge.textContent = 'EN ESPERA';
-      badge.className = 'live-status-pill offline';
-    }
+    badge.textContent = bigLogoVisible ? 'Al aire' : 'En espera';
+    badge.className = bigLogoVisible ? 'live-status-pill online' : 'live-status-pill offline';
   }
 
-  if (btnShow && btnHide) {
-    if (bigLogoVisible) {
-      btnShow.style.boxShadow = '0 0 12px rgba(22, 163, 74, 0.6)';
-      btnShow.style.borderColor = '#22c55e';
-      btnHide.style.boxShadow = 'none';
-      btnHide.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-    } else {
-      btnShow.style.boxShadow = 'none';
-      btnShow.style.borderColor = 'transparent';
-      btnHide.style.boxShadow = 'none';
-      btnHide.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-    }
+  if (btnShow) {
+    const ic = window.Icon ? window.Icon(bigLogoVisible ? 'check' : 'play', { size: 15 }) : '';
+    btnShow.innerHTML = bigLogoVisible
+      ? `${ic}<span>Al aire en OBS</span>`
+      : `${ic}<span>Mostrar en OBS</span>`;
   }
+  window.AdminUI?.syncAdminLiveNowUI();
 
   const effectiveUrl = bigLogoUrl || tickerTournamentLogo || null;
   if (imgPreview && emptyPlaceholder) {
@@ -4150,7 +4207,7 @@ function updateBigLogoUI() {
     } else {
       imgPreview.src = '';
       imgPreview.style.display = 'none';
-      emptyPlaceholder.style.display = 'block';
+      emptyPlaceholder.style.display = 'flex';
     }
   }
 
@@ -4266,28 +4323,17 @@ function updateHeadToHeadUI() {
   const btnHide = document.getElementById('btn-hide-h2h');
 
   if (badge) {
-    if (headToHeadVisible) {
-      badge.textContent = 'EN VIVO';
-      badge.className = 'live-status-pill online';
-    } else {
-      badge.textContent = 'EN ESPERA';
-      badge.className = 'live-status-pill offline';
-    }
+    badge.textContent = headToHeadVisible ? 'Al aire' : 'En espera';
+    badge.className = headToHeadVisible ? 'live-status-pill online' : 'live-status-pill offline';
   }
 
-  if (btnShow && btnHide) {
-    if (headToHeadVisible) {
-      btnShow.style.boxShadow = '0 0 12px rgba(22, 163, 74, 0.6)';
-      btnShow.style.borderColor = '#22c55e';
-      btnHide.style.boxShadow = 'none';
-      btnHide.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-    } else {
-      btnShow.style.boxShadow = 'none';
-      btnShow.style.borderColor = 'transparent';
-      btnHide.style.boxShadow = 'none';
-      btnHide.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-    }
+  if (btnShow) {
+    const ic = window.Icon ? window.Icon(headToHeadVisible ? 'check' : 'play', { size: 15 }) : '';
+    btnShow.innerHTML = headToHeadVisible
+      ? `${ic}<span>Al aire en OBS</span>`
+      : `${ic}<span>Mostrar en OBS</span>`;
   }
+  window.AdminUI?.syncAdminLiveNowUI();
 
   const name1El = document.getElementById('panel-h2h-name-1');
   const name2El = document.getElementById('panel-h2h-name-2');
@@ -4778,27 +4824,26 @@ function updateVersusUI() {
   if (badge) {
     if (versusBannerVisible) {
       badge.className = 'live-status-pill online';
-      badge.textContent = `EN VIVO (${versusPollInterval}s)`;
+      badge.textContent = `Al aire · ${versusPollInterval}s`;
     } else {
       badge.className = 'live-status-pill offline';
-      badge.textContent = 'EN ESPERA';
+      badge.textContent = 'En espera';
     }
   }
 
   if (btnShow) {
-    if (versusBannerVisible) {
-      btnShow.classList.add('active');
-      btnShow.innerHTML = '<span>● AL AIRE EN OBS</span>';
-    } else {
-      btnShow.classList.remove('active');
-      btnShow.innerHTML = '<span>▲ MOSTRAR EN OBS</span>';
-    }
+    const ic = window.Icon ? window.Icon(versusBannerVisible ? 'check' : 'play', { size: 15 }) : '';
+    btnShow.classList.toggle('active', versusBannerVisible);
+    btnShow.innerHTML = versusBannerVisible
+      ? `${ic}<span>Al aire en OBS</span>`
+      : `${ic}<span>Mostrar en OBS</span>`;
   }
 
   const pollSel = document.getElementById('versus-poll-select');
   if (pollSel && versusPollInterval) {
     pollSel.value = String(versusPollInterval);
   }
+  window.AdminUI?.syncAdminLiveNowUI();
 }
 
 function renderVersusPanelPreview(data) {

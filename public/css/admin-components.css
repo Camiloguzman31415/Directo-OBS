@@ -1,0 +1,1765 @@
+/* ==========================================================================
+   DirectoOBS Admin Console — Modular UI Components
+   Componentes: Sidebar, TopBar, StatusPill, LiveNowPanel, OverlayCard,
+   ActionBar, SliderField, CompetitorPicker, CollapsibleSection, Toast, EmptyState
+   Scope estricto: #admin-root
+   ========================================================================== */
+
+@layer admin.components {
+  /* ------------------------------------------------------------------------
+     1. Iconos base y KBD (Atajos de teclado discretos)
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-icon {
+    flex-shrink: 0;
+    inline-size: 16px;
+    block-size: 16px;
+    color: currentColor;
+  }
+
+  #admin-root [data-icon] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    flex-shrink: 0;
+  }
+
+  #admin-root kbd,
+  #admin-root .kbd-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 22px;
+    block-size: 20px;
+    padding-inline: 6px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--admin-border-default);
+    color: var(--admin-text-secondary);
+    font-family: var(--admin-font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ------------------------------------------------------------------------
+     2. Sidebar Agrupada + Drawer Responsive
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-sidebar {
+    position: sticky;
+    inset-block-start: 0;
+    block-size: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--admin-bg-surface);
+    border-inline-end: 1px solid var(--admin-border-subtle);
+    z-index: 60;
+    overflow: clip;
+  }
+
+  #admin-root .admin-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--admin-space-3);
+    min-block-size: var(--admin-topbar-height);
+    padding: var(--admin-space-3) var(--admin-space-4);
+    border-block-end: 1px solid var(--admin-border-subtle);
+  }
+
+  #admin-root .admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-brand-mark {
+    display: grid;
+    place-items: center;
+    inline-size: 32px;
+    block-size: 32px;
+    border-radius: var(--admin-radius-sm);
+    background: var(--admin-accent-soft);
+    border: 1px solid var(--admin-accent-border);
+    color: var(--admin-accent);
+    flex-shrink: 0;
+  }
+
+  #admin-root .admin-brand-text {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-brand-name {
+    font-size: var(--admin-text-base);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--admin-text-primary);
+    line-height: 1.2;
+  }
+
+  #admin-root .admin-brand-sub {
+    font-size: var(--admin-text-2xs);
+    color: var(--admin-text-muted);
+    line-height: 1.2;
+  }
+
+  #admin-root .admin-icon-btn.admin-drawer-close {
+    display: none;
+  }
+
+  #admin-root .admin-sidebar-nav {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: var(--admin-space-4) var(--admin-space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--admin-space-5);
+  }
+
+  #admin-root .admin-nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #admin-root .admin-nav-group-label {
+    padding-inline: 10px;
+    margin-block-end: 4px;
+    font-size: var(--admin-text-2xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--admin-text-muted);
+  }
+
+  #admin-root .deck-nav-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    inline-size: 100%;
+    min-block-size: 38px;
+    padding: 8px 10px;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--admin-text-secondary);
+    font-size: var(--admin-text-sm);
+    font-weight: 500;
+    text-align: left;
+    transition: background-color var(--admin-transition-fast), color var(--admin-transition-fast), border-color var(--admin-transition-fast);
+  }
+
+  #admin-root .deck-nav-tab:hover:not(:disabled) {
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .deck-nav-tab.active {
+    background: var(--admin-accent-soft);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-text-primary);
+    font-weight: 600;
+  }
+
+  #admin-root .deck-nav-tab.active .admin-nav-icon {
+    color: var(--admin-accent);
+  }
+
+  #admin-root .admin-nav-label {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #admin-root .admin-nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 20px;
+    block-size: 18px;
+    padding-inline: 6px;
+    border-radius: var(--admin-radius-pill);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--admin-text-secondary);
+    font-family: var(--admin-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  #admin-root .admin-nav-badge.is-live {
+    background: var(--admin-accent);
+    color: var(--admin-on-accent);
+  }
+
+  #admin-root .admin-sidebar-footer {
+    padding: var(--admin-space-3) var(--admin-space-4);
+    border-block-start: 1px solid var(--admin-border-subtle);
+    background: var(--admin-bg-surface-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #admin-root .admin-shortcuts-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--admin-text-2xs);
+    font-weight: 600;
+    color: var(--admin-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  #admin-root .admin-shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 8px;
+  }
+
+  #admin-root .admin-shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--admin-text-xs);
+    color: var(--admin-text-secondary);
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-drawer-backdrop {
+    display: none;
+  }
+
+  /* ------------------------------------------------------------------------
+     3. TopBar Superior + Acciones de Transmision + Boton Fijo F10
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--admin-space-3);
+    min-block-size: var(--admin-topbar-height);
+    padding: var(--admin-space-2) var(--admin-space-6);
+    background: var(--admin-bg-surface);
+    border-block-end: 1px solid var(--admin-border-subtle);
+    flex-wrap: wrap;
+  }
+
+  #admin-root .admin-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-space-3);
+    min-inline-size: 0;
+    flex: 1 1 auto;
+  }
+
+  #admin-root .admin-icon-btn.admin-menu-trigger {
+    display: none;
+  }
+
+  #admin-root .admin-view-heading {
+    font-size: var(--admin-text-md);
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  #admin-root .admin-topbar-divider {
+    inline-size: 1px;
+    block-size: 20px;
+    background: var(--admin-border-default);
+    flex-shrink: 0;
+  }
+
+  #admin-root .admin-tournament-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-inline-size: 300px;
+    min-block-size: 32px;
+    padding: 4px 10px;
+    border-radius: var(--admin-radius-sm);
+    background: var(--admin-bg-elevated);
+    border: 1px solid var(--admin-border-default);
+    color: var(--admin-text-secondary);
+    font-size: var(--admin-text-xs);
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-tournament-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .admin-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-space-3);
+    flex-wrap: wrap;
+  }
+
+  #admin-root .admin-status-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Grupo de acciones de transmision OBS separadas del resto */
+  #admin-root .admin-broadcast-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px;
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-elevated);
+    border: 1px solid var(--admin-border-default);
+  }
+
+  #admin-root .admin-broadcast-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 30px;
+    padding: 4px 10px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--admin-text-secondary);
+    font-size: var(--admin-text-xs);
+    font-weight: 600;
+    transition: background-color var(--admin-transition-fast), color var(--admin-transition-fast), border-color var(--admin-transition-fast);
+    white-space: nowrap;
+  }
+
+  #admin-root .admin-broadcast-btn:hover:not(:disabled) {
+    background: var(--admin-bg-hover);
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .admin-broadcast-btn.active,
+  #admin-root .admin-broadcast-btn.is-active {
+    background: var(--admin-accent-soft);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-accent);
+  }
+
+  #admin-root .admin-broadcast-btn.live {
+    background: var(--admin-danger-soft);
+    border-color: var(--admin-danger-border);
+    color: var(--admin-danger);
+  }
+
+  /* Boton de panico Ocultar todo (F10) siempre fijo y destructivo claro */
+  #admin-root .admin-panic-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-block-size: 36px;
+    padding: 6px 14px;
+    border-radius: var(--admin-radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: var(--admin-danger-solid);
+    color: var(--admin-on-danger);
+    font-size: var(--admin-text-xs);
+    font-weight: 600;
+    transition: background-color var(--admin-transition-fast), transform var(--admin-transition-fast);
+    white-space: nowrap;
+  }
+
+  #admin-root .admin-panic-btn:hover:not(:disabled) {
+    background: var(--admin-danger-solid-hover);
+  }
+
+  #admin-root .admin-panic-btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  #admin-root .admin-panic-btn kbd {
+    background: rgba(0, 0, 0, 0.28);
+    border-color: rgba(255, 255, 255, 0.22);
+    color: var(--admin-on-danger);
+  }
+
+  /* ------------------------------------------------------------------------
+     4. StatusPill Uniforme (En espera / Al aire / Conectado / Desconectado)
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-status-pill,
+  #admin-root .live-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 26px;
+    padding: 3px 10px;
+    border-radius: var(--admin-radius-pill);
+    border: 1px solid var(--admin-border-default);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-secondary);
+    font-family: var(--admin-font-sans);
+    font-size: var(--admin-text-xs);
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  #admin-root .status-dot {
+    inline-size: 8px;
+    block-size: 8px;
+    border-radius: 50%;
+    background: var(--admin-text-muted);
+    flex-shrink: 0;
+  }
+
+  #admin-root .status-dot.active {
+    background: var(--admin-success);
+  }
+
+  #admin-root .status-dot.live {
+    background: var(--admin-accent);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  }
+
+  #admin-root .status-dot.warning {
+    background: var(--admin-warning);
+  }
+
+  #admin-root .status-dot.danger {
+    background: var(--admin-danger);
+  }
+
+  /* Variantes de StatusPill */
+  #admin-root .admin-status-pill--live,
+  #admin-root .live-status-pill.online {
+    background: var(--admin-accent-soft);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-accent);
+    font-weight: 600;
+  }
+
+  #admin-root .admin-status-pill--live::before,
+  #admin-root .live-status-pill.online::before {
+    content: "";
+    inline-size: 7px;
+    block-size: 7px;
+    border-radius: 50%;
+    background: var(--admin-accent);
+    flex-shrink: 0;
+  }
+
+  #admin-root .admin-status-pill--standby,
+  #admin-root .live-status-pill.offline {
+    background: var(--admin-bg-elevated);
+    border-color: var(--admin-border-default);
+    color: var(--admin-text-muted);
+  }
+
+  #admin-root .admin-status-pill--standby::before,
+  #admin-root .live-status-pill.offline::before {
+    content: "";
+    inline-size: 7px;
+    block-size: 7px;
+    border-radius: 50%;
+    background: var(--admin-text-disabled);
+    flex-shrink: 0;
+  }
+
+  #admin-root .admin-status-pill--connected {
+    background: var(--admin-success-soft);
+    border-color: var(--admin-success-border);
+    color: var(--admin-success);
+  }
+
+  #admin-root .admin-status-pill--warning {
+    background: var(--admin-warning-soft);
+    border-color: var(--admin-warning-border);
+    color: var(--admin-warning);
+  }
+
+  #admin-root .admin-status-pill--error {
+    background: var(--admin-danger-soft);
+    border-color: var(--admin-danger-border);
+    color: var(--admin-danger);
+  }
+
+  /* ------------------------------------------------------------------------
+     5. LiveNowPanel ("Al aire ahora" — Resumen fijo con ocultado individual)
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-live-now {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-space-3);
+    min-block-size: 44px;
+    padding: 6px var(--admin-space-6);
+    background: var(--admin-bg-surface-subtle);
+    flex-wrap: wrap;
+  }
+
+  #admin-root .admin-live-now.has-active {
+    background: linear-gradient(90deg, rgba(56, 189, 248, 0.08), rgba(17, 24, 38, 0.95) 45%);
+  }
+
+  #admin-root .admin-live-now-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--admin-text-xs);
+    font-weight: 600;
+    color: var(--admin-text-secondary);
+    flex-shrink: 0;
+  }
+
+  #admin-root .admin-live-now.has-active .admin-live-now-header {
+    color: var(--admin-accent);
+  }
+
+  #admin-root .admin-live-now-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 20px;
+    block-size: 20px;
+    padding-inline: 6px;
+    border-radius: var(--admin-radius-pill);
+    background: var(--admin-bg-elevated);
+    border: 1px solid var(--admin-border-default);
+    font-family: var(--admin-font-mono);
+    font-size: 11px;
+    color: var(--admin-text-secondary);
+  }
+
+  #admin-root .admin-live-now.has-active .admin-live-now-count {
+    background: var(--admin-accent);
+    border-color: var(--admin-accent);
+    color: var(--admin-on-accent);
+  }
+
+  #admin-root .admin-live-now-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-live-now-empty {
+    font-size: var(--admin-text-xs);
+    color: var(--admin-text-muted);
+  }
+
+  #admin-root .admin-live-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 4px 3px 10px;
+    border-radius: var(--admin-radius-pill);
+    background: var(--admin-accent-soft);
+    border: 1px solid var(--admin-accent-border);
+    color: var(--admin-text-primary);
+    font-size: var(--admin-text-xs);
+    max-inline-size: 100%;
+  }
+
+  #admin-root .admin-live-chip-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 4px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-weight: 600;
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-live-chip-dot {
+    inline-size: 7px;
+    block-size: 7px;
+    border-radius: 50%;
+    background: var(--admin-accent);
+    flex-shrink: 0;
+  }
+
+  #admin-root .admin-live-chip-detail {
+    color: var(--admin-text-secondary);
+    font-weight: 400;
+    max-inline-size: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #admin-root .admin-live-chip-hide {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 24px;
+    block-size: 24px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--admin-text-secondary);
+    transition: background-color var(--admin-transition-fast), color var(--admin-transition-fast);
+  }
+
+  #admin-root .admin-live-chip-hide:hover:not(:disabled) {
+    background: var(--admin-danger-soft);
+    color: var(--admin-danger);
+  }
+
+  #admin-root .admin-scene-indicator-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: var(--admin-radius-pill);
+    background: var(--admin-warning-soft);
+    border: 1px solid var(--admin-warning-border);
+    color: var(--admin-warning);
+    font-size: var(--admin-text-xs);
+    font-weight: 500;
+  }
+
+  /* ------------------------------------------------------------------------
+     6. Anatomia Unica de OverlayCard + PanelCard + ActionBar
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-overlay-card,
+  #admin-root .admin-panel-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--admin-bg-surface);
+    border: 1px solid var(--admin-border-default);
+    border-radius: var(--admin-radius-lg);
+    transition: border-color var(--admin-transition-base);
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-overlay-card.is-live,
+  #admin-root .admin-overlay-card:has(.live-status-pill.online),
+  #admin-root .admin-overlay-card:has(.admin-status-pill--live) {
+    border-color: var(--admin-accent-border);
+    box-shadow: inset 0 2px 0 0 var(--admin-accent);
+  }
+
+  #admin-root .admin-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--admin-space-3);
+    padding: var(--admin-space-4) var(--admin-space-5);
+    border-block-end: 1px solid var(--admin-border-subtle);
+  }
+
+  #admin-root .admin-overlay-card.is-collapsed .admin-card-header {
+    border-block-end-color: transparent;
+  }
+
+  #admin-root .admin-card-header-main {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-space-3);
+    min-inline-size: 0;
+    flex: 1 1 auto;
+  }
+
+  #admin-root .admin-card-icon {
+    display: grid;
+    place-items: center;
+    inline-size: 36px;
+    block-size: 36px;
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-elevated);
+    border: 1px solid var(--admin-border-subtle);
+    color: var(--admin-text-secondary);
+    flex-shrink: 0;
+  }
+
+  #admin-root .admin-overlay-card.is-live .admin-card-icon,
+  #admin-root .admin-overlay-card:has(.live-status-pill.online) .admin-card-icon,
+  #admin-root .admin-overlay-card:has(.admin-status-pill--live) .admin-card-icon {
+    background: var(--admin-accent-soft);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-accent);
+  }
+
+  #admin-root .admin-card-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  #admin-root .admin-card-title {
+    font-size: var(--admin-text-md);
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    line-height: 1.25;
+  }
+
+  #admin-root .admin-card-subtitle {
+    font-size: var(--admin-text-xs);
+    color: var(--admin-text-muted);
+    line-height: 1.35;
+  }
+
+  #admin-root .admin-card-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  #admin-root .admin-card-collapse-btn {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 32px;
+    block-size: 32px;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-subtle);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-secondary);
+    transition: background-color var(--admin-transition-fast), color var(--admin-transition-fast), transform var(--admin-transition-fast);
+  }
+
+  #admin-root .admin-card-collapse-btn:hover:not(:disabled) {
+    background: var(--admin-bg-hover);
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .admin-card-collapse-btn[aria-expanded="false"] .admin-icon {
+    transform: rotate(-90deg);
+  }
+
+  #admin-root .admin-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--admin-space-4);
+    padding: var(--admin-space-5);
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-overlay-card.is-collapsed .admin-card-body,
+  #admin-root .admin-overlay-card.is-collapsed .admin-action-bar {
+    display: none;
+  }
+
+  /* ActionBar Unificada (Mostrar primaria + Ocultar secundaria) */
+  #admin-root .admin-action-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-space-3);
+    padding: var(--admin-space-3) var(--admin-space-5);
+    border-block-start: 1px solid var(--admin-border-subtle);
+    background: var(--admin-bg-surface-subtle);
+    border-end-start-radius: var(--admin-radius-lg);
+    border-end-end-radius: var(--admin-radius-lg);
+  }
+
+  /* ------------------------------------------------------------------------
+     7. Botones Estandarizados del Sistema
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-block-size: 38px;
+    padding: 8px 14px;
+    border-radius: var(--admin-radius-md);
+    border: 1px solid var(--admin-border-default);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-primary);
+    font-size: var(--admin-text-sm);
+    font-weight: 600;
+    line-height: 1.2;
+    transition: background-color var(--admin-transition-fast), border-color var(--admin-transition-fast), color var(--admin-transition-fast);
+    white-space: nowrap;
+  }
+
+  #admin-root .admin-btn:hover:not(:disabled) {
+    background: var(--admin-bg-hover);
+    border-color: var(--admin-border-strong);
+  }
+
+  #admin-root .admin-btn--primary {
+    flex: 1 1 auto;
+    background: var(--admin-accent);
+    border-color: var(--admin-accent);
+    color: var(--admin-on-accent);
+  }
+
+  #admin-root .admin-btn--primary:hover:not(:disabled) {
+    background: var(--admin-accent-hover);
+    border-color: var(--admin-accent-hover);
+  }
+
+  #admin-root .admin-btn--primary kbd {
+    background: rgba(6, 19, 31, 0.18);
+    border-color: rgba(6, 19, 31, 0.28);
+    color: var(--admin-on-accent);
+  }
+
+  #admin-root .admin-btn--secondary {
+    background: var(--admin-bg-elevated);
+    border-color: var(--admin-border-default);
+    color: var(--admin-text-secondary);
+  }
+
+  #admin-root .admin-btn--secondary:hover:not(:disabled) {
+    background: var(--admin-bg-hover);
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .admin-btn--ghost {
+    min-block-size: 32px;
+    padding: 6px 10px;
+    border-radius: var(--admin-radius-sm);
+    background: transparent;
+    border-color: var(--admin-border-default);
+    color: var(--admin-text-secondary);
+    font-size: var(--admin-text-xs);
+    font-weight: 500;
+  }
+
+  #admin-root .admin-btn--ghost:hover:not(:disabled) {
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .admin-btn--danger-outline {
+    min-block-size: 32px;
+    padding: 6px 10px;
+    border-radius: var(--admin-radius-sm);
+    background: var(--admin-danger-soft);
+    border-color: var(--admin-danger-border);
+    color: var(--admin-danger);
+    font-size: var(--admin-text-xs);
+    font-weight: 600;
+  }
+
+  #admin-root .admin-btn--danger-outline:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+  }
+
+  #admin-root .admin-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 34px;
+    min-block-size: 34px;
+    padding: 6px;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-default);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-secondary);
+    transition: background-color var(--admin-transition-fast), color var(--admin-transition-fast), border-color var(--admin-transition-fast);
+  }
+
+  #admin-root .admin-icon-btn:hover:not(:disabled) {
+    background: var(--admin-bg-hover);
+    color: var(--admin-text-primary);
+  }
+
+  /* ------------------------------------------------------------------------
+     8. Formularios, Segmented Controls, Inputs y Selects
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-field-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: var(--admin-space-3);
+    align-items: end;
+  }
+
+  #admin-root .admin-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: var(--admin-text-xs);
+    font-weight: 500;
+    color: var(--admin-text-secondary);
+  }
+
+  #admin-root .admin-hint {
+    font-size: var(--admin-text-xs);
+    color: var(--admin-text-muted);
+    line-height: 1.4;
+  }
+
+  #admin-root :where(.admin-input, .admin-select, .text-input, .select-input) {
+    inline-size: 100%;
+    min-block-size: 38px;
+    padding: 7px 12px;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-default);
+    background-color: var(--admin-bg-elevated);
+    color: var(--admin-text-primary);
+    font-size: var(--admin-text-sm);
+    transition: border-color var(--admin-transition-fast), background-color var(--admin-transition-fast);
+  }
+
+  #admin-root :where(.admin-input, .admin-select, .text-input, .select-input)::placeholder {
+    color: var(--admin-text-muted);
+  }
+
+  #admin-root :where(.admin-input, .admin-select, .text-input, .select-input):hover:not(:disabled) {
+    border-color: var(--admin-border-strong);
+  }
+
+  #admin-root :where(.admin-select, .select-input) {
+    appearance: none;
+    padding-inline-end: 34px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+
+  /* Segmented Control uniforme */
+  #admin-root .segmented-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px;
+    border-radius: var(--admin-radius-sm);
+    background: var(--admin-bg-base);
+    border: 1px solid var(--admin-border-default);
+    inline-size: 100%;
+  }
+
+  #admin-root .segment-btn {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-block-size: 30px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--admin-text-secondary);
+    font-size: var(--admin-text-xs);
+    font-weight: 500;
+    transition: background-color var(--admin-transition-fast), color var(--admin-transition-fast), border-color var(--admin-transition-fast);
+    white-space: nowrap;
+  }
+
+  #admin-root .segment-btn:hover:not(:disabled) {
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .segment-btn.active {
+    background: var(--admin-bg-elevated);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-accent);
+    font-weight: 600;
+  }
+
+  /* Checkboxes alineados */
+  #admin-root .admin-check-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-block-size: 32px;
+    font-size: var(--admin-text-sm);
+    color: var(--admin-text-secondary);
+    cursor: pointer;
+  }
+
+  #admin-root .admin-check-label input[type="checkbox"] {
+    inline-size: 16px;
+    block-size: 16px;
+    accent-color: var(--admin-accent);
+    margin: 0;
+  }
+
+  /* ------------------------------------------------------------------------
+     9. SliderField Reutilizable (Slider + Valor Tabular + Presets)
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-slider-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: var(--admin-space-3);
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-base);
+    border: 1px solid var(--admin-border-subtle);
+  }
+
+  #admin-root .admin-slider-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  #admin-root .admin-slider-value {
+    padding: 2px 8px;
+    border-radius: var(--admin-radius-xs);
+    background: var(--admin-bg-elevated);
+    border: 1px solid var(--admin-border-default);
+    font-family: var(--admin-font-mono);
+    font-size: var(--admin-text-xs);
+    font-weight: 600;
+    color: var(--admin-accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  #admin-root input[type="range"] {
+    inline-size: 100%;
+    block-size: 24px;
+    accent-color: var(--admin-accent);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  @supports not (accent-color: #38bdf8) {
+    #admin-root input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    #admin-root input[type="range"]::-webkit-slider-runnable-track {
+      block-size: 6px;
+      border-radius: 999px;
+      background: var(--admin-bg-elevated);
+    }
+    #admin-root input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      inline-size: 16px;
+      block-size: 16px;
+      margin-block-start: -5px;
+      border-radius: 50%;
+      background: var(--admin-accent);
+    }
+  }
+
+  #admin-root .admin-slider-presets {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  #admin-root .admin-preset-btn {
+    min-block-size: 26px;
+    padding: 3px 9px;
+    border-radius: var(--admin-radius-xs);
+    border: 1px solid var(--admin-border-default);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-secondary);
+    font-family: var(--admin-font-mono);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    transition: background-color var(--admin-transition-fast), border-color var(--admin-transition-fast), color var(--admin-transition-fast);
+  }
+
+  #admin-root .admin-preset-btn:hover:not(:disabled) {
+    background: var(--admin-bg-hover);
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .admin-preset-btn.is-active {
+    background: var(--admin-accent-soft);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-accent);
+    font-weight: 600;
+  }
+
+  /* ------------------------------------------------------------------------
+     10. CompetitorPicker Unificado (Mesa, Showcase y Head to Head)
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-picker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-picker-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  #admin-root .admin-picker-icon {
+    position: absolute;
+    inset-inline-start: 11px;
+    color: var(--admin-text-muted);
+    pointer-events: none;
+  }
+
+  #admin-root .admin-picker-input-wrap input {
+    padding-inline-start: 36px;
+    padding-inline-end: 38px;
+  }
+
+  #admin-root .admin-picker-kbd {
+    position: absolute;
+    inset-inline-end: 8px;
+    pointer-events: none;
+  }
+
+  #admin-root .dropdown-results {
+    position: absolute;
+    inset-block-start: calc(100% + 4px);
+    inset-inline: 0;
+    z-index: 80;
+    max-block-size: 250px;
+    overflow-y: auto;
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-elevated);
+    border: 1px solid var(--admin-border-strong);
+    box-shadow: var(--admin-shadow-popover);
+    display: none;
+  }
+
+  #admin-root .dropdown-results.open,
+  #admin-root .dropdown-results:not(:empty)[style*="block"] {
+    display: block;
+  }
+
+  #admin-root .dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+    border-block-end: 1px solid var(--admin-border-subtle);
+    cursor: pointer;
+    transition: background-color var(--admin-transition-fast);
+  }
+
+  #admin-root .dropdown-item:last-child {
+    border-block-end: 0;
+  }
+
+  #admin-root .dropdown-item:hover,
+  #admin-root .dropdown-item.selected {
+    background: var(--admin-bg-hover);
+  }
+
+  #admin-root .competitor-selected-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-base);
+    border: 1px solid var(--admin-border-subtle);
+    min-inline-size: 0;
+  }
+
+  #admin-root .competitor-selected-pill.has-selection {
+    border-color: var(--admin-accent-border);
+    background: rgba(56, 189, 248, 0.05);
+  }
+
+  #admin-root .pill-flag-box img {
+    inline-size: 22px;
+    block-size: 15px;
+    object-fit: cover;
+    border-radius: 3px;
+  }
+
+  #admin-root .pill-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+    flex: 1 1 auto;
+  }
+
+  #admin-root .pill-name {
+    font-size: var(--admin-text-sm);
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #admin-root .pill-stats {
+    font-family: var(--admin-font-mono);
+    font-size: 11px;
+    color: var(--admin-text-muted);
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ------------------------------------------------------------------------
+     11. CollapsibleSection ("Ajustes avanzados" — Separacion Vivo vs Config)
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-collapsible {
+    border-radius: var(--admin-radius-md);
+    border: 1px solid var(--admin-border-subtle);
+    background: var(--admin-bg-surface-subtle);
+    overflow: clip;
+  }
+
+  #admin-root .admin-collapsible-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--admin-space-3);
+    inline-size: 100%;
+    min-block-size: 40px;
+    padding: 8px 12px;
+    border: 0;
+    background: transparent;
+    color: var(--admin-text-secondary);
+    font-size: var(--admin-text-xs);
+    font-weight: 600;
+    text-align: left;
+    transition: background-color var(--admin-transition-fast), color var(--admin-transition-fast);
+  }
+
+  #admin-root .admin-collapsible-trigger:hover:not(:disabled) {
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .admin-collapsible-trigger-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-inline-size: 0;
+  }
+
+  #admin-root .admin-collapsible-chevron {
+    transition: transform var(--admin-transition-fast);
+  }
+
+  #admin-root .admin-collapsible-trigger[aria-expanded="true"] .admin-collapsible-chevron {
+    transform: rotate(180deg);
+  }
+
+  #admin-root .admin-collapsible-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--admin-space-3);
+    padding: var(--admin-space-4);
+    border-block-start: 1px solid var(--admin-border-subtle);
+    background: var(--admin-bg-base);
+  }
+
+  #admin-root .admin-collapsible-panel[hidden] {
+    display: none !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     12. Vistas Previas en Vivo Integradas y Consistentes
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-preview-stage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--admin-space-3);
+    padding: var(--admin-space-3) var(--admin-space-4);
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-preview);
+    border: 1px solid var(--admin-border-subtle);
+  }
+
+  #admin-root .admin-preview-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: var(--admin-text-2xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--admin-text-muted);
+  }
+
+  #admin-root .admin-preview-canvas {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-block-size: 118px;
+    border-radius: var(--admin-radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--admin-border-subtle);
+    padding: var(--admin-space-3);
+    position: relative;
+    overflow: clip;
+  }
+
+  /* Tablas de previsualizacion (Mesa, Versus, Ranking) */
+  #admin-root .admin-table-wrap {
+    max-block-size: 280px;
+    overflow: auto;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-subtle);
+    background: var(--admin-bg-base);
+  }
+
+  #admin-root .admin-table {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-size: var(--admin-text-xs);
+  }
+
+  #admin-root .admin-table th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    padding: 8px 10px;
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-secondary);
+    font-weight: 600;
+    text-align: left;
+    border-block-end: 1px solid var(--admin-border-default);
+    white-space: nowrap;
+  }
+
+  #admin-root .admin-table td {
+    padding: 8px 10px;
+    border-block-end: 1px solid var(--admin-border-subtle);
+    color: var(--admin-text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  #admin-root .admin-table tr:last-child td {
+    border-block-end: 0;
+  }
+
+  /* ------------------------------------------------------------------------
+     13. EmptyState + Toast Accesible
+     ------------------------------------------------------------------------ */
+  #admin-root .admin-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+    padding: var(--admin-space-5) var(--admin-space-4);
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-base);
+    border: 1px dashed var(--admin-border-default);
+    color: var(--admin-text-secondary);
+  }
+
+  #admin-root .admin-empty-icon {
+    display: grid;
+    place-items: center;
+    inline-size: 36px;
+    block-size: 36px;
+    border-radius: 50%;
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-muted);
+  }
+
+  #admin-root .admin-empty-title {
+    font-size: var(--admin-text-sm);
+    font-weight: 600;
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .admin-empty-desc {
+    font-size: var(--admin-text-xs);
+    color: var(--admin-text-muted);
+    max-inline-size: 36ch;
+  }
+
+  /* Contenedor de Toasts (aria-live="polite" persistente) */
+  #admin-root #toast-container {
+    position: fixed;
+    inset-block-end: var(--admin-space-5);
+    inset-inline-end: var(--admin-space-5);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-inline-size: min(380px, calc(100dvw - 32px));
+    pointer-events: none;
+  }
+
+  #admin-root .toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-elevated);
+    border: 1px solid var(--admin-border-strong);
+    box-shadow: var(--admin-shadow-popover);
+    color: var(--admin-text-primary);
+    font-size: var(--admin-text-sm);
+    font-weight: 500;
+  }
+
+  #admin-root .toast.success {
+    border-inline-start: 3px solid var(--admin-success);
+  }
+
+  #admin-root .toast.error {
+    border-inline-start: 3px solid var(--admin-danger);
+  }
+
+  #admin-root .toast.warning {
+    border-inline-start: 3px solid var(--admin-warning);
+  }
+
+  #admin-root .toast.info {
+    border-inline-start: 3px solid var(--admin-accent);
+  }
+
+  /* ------------------------------------------------------------------------
+     14. Elementos Dinamicos de Torneo, OBS, Camaras y Directorio
+     ------------------------------------------------------------------------ */
+  /* Chips de categorias WCA */
+  #admin-root .event-chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  #admin-root .event-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 34px;
+    padding: 5px 10px;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-default);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-secondary);
+    font-size: var(--admin-text-xs);
+    font-weight: 500;
+    transition: background-color var(--admin-transition-fast), border-color var(--admin-transition-fast), color var(--admin-transition-fast);
+  }
+
+  #admin-root .event-chip img,
+  #admin-root .cubing-icon-svg {
+    inline-size: 16px;
+    block-size: 16px;
+    filter: brightness(0) invert(0.85);
+  }
+
+  #admin-root .event-chip:hover:not(:disabled) {
+    background: var(--admin-bg-hover);
+    color: var(--admin-text-primary);
+  }
+
+  #admin-root .event-chip.active {
+    background: var(--admin-accent-soft);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-accent);
+    font-weight: 600;
+  }
+
+  #admin-root .event-chip.active img {
+    filter: brightness(0) saturate(100%) invert(72%) sepia(56%) saturate(1875%) hue-rotate(175deg) brightness(101%) contrast(96%);
+  }
+
+  /* Chips de rondas */
+  #admin-root .rounds-chips-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  #admin-root .round-chip {
+    min-block-size: 30px;
+    padding: 4px 10px;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-default);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-secondary);
+    font-size: var(--admin-text-xs);
+    font-weight: 500;
+  }
+
+  #admin-root .round-chip.active {
+    background: var(--admin-accent-soft);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-accent);
+    font-weight: 600;
+  }
+
+  /* Cajon de inscritos y directorio */
+  #admin-root .banner-comp-drawer {
+    display: none;
+    flex-direction: column;
+    gap: var(--admin-space-2);
+    padding: var(--admin-space-3);
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-base);
+    border: 1px solid var(--admin-border-default);
+  }
+
+  #admin-root .banner-comp-drawer.open {
+    display: flex;
+  }
+
+  #admin-root .competitors-list {
+    max-block-size: 260px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #admin-root .competitor-row,
+  #admin-root .banner-comp-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--admin-radius-sm);
+    background: var(--admin-bg-surface-subtle);
+    border: 1px solid var(--admin-border-subtle);
+    transition: background-color var(--admin-transition-fast), border-color var(--admin-transition-fast);
+  }
+
+  #admin-root .competitor-row:hover,
+  #admin-root .banner-comp-row:hover {
+    background: var(--admin-bg-elevated);
+    border-color: var(--admin-border-default);
+  }
+
+  #admin-root .btn-assign-mini {
+    min-block-size: 26px;
+    padding: 3px 8px;
+    border-radius: var(--admin-radius-xs);
+    border: 1px solid var(--admin-border-default);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-secondary);
+    font-family: var(--admin-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  #admin-root .btn-assign-mini:hover:not(:disabled) {
+    border-color: var(--admin-accent-border);
+    color: var(--admin-accent);
+  }
+
+  /* Escenas y Fuentes OBS */
+  #admin-root .scenes-deck-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 10px;
+  }
+
+  #admin-root .scene-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    min-block-size: 68px;
+    padding: 10px 12px;
+    border-radius: var(--admin-radius-md);
+    border: 1px solid var(--admin-border-default);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-primary);
+    text-align: left;
+    transition: background-color var(--admin-transition-fast), border-color var(--admin-transition-fast);
+  }
+
+  #admin-root .scene-tile:hover:not(:disabled) {
+    background: var(--admin-bg-hover);
+  }
+
+  #admin-root .scene-tile.active {
+    background: var(--admin-accent-soft);
+    border-color: var(--admin-accent);
+  }
+
+  #admin-root .scene-tile.preview:not(.active) {
+    border-color: var(--admin-success-border);
+    background: var(--admin-success-soft);
+  }
+
+  #admin-root .studio-monitors-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: var(--admin-space-4);
+    align-items: center;
+  }
+
+  #admin-root .studio-monitor-frame {
+    aspect-ratio: 16 / 9;
+    inline-size: 100%;
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-bg-preview);
+    border: 1px solid var(--admin-border-default);
+    overflow: clip;
+    display: grid;
+    place-items: center;
+  }
+
+  #admin-root .studio-monitor-frame img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: contain;
+  }
+
+  #admin-root .camera-layouts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 8px;
+  }
+
+  #admin-root .layout-preset-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-block-size: 40px;
+    padding: 8px 10px;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-default);
+    background: var(--admin-bg-elevated);
+    color: var(--admin-text-secondary);
+    font-size: var(--admin-text-xs);
+    font-weight: 500;
+    text-align: left;
+  }
+
+  #admin-root .layout-preset-btn:hover:not(:disabled) {
+    background: var(--admin-bg-hover);
+    border-color: var(--admin-accent-border);
+    color: var(--admin-text-primary);
+  }
+
+  /* Swatches de color Fullscreen */
+  #admin-root .fs-color-swatches {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  #admin-root .fs-color-preset {
+    inline-size: 26px;
+    block-size: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--admin-border-strong);
+  }
+
+  /* Medallas en edicion de H2H */
+  #admin-root .admin-medals-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  #admin-root .admin-medal-input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #admin-root .admin-medal-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--admin-text-secondary);
+  }
+
+  #admin-root .admin-medal-label--gold .admin-icon { color: var(--admin-medal-gold); }
+  #admin-root .admin-medal-label--silver .admin-icon { color: var(--admin-medal-silver); }
+  #admin-root .admin-medal-label--bronze .admin-icon { color: var(--admin-medal-bronze); }
+
+  /* ------------------------------------------------------------------------
+     15. Responsive: Tablet y Movil (Sidebar en Drawer + Grids Colapsables)
+     ------------------------------------------------------------------------ */
+  @media (max-width: 1024px) {
+    #admin-root .admin-icon-btn.admin-menu-trigger {
+      display: inline-grid;
+    }
+
+    #admin-root .admin-icon-btn.admin-drawer-close {
+      display: inline-grid;
+    }
+
+    #admin-root .admin-sidebar {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-start: 0;
+      inline-size: min(280px, 84dvw);
+      height: 100svh;
+      transform: translateX(-104%);
+      transition: transform var(--admin-transition-base);
+      box-shadow: var(--admin-shadow-popover);
+    }
+
+    #admin-root .admin-sidebar.is-open {
+      transform: translateX(0);
+    }
+
+    #admin-root .admin-drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 55;
+      background: var(--admin-backdrop);
+    }
+
+    #admin-root .admin-drawer-backdrop.is-open {
+      display: block;
+    }
+
+    #admin-root .admin-topbar,
+    #admin-root .admin-live-now {
+      padding-inline: var(--admin-space-4);
+    }
+
+    #admin-root .studio-monitors-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    #admin-root .admin-topbar-divider {
+      display: none;
+    }
+
+    #admin-root .admin-action-bar {
+      flex-wrap: wrap;
+    }
+
+    #admin-root .admin-action-bar .admin-btn {
+      flex: 1 1 140px;
+    }
+  }
+
+  @media (pointer: coarse) {
+    #admin-root :where(.admin-btn, .deck-nav-tab, .admin-input, .admin-select, .text-input, .select-input) {
+      min-block-size: 42px;
+    }
+  }
+}
