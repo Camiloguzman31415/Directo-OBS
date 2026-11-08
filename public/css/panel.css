@@ -40,17 +40,17 @@
      2. Tarjeta Disciplina / Evento + Ticker Inferior
      ------------------------------------------------------------------------ */
   #admin-root .event-chips-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: 8px;
   }
 
   #admin-root .event-chip {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    min-block-size: 34px;
-    padding: 5px 10px;
+    gap: 8px;
+    min-block-size: 38px;
+    padding: 7px 11px;
     border-radius: var(--admin-radius-sm);
     border: 1px solid var(--admin-border-default);
     background: var(--admin-bg-elevated);
@@ -60,28 +60,41 @@
   }
 
   #admin-root .event-chip-icon-box {
-    display: inline-grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     inline-size: 16px;
     block-size: 16px;
+    flex-shrink: 0;
   }
 
   #admin-root .event-chip-icon-box img {
     inline-size: 16px;
     block-size: 16px;
-    filter: brightness(0) invert(0.82);
+    filter: brightness(0) invert(0.88);
   }
 
   #admin-root .event-chip-title {
     font-size: var(--admin-text-xs);
     font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   #admin-root .event-chip-rounds {
+    margin-inline-start: auto;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
     font-family: var(--admin-font-mono);
     font-size: 10px;
+    font-weight: 600;
+    line-height: 1.1;
     color: var(--admin-text-secondary);
     font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
   }
 
   #admin-root .event-chip.active {
@@ -91,6 +104,7 @@
   }
 
   #admin-root .event-chip.active .event-chip-rounds {
+    background: rgba(56, 189, 248, 0.18);
     color: var(--admin-accent);
   }
 
@@ -98,18 +112,18 @@
   #admin-root .event-card-header {
     display: flex;
     align-items: center;
-    gap: var(--admin-space-3);
-    padding: var(--admin-space-3) var(--admin-space-4);
+    gap: 14px;
+    padding: 12px 14px;
     border-radius: var(--admin-radius-md);
-    background: var(--admin-bg-preview);
+    background: var(--admin-bg-surface);
     border: 1px solid var(--admin-border-subtle);
   }
 
   #admin-root .event-card-icon-wrap {
     display: grid;
     place-items: center;
-    inline-size: 40px;
-    block-size: 40px;
+    inline-size: 42px;
+    block-size: 42px;
     border-radius: var(--admin-radius-sm);
     background: var(--admin-accent-soft);
     border: 1px solid var(--admin-accent-border);
@@ -123,6 +137,9 @@
   }
 
   #admin-root .event-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
     flex: 1 1 auto;
     min-inline-size: 0;
   }
@@ -143,7 +160,7 @@
   }
 
   #admin-root .event-card-round-badge {
-    padding: 4px 10px;
+    padding: 5px 11px;
     border-radius: var(--admin-radius-pill);
     background: var(--admin-bg-elevated);
     border: 1px solid var(--admin-border-default);
@@ -158,7 +175,8 @@
   #admin-root .event-rounds-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 10px;
     flex-wrap: wrap;
   }
 
@@ -171,20 +189,20 @@
   #admin-root .event-rounds-chips {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
     flex: 1 1 auto;
   }
 
   #admin-root .round-chip-btn {
-    min-block-size: 30px;
-    padding: 4px 10px;
+    min-block-size: 34px;
+    padding: 6px 14px;
     border-radius: var(--admin-radius-sm);
     border: 1px solid var(--admin-border-default);
     background: var(--admin-bg-elevated);
     color: var(--admin-text-secondary);
     font-size: var(--admin-text-xs);
-    font-weight: 500;
+    font-weight: 600;
     transition: background-color var(--admin-transition-fast), border-color var(--admin-transition-fast), color var(--admin-transition-fast);
   }
 
@@ -203,14 +221,14 @@
   #admin-root .round-stepper-compact {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
   }
 
   #admin-root .stepper-btn-sm {
     display: inline-grid;
     place-items: center;
-    inline-size: 30px;
-    block-size: 30px;
+    inline-size: 34px;
+    block-size: 34px;
     border-radius: var(--admin-radius-sm);
     border: 1px solid var(--admin-border-default);
     background: var(--admin-bg-elevated);
@@ -569,7 +587,7 @@
     block-size: 116px;
     background: var(--admin-bg-preview);
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     overflow: clip;
   }

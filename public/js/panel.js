@@ -1378,9 +1378,9 @@ function renderEventChips(events) {
     chip.innerHTML = `
       <div class="event-chip-icon-box">
         <img src="icons/${ev.event_id}.svg" alt="${ev.name}" onerror="this.style.display='none'">
-        ${roundCount ? `<span class="event-chip-rounds">${roundCount}</span>` : ''}
+
       </div>
-      <span class="event-chip-title">${getCleanEventName(ev.event_id, ev.name)}</span>
+      <span class="event-chip-title">${getCleanEventName(ev.event_id, ev.name)}</span> ${roundCount ? `<span class="event-chip-rounds">${roundCount}</span>` : ''}
     `;
 
     chip.onclick = () => selectEvent(ev.event_id);

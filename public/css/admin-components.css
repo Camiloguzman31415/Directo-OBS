@@ -658,10 +658,10 @@
 
   #admin-root .admin-card-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: var(--admin-space-3);
-    padding: var(--admin-space-4) var(--admin-space-5);
+    padding: 18px var(--admin-space-5);
     border-block-end: 1px solid var(--admin-border-subtle);
   }
 
@@ -671,7 +671,7 @@
 
   #admin-root .admin-card-header-main {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--admin-space-3);
     min-inline-size: 0;
     flex: 1 1 auto;
@@ -682,6 +682,7 @@
     place-items: center;
     inline-size: 36px;
     block-size: 36px;
+    margin-block-start: 1px;
     border-radius: var(--admin-radius-md);
     background: var(--admin-bg-elevated);
     border: 1px solid var(--admin-border-subtle);
@@ -700,7 +701,7 @@
   #admin-root .admin-card-titles {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     min-inline-size: 0;
   }
 
@@ -756,7 +757,7 @@
   #admin-root .admin-card-body {
     display: flex;
     flex-direction: column;
-    gap: var(--admin-space-4);
+    gap: 18px;
     padding: var(--admin-space-5);
     min-inline-size: 0;
   }
@@ -771,7 +772,7 @@
     display: flex;
     align-items: center;
     gap: var(--admin-space-3);
-    padding: var(--admin-space-3) var(--admin-space-5);
+    padding: 14px var(--admin-space-5);
     border-block-start: 1px solid var(--admin-border-subtle);
     background: var(--admin-bg-surface-subtle);
     border-end-start-radius: var(--admin-radius-lg);
@@ -888,7 +889,7 @@
   #admin-root .admin-field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     min-inline-size: 0;
   }
 
@@ -1236,13 +1237,14 @@
     justify-content: space-between;
     gap: var(--admin-space-3);
     inline-size: 100%;
-    min-block-size: 40px;
-    padding: 8px 12px;
+    min-block-size: 44px;
+    padding: 10px 14px;
     border: 0;
     background: transparent;
     color: var(--admin-text-primary);
     font-size: var(--admin-text-xs);
     font-weight: 600;
+    line-height: 1.35;
     text-align: left;
     transition: background-color var(--admin-transition-fast), color var(--admin-transition-fast);
   }
@@ -1286,8 +1288,8 @@
   #admin-root .admin-preview-stage {
     display: flex;
     flex-direction: column;
-    gap: var(--admin-space-3);
-    padding: var(--admin-space-3) var(--admin-space-4);
+    gap: 10px;
+    padding: 14px 16px;
     border-radius: var(--admin-radius-md);
     background: var(--admin-bg-preview);
     border: 1px solid var(--admin-border-subtle);
@@ -1453,15 +1455,15 @@
   #admin-root .event-chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    min-block-size: 34px;
-    padding: 5px 10px;
+    gap: 8px;
+    min-block-size: 38px;
+    padding: 7px 11px;
     border-radius: var(--admin-radius-sm);
     border: 1px solid var(--admin-border-default);
     background: var(--admin-bg-elevated);
     color: var(--admin-text-secondary);
     font-size: var(--admin-text-xs);
-    font-weight: 500;
+    font-weight: 600;
     transition: background-color var(--admin-transition-fast), border-color var(--admin-transition-fast), color var(--admin-transition-fast);
   }
 
