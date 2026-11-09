@@ -6552,18 +6552,34 @@
     }
   }
 
-      let isStingerActive = false;
+  let isStingerActive = false;
   function playStingerTransition(onCut) {
     const layer = document.getElementById('master-stinger-layer');
+    const box = document.getElementById('master-stinger-anim-box');
     const video = document.getElementById('master-stinger-video');
-    if (!layer || !video) {
+    if (!layer || !video || !box) {
       if (typeof onCut === 'function') onCut();
       return;
     }
 
     layer.style.display = 'block';
+    video.pause();
     video.currentTime = 0;
     isStingerActive = true;
+
+    // Reproducir audio sincronizado de la cortina si el navegador lo permite
+    try {
+      const curtainAudio = new Audio('/audio/sonido%20cortina.mp3');
+      curtainAudio.volume = 0.85;
+      curtainAudio.play().catch(() => {});
+    } catch {}
+
+    // Fase 1: Animación de aparición / cierre de izquierda a derecha (380 ms)
+    box.style.transition = 'none';
+    box.style.clipPath = 'inset(0 100% 0 0)';
+    void box.offsetWidth; // Forzar reflow para disparo limpio a 60 FPS
+    box.style.transition = 'clip-path 380ms cubic-bezier(0.16, 1, 0.3, 1)';
+    box.style.clipPath = 'inset(0 0% 0 0)';
 
     let cutTriggered = false;
     const executeCut = () => {
@@ -6572,13 +6588,28 @@
       if (typeof onCut === 'function') onCut();
     };
 
-    // La cortina roja cubre 100% de la pantalla a los 380 ms
-    const cutTimer = setTimeout(executeCut, 380);
+    // A los 380 ms el telón cubre toda la pantalla:
+    // 1. Ejecutar el corte invisible detrás
+    // 2. Arrancar video para que la ovejita jale y abra la cortina hacia la derecha
+    const cutTimer = setTimeout(() => {
+      executeCut();
+      box.style.transition = 'none';
+      box.style.clipPath = 'none';
+
+      video.play().catch(() => {
+        video.muted = true;
+        video.play().catch(() => {
+          layer.style.display = 'none';
+          isStingerActive = false;
+        });
+      });
+    }, 380);
+
     const safetyTimer = setTimeout(() => {
       executeCut();
       layer.style.display = 'none';
       isStingerActive = false;
-    }, 1600);
+    }, 1900);
 
     video.onended = () => {
       clearTimeout(cutTimer);
@@ -6587,16 +6618,6 @@
       layer.style.display = 'none';
       isStingerActive = false;
     };
-
-    video.play().catch(() => {
-      // Si el navegador bloquea audio sin interacción previa, silenciar y reproducir video
-      video.muted = true;
-      video.play().catch(() => {
-        executeCut();
-        layer.style.display = 'none';
-        isStingerActive = false;
-      });
-    });
   }
 
   let simSceneForcedFs = false;
@@ -6803,8 +6824,10 @@
 </script>
 
 <!-- Capa Master Stinger de Transición Broadcast (Ovejita con Cortina Roja) -->
-<div id="master-stinger-layer" style="position: fixed; inset: 0; width: 1920px; height: 1080px; z-index: 99999; pointer-events: none; display: none;">
-  <video id="master-stinger-video" src="/videos/cortina_transparente.webm" playsinline preload="auto" style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+<div id="master-stinger-layer" style="position: fixed; inset: 0; width: 1920px; height: 1080px; z-index: 99999; pointer-events: none; overflow: hidden; display: none;">
+  <div id="master-stinger-anim-box" style="width: 100%; height: 100%; will-change: clip-path;">
+    <video id="master-stinger-video" src="/videos/cortina_transparente.webm" playsinline preload="auto" style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+  </div>
 </div>
 
 </body>
