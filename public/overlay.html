@@ -6563,6 +6563,7 @@
     }
 
     layer.style.display = 'block';
+    video.pause();
     video.currentTime = 0;
     isStingerActive = true;
 
@@ -6573,17 +6574,11 @@
       curtainAudio.play().catch(() => {});
     } catch {}
 
-    // Iniciar video para animar a la ovejita
-    video.play().catch(() => {
-      video.muted = true;
-      video.play().catch(() => {});
-    });
-
-    // 1. Entrada por la izquierda: de translate3d(-100%, 0, 0) a translate3d(0, 0, 0) (380 ms)
+    // 1. Entrada natural por la izquierda con el telón cerrado (500 ms)
     box.style.transition = 'none';
     box.style.transform = 'translate3d(-100%, 0, 0)';
     void box.offsetWidth; // Forzar reflow para animación limpia a 60 FPS
-    box.style.transition = 'transform 380ms cubic-bezier(0.16, 1, 0.3, 1)';
+    box.style.transition = 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1)';
     box.style.transform = 'translate3d(0, 0, 0)';
 
     let cutTriggered = false;
@@ -6593,35 +6588,32 @@
       if (typeof onCut === 'function') onCut();
     };
 
-    // 2. Punto de corte al llegar al centro (380 ms): pantalla 100% cubierta
+    // 2. Punto de corte EXACTO al cubrir el 100% de la pantalla (500 ms):
+    // - El cambio de escena detrás es 100% invisible porque la pantalla está totalmente tapada
+    // - En este milisegundo exacto arranca la ovejita a jalar y abrir la cortina hacia la derecha
     const cutTimer = setTimeout(() => {
       executeCut();
-    }, 380);
-
-    // 3. Salida por la derecha: a partir de 440 ms el telón se desplaza hacia translate3d(100%, 0, 0)
-    const exitTimer = setTimeout(() => {
-      box.style.transition = 'transform 440ms cubic-bezier(0.3, 0, 0.2, 1)';
-      box.style.transform = 'translate3d(100%, 0, 0)';
-    }, 440);
-
-    // 4. Finalización total y limpieza: a los 940 ms ya salió completamente por la derecha
-    const endTimer = setTimeout(() => {
-      layer.style.display = 'none';
-      box.style.transition = 'none';
-      box.style.transform = 'translate3d(-100%, 0, 0)';
-      isStingerActive = false;
-    }, 940);
+      video.play().catch(() => {
+        video.muted = true;
+        video.play().catch(() => {
+          layer.style.display = 'none';
+          isStingerActive = false;
+        });
+      });
+    }, 500);
 
     const safetyTimer = setTimeout(() => {
       executeCut();
       layer.style.display = 'none';
+      box.style.transition = 'none';
+      box.style.transform = 'translate3d(-100%, 0, 0)';
       isStingerActive = false;
-    }, 1500);
+    }, 2400);
 
+    // 3. Salida sincronizada: la propia animación del video lleva a la ovejita y la cortina
+    // saliendo por la derecha a su ritmo natural, descubriendo la nueva escena detrás
     video.onended = () => {
       clearTimeout(cutTimer);
-      clearTimeout(exitTimer);
-      clearTimeout(endTimer);
       clearTimeout(safetyTimer);
       executeCut();
       layer.style.display = 'none';
