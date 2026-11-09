@@ -6563,7 +6563,6 @@
     }
 
     layer.style.display = 'block';
-    video.pause();
     video.currentTime = 0;
     isStingerActive = true;
 
@@ -6574,12 +6573,18 @@
       curtainAudio.play().catch(() => {});
     } catch {}
 
-    // Fase 1: Animación de aparición / cierre de izquierda a derecha (380 ms)
+    // Iniciar video para animar a la ovejita
+    video.play().catch(() => {
+      video.muted = true;
+      video.play().catch(() => {});
+    });
+
+    // 1. Entrada por la izquierda: de translate3d(-100%, 0, 0) a translate3d(0, 0, 0) (380 ms)
     box.style.transition = 'none';
-    box.style.clipPath = 'inset(0 100% 0 0)';
-    void box.offsetWidth; // Forzar reflow para disparo limpio a 60 FPS
-    box.style.transition = 'clip-path 380ms cubic-bezier(0.16, 1, 0.3, 1)';
-    box.style.clipPath = 'inset(0 0% 0 0)';
+    box.style.transform = 'translate3d(-100%, 0, 0)';
+    void box.offsetWidth; // Forzar reflow para animación limpia a 60 FPS
+    box.style.transition = 'transform 380ms cubic-bezier(0.16, 1, 0.3, 1)';
+    box.style.transform = 'translate3d(0, 0, 0)';
 
     let cutTriggered = false;
     const executeCut = () => {
@@ -6588,34 +6593,40 @@
       if (typeof onCut === 'function') onCut();
     };
 
-    // A los 380 ms el telón cubre toda la pantalla:
-    // 1. Ejecutar el corte invisible detrás
-    // 2. Arrancar video para que la ovejita jale y abra la cortina hacia la derecha
+    // 2. Punto de corte al llegar al centro (380 ms): pantalla 100% cubierta
     const cutTimer = setTimeout(() => {
       executeCut();
-      box.style.transition = 'none';
-      box.style.clipPath = 'none';
-
-      video.play().catch(() => {
-        video.muted = true;
-        video.play().catch(() => {
-          layer.style.display = 'none';
-          isStingerActive = false;
-        });
-      });
     }, 380);
+
+    // 3. Salida por la derecha: a partir de 440 ms el telón se desplaza hacia translate3d(100%, 0, 0)
+    const exitTimer = setTimeout(() => {
+      box.style.transition = 'transform 440ms cubic-bezier(0.3, 0, 0.2, 1)';
+      box.style.transform = 'translate3d(100%, 0, 0)';
+    }, 440);
+
+    // 4. Finalización total y limpieza: a los 940 ms ya salió completamente por la derecha
+    const endTimer = setTimeout(() => {
+      layer.style.display = 'none';
+      box.style.transition = 'none';
+      box.style.transform = 'translate3d(-100%, 0, 0)';
+      isStingerActive = false;
+    }, 940);
 
     const safetyTimer = setTimeout(() => {
       executeCut();
       layer.style.display = 'none';
       isStingerActive = false;
-    }, 1900);
+    }, 1500);
 
     video.onended = () => {
       clearTimeout(cutTimer);
+      clearTimeout(exitTimer);
+      clearTimeout(endTimer);
       clearTimeout(safetyTimer);
       executeCut();
       layer.style.display = 'none';
+      box.style.transition = 'none';
+      box.style.transform = 'translate3d(-100%, 0, 0)';
       isStingerActive = false;
     };
   }
@@ -6825,7 +6836,7 @@
 
 <!-- Capa Master Stinger de Transición Broadcast (Ovejita con Cortina Roja) -->
 <div id="master-stinger-layer" style="position: fixed; inset: 0; width: 1920px; height: 1080px; z-index: 99999; pointer-events: none; overflow: hidden; display: none;">
-  <div id="master-stinger-anim-box" style="width: 100%; height: 100%; will-change: clip-path;">
+  <div id="master-stinger-anim-box" style="position: absolute; inset: 0; width: 1920px; height: 1080px; will-change: transform; transform: translate3d(-100%, 0, 0);">
     <video id="master-stinger-video" src="/videos/cortina_transparente.webm" playsinline preload="auto" style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
   </div>
 </div>
