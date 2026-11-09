@@ -81,6 +81,16 @@ let obsStatus = {
   isRecording: false
 };
 
+let simCamerasState = {
+  enabled: true,
+  layout: 'split_lr',
+  bannerMode: 'none',
+  camAId: 101,
+  camBId: 102,
+  cameras: [],
+  transforms: null
+};
+
 const EVENT_NAMES = {
   '333': '3x3', '222': '2x2', '444': '4x4', '555': '5x5',
   '666': '6x6', '777': '7x7', '333bf': '3x3 BLD',
@@ -127,6 +137,16 @@ document.addEventListener('DOMContentLoaded', () => {
   setupKeyboardShortcuts();
   initTickerUI();
   updateFsThemeUI();
+  fetch('/api/sim-cameras')
+    .then(r => r.json())
+    .then(st => {
+      if (st && st.ok) {
+        const s = st.state || st;
+        simCamerasState = s;
+        updateSimCamerasUI(s);
+      }
+    })
+    .catch(() => {});
 });
 
 // ── Conexión WebSocket ──
@@ -183,7 +203,13 @@ function handleServerMessage(msg) {
       } else {
         loadTournament(null);
       }
+      if (msg.simCamerasState) {
+        simCamerasState = msg.simCamerasState;
+      }
       if (msg.obsStatus) updateOBSUI(msg.obsStatus);
+      if (!obsStatus.connected && simCamerasState && simCamerasState.cameras && simCamerasState.cameras.length > 0) {
+        updateSimCamerasUI(simCamerasState);
+      }
       updateOverlayCount(msg.overlayCount || 0);
 
       if (msg.bannerMode) setBannerMode(msg.bannerMode, false);
@@ -356,6 +382,13 @@ function handleServerMessage(msg) {
     case 'obs_record_changed':
       obsStatus.isRecording = msg.active;
       updateRecordButton(msg.active);
+      break;
+
+    case 'sim_cameras_state':
+      if (msg.state) {
+        simCamerasState = msg.state;
+        updateSimCamerasUI(simCamerasState);
+      }
       break;
 
     case 'client_count':
@@ -540,7 +573,877 @@ function handleServerMessage(msg) {
   }
 }
 
-// ── Control de OBS Studio ──
+// ── Control de OBS Studio y Simulador de Cámaras en Bucle ──
+function hasActiveSimCameras() {
+  return !!(simCamerasState && Array.isArray(simCamerasState.cameras) && simCamerasState.cameras.length > 0);
+}
+
+function updateSimCamerasUI(state) {
+  if (!state) return;
+  simCamerasState = state;
+
+  const dot = document.getElementById('obs-status-dot');
+  const text = document.getElementById('obs-status-text');
+  const noObsNotice = document.getElementById('obs-disconnected-box');
+  const camEmptyHint = document.getElementById('camera-director-empty-hint');
+  const srcEmptyHint = document.getElementById('sources-empty-hint');
+
+  const count = Array.isArray(state.cameras) ? state.cameras.length : 0;
+  if (count > 0) {
+    if (dot) dot.className = state.enabled ? 'status-dot active' : 'status-dot warning';
+    if (text) text.textContent = state.enabled ? `${count} Cámaras Activas` : 'Cámaras en pausa';
+    if (noObsNotice) noObsNotice.style.display = 'none';
+    if (camEmptyHint) camEmptyHint.style.display = 'none';
+    if (srcEmptyHint) srcEmptyHint.style.display = 'none';
+    renderSceneSources(state.cameras, 'Simulador Directo (videos/camaras)');
+    renderSimDirectorLiveMonitor(state);
+    renderPreEscenaDirectorCard(state);
+    renderSimMultiviewCard(state);
+    window.AdminUI?.syncAdminLiveNowUI();
+  }
+}
+
+async function commuteSimScenes() {
+  try {
+    const r = await fetch('/api/sim-cameras', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'commute' })
+    });
+    const d = await r.json();
+    if (d.ok && d.state) {
+      updateSimCamerasUI(d.state);
+      showToast('¡PreEscena conmutada a Escena Principal! (Principal ⇄ PreEscena)', 'success');
+    }
+  } catch (err) {
+    showToast('Error al conmutar escenas: ' + err.message, 'error');
+  }
+}
+
+async function setSimBroadcastScene(scene, transitionSubScene) {
+  try {
+    const payload = {};
+    if (scene) payload.activeScene = scene;
+    if (transitionSubScene) payload.transitionSubScene = transitionSubScene;
+    const r = await fetch('/api/sim-cameras', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (d.ok && d.state) {
+      updateSimCamerasUI(d.state);
+      if (scene) {
+        const names = {
+          principal: '1 · Escena Principal (Al Aire)',
+          fullscreen: '3 · FullScreen (Tabla de Clasificación)',
+          transicion: '4 · Escena de Transición'
+        };
+        showToast(`Escena al aire: ${names[scene] || scene}`, 'success');
+      } else if (transitionSubScene) {
+        showToast(`Modo de transición preparado: ${transitionSubScene.toUpperCase()}`, 'info');
+      }
+    }
+  } catch (err) {
+    showToast('Error cambiando escena: ' + err.message, 'error');
+  }
+}
+
+const LAYOUT_OPTIONS_BY_COUNT = {
+  1: [
+    { id: 'single', label: 'Pantalla Completa (1)', icon: 'maximize-2' }
+  ],
+  2: [
+    { id: 'split_lr', label: '1 | 2 (Lado a Lado)', icon: 'columns-2' },
+    { id: 'split_rl', label: '2 | 1 (Invertido)', icon: 'columns-2' },
+    { id: 'split_tb', label: '1 / 2 (Arriba/Abajo)', icon: 'rows-2' },
+    { id: 'focus_1_2', label: '1 Grande + 2 Der', icon: 'layout-grid' },
+    { id: 'rotate', label: '⇄ Rotar 1 y 2', icon: 'arrow-left-right' }
+  ],
+  3: [
+    { id: 'main_left_2', label: '1 Grande Izq + 2 Der', icon: 'columns-2' },
+    { id: 'main_top_2', label: '1 Grande Arriba + 2 Abajo', icon: 'rows-2' },
+    { id: 'cols_3', label: '3 Columnas (1 | 2 | 3)', icon: 'layout-grid' },
+    { id: 'rotate', label: '⇄ Rotar Posiciones', icon: 'arrow-left-right' }
+  ],
+  4: [
+    { id: 'grid_2x2', label: 'Cuadrícula 2×2', icon: 'layout-grid' },
+    { id: 'main_left_3', label: '1 Grande Izq + 3 Der', icon: 'columns-2' },
+    { id: 'main_top_3', label: '1 Grande Arriba + 3 Abajo', icon: 'rows-2' },
+    { id: 'rotate', label: '⇄ Rotar Posiciones', icon: 'arrow-left-right' }
+  ],
+  5: [
+    { id: 'top2_bot3', label: '2 Arriba + 3 Abajo', icon: 'layout-grid' },
+    { id: 'main_left_4', label: '1 Grande Izq + 4 Der', icon: 'columns-2' },
+    { id: 'rotate', label: '⇄ Rotar Posiciones', icon: 'arrow-left-right' }
+  ],
+  6: [
+    { id: 'grid_3x2', label: 'Cuadrícula 3×2 (6 Cám)', icon: 'layout-grid' },
+    { id: 'top1_bot5', label: '1 Grande Arriba + 5 Abajo', icon: 'rows-2' },
+    { id: 'rotate', label: '⇄ Rotar Posiciones', icon: 'arrow-left-right' }
+  ]
+};
+
+const LAYOUT_DISPLAY_LABELS = {
+  single: '1 CÁM · PANTALLA COMPLETA',
+  split_lr: '2 CÁM · 1 | 2',
+  split_rl: '2 CÁM · 2 | 1',
+  split_tb: '2 CÁM · 1 / 2',
+  split_bt: '2 CÁM · 2 / 1',
+  focus_1_2: '2 CÁM · 1 GRANDE + 2 DER',
+  main_left_2: '3 CÁM · 1 IZQ + 2 DER',
+  main_top_2: '3 CÁM · 1 ARRIBA + 2 ABAJO',
+  cols_3: '3 CÁM · 3 COLUMNAS',
+  grid_2x2: '4 CÁM · CUADRÍCULA 2×2',
+  main_left_3: '4 CÁM · 1 IZQ + 3 DER',
+  main_top_3: '4 CÁM · 1 ARRIBA + 3 ABAJO',
+  top2_bot3: '5 CÁM · 2 ARRIBA + 3 ABAJO',
+  main_left_4: '5 CÁM · 1 IZQ + 4 DER',
+  grid_3x2: '6 CÁM · CUADRÍCULA 3×2',
+  top1_bot5: '6 CÁM · 1 ARRIBA + 5 ABAJO'
+};
+
+async function updateBusConfig(targetBus, updates = {}, toastMessage = '') {
+  const isPrev = targetBus === 'preview';
+  try {
+    const res = await fetch('/api/sim-cameras', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        target: isPrev ? 'preview' : 'program',
+        ...updates
+      })
+    });
+    const data = await res.json();
+    if (data.ok && data.state) {
+      updateSimCamerasUI(data.state);
+      if (toastMessage) {
+        const destLabel = isPrev ? '2 · PreEscena' : '1 · Escena Principal';
+        showToast(`[${destLabel}] ${toastMessage}`, 'success');
+      }
+    }
+  } catch (err) {
+    showToast('Error actualizando distribución: ' + err.message, 'error');
+  }
+}
+
+async function applyIndependentSceneLayout(targetBus, layout, overrideCamAId, overrideCamBId) {
+  const updates = {};
+  if (layout) updates.layout = layout;
+  if (overrideCamAId !== undefined) updates.camAId = overrideCamAId;
+  if (overrideCamBId !== undefined) updates.camBId = overrideCamBId;
+  return updateBusConfig(targetBus, updates, 'Distribución actualizada');
+}
+
+function renderSimDirectorLiveMonitor(state) {
+  const scenesGrid = document.getElementById('scenes-grid');
+  const directorBox = scenesGrid ? scenesGrid.parentElement : document.getElementById('camera-layout-director-box');
+  if (!directorBox) return;
+
+  const cardTitle = document.getElementById('title-obs-scenes');
+  if (cardTitle) {
+    cardTitle.textContent = 'Multiview de las 4 Escenas Principales';
+    const sub = cardTitle.parentElement?.querySelector('.admin-card-subtitle');
+    if (sub) sub.textContent = 'Previsualización en tiempo real de las 4 escenas (Principal, PreEscena, FullScreen y Transición) con soporte de 1 a 6 cámaras + PiP Casteo';
+  }
+  const obsVideoBox = document.getElementById('obs-video-box');
+  if (obsVideoBox) obsVideoBox.style.display = 'none';
+
+  let monitorWrap = document.getElementById('sim-director-live-monitor');
+  if (!state || !Array.isArray(state.cameras) || state.cameras.length === 0) {
+    if (monitorWrap) monitorWrap.style.display = 'none';
+    return;
+  }
+
+  const buildMonitorSlotsHtml = (prefix, colorHex) => {
+    let html = '';
+    for (let i = 0; i < 6; i++) {
+      html += `
+        <div id="${prefix}-slot-${i}" style="position:absolute; overflow:hidden; transition:all 0.25s ease; opacity:0; pointer-events:none;">
+          <video id="${prefix}-video-${i}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+          <span id="${prefix}-label-${i}" style="position:absolute; left:4px; bottom:4px; background:rgba(15,23,42,0.92); color:${colorHex}; border:1px solid ${colorHex}66; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; pointer-events:none;"></span>
+        </div>
+      `;
+    }
+    html += `
+      <div id="${prefix}-slot-pip" style="position:absolute; overflow:hidden; transition:all 0.25s ease; opacity:0; pointer-events:none; border:2px solid #38bdf8; border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,0.85);">
+        <video id="${prefix}-video-pip" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+        <span id="${prefix}-label-pip" style="position:absolute; left:4px; top:4px; background:rgba(15,23,42,0.92); color:#38bdf8; border:1px solid rgba(56,189,248,0.65); padding:1px 5px; border-radius:4px; font-size:9px; font-weight:800; pointer-events:none;">🎙️ PiP</span>
+      </div>
+    `;
+    return html;
+  };
+
+  if (!monitorWrap) {
+    monitorWrap = document.createElement('div');
+    monitorWrap.id = 'sim-director-live-monitor';
+    monitorWrap.style.cssText = 'display: flex; flex-direction: column; gap: 12px;';
+    monitorWrap.innerHTML = `
+      <!-- Banner informativo de Señal En Vivo Master para OBS -->
+      <div class="obs-master-direct-banner" style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; background:linear-gradient(90deg, rgba(239,68,68,0.18) 0%, rgba(30,41,59,0.7) 100%); border:1px solid rgba(239,68,68,0.4); border-radius:8px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444; box-shadow:0 0 8px #ef4444;"></span>
+          <span style="font-size:12px; font-weight:800; color:#f8fafc; letter-spacing:0.4px;">SEÑAL EN VIVO MASTER (1 ÚNICA ESCENA EN OBS):</span>
+          <code style="padding:3px 8px; border-radius:5px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.16); color:#38bdf8; font-weight:700; font-size:12px; font-family:monospace;">http://localhost:3000/envivo</code>
+          <span style="font-size:11px; color:#94a3b8;">(1920×1080 @ 60 FPS — Todo se conmuta desde este panel)</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" onclick="navigator.clipboard.writeText('http://localhost:3000/envivo'); showToast('URL copiada: http://localhost:3000/envivo (Copia y pega en OBS en una fuente de navegador)', 'success');" style="height:26px; padding:0 12px; border-radius:5px; border:1px solid rgba(56,189,248,0.5); background:rgba(14,116,144,0.35); color:#e0f2fe; font-size:11px; font-weight:800; cursor:pointer;">📋 Copiar URL</button>
+          <a href="/envivo" target="_blank" style="display:inline-flex; align-items:center; height:26px; padding:0 12px; border-radius:5px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08); color:#f8fafc; font-size:11px; font-weight:700; text-decoration:none;">↗ Abrir Señal</a>
+        </div>
+      </div>
+      <div class="scenes-4-multiview-grid">
+        <!-- ESCENA 1: ESCENA PRINCIPAL -->
+        <div id="scene4-tile-principal" class="sim-multiview-tile">
+          <div class="sim-multiview-tile-header">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:12px; font-weight:800; color:#38bdf8;">1 · ESCENA PRINCIPAL</span>
+              <span id="badge-scene-4-principal" style="padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700;">AL AIRE</span>
+            </div>
+            <button type="button" id="btn-scene-4-principal" style="height:24px; padding:0 10px; border-radius:5px; border:1px solid rgba(56,189,248,0.55); background:rgba(14,116,144,0.28); color:#38bdf8; font-size:11px; font-weight:700; cursor:pointer;">Al Aire</button>
+          </div>
+          <div id="sim-monitor-stage" class="sim-multiview-viewport">
+            ${buildMonitorSlotsHtml('sim-mon-prog', '#38bdf8')}
+          </div>
+          <div class="sim-multiview-tile-footer">
+            <span id="sim-monitor-pip-badge" style="font-size:10px; font-weight:700; color:#38bdf8;">🎙️ PiP ON</span>
+            <span id="sim-monitor-layout-badge" class="admin-badge" style="font-size:10px; color:#38bdf8;">2 CÁM · 1 | 2</span>
+          </div>
+        </div>
+
+        <!-- ESCENA 2: PREESCENA (PREVIA QUE CONMUTA CON PRINCIPAL) -->
+        <div id="scene4-tile-preescena" class="sim-multiview-tile" style="border-color:rgba(251,191,36,0.5);">
+          <div class="sim-multiview-tile-header">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:12px; font-weight:800; color:#fbbf24;">2 · PREESCENA</span>
+              <span style="padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700; background:rgba(251,191,36,0.18); color:#fbbf24; border:1px solid rgba(251,191,36,0.4);">PREVIA</span>
+            </div>
+            <button type="button" id="btn-scene-4-preescena" title="Conmutar PreEscena con Escena Principal" style="height:24px; padding:0 10px; border-radius:5px; border:1px solid rgba(251,191,36,0.65); background:rgba(180,83,9,0.32); color:#fef3c7; font-size:11px; font-weight:800; cursor:pointer;">⇄ Conmutar</button>
+          </div>
+          <div id="sim-prev-stage" class="sim-multiview-viewport">
+            ${buildMonitorSlotsHtml('sim-mon-prev', '#fbbf24')}
+          </div>
+          <div class="sim-multiview-tile-footer">
+            <span id="sim-prev-pip-badge" style="font-size:10px; font-weight:700; color:#fbbf24;">🎙️ PiP ON</span>
+            <span id="sim-prev-layout-badge" class="admin-badge" style="font-size:10px; color:#fbbf24;">1 CÁM · COMPLETA</span>
+          </div>
+        </div>
+
+        <!-- ESCENA 3: FULLSCREEN (TABLA DE CLASIFICACIÓN) -->
+        <div id="scene4-tile-fullscreen" class="sim-multiview-tile">
+          <div class="sim-multiview-tile-header">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:12px; font-weight:800; color:#f8fafc;">3 · FULLSCREEN</span>
+              <span id="badge-scene-4-fullscreen" style="padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700;">TABLA</span>
+            </div>
+            <button type="button" id="btn-scene-4-fullscreen" style="height:24px; padding:0 10px; border-radius:5px; border:1px solid rgba(255,255,255,0.22); background:rgba(30,41,59,0.9); color:#f8fafc; font-size:11px; font-weight:700; cursor:pointer;">Al Aire</button>
+          </div>
+          <div class="sim-multiview-viewport" style="background:#020409;">
+            <iframe src="/fullscreen?preview=1" title="Vista previa FullScreen Clasificación" allowtransparency="true" style="width:100%; height:100%; border:0; pointer-events:none; display:block; background:#020409;"></iframe>
+          </div>
+          <div class="sim-multiview-tile-footer">
+            <span style="font-size:11px; color:#cbd5e1; font-weight:600;">Tabla de Clasificación WCA Live</span>
+            <span class="admin-badge" style="font-size:10px;">/fullscreen</span>
+          </div>
+        </div>
+
+        <!-- ESCENA 4: ESCENA DE TRANSICIÓN (INICIANDO, PAUSA, RECONECTANDO, DESPEDIDA) -->
+        <div id="scene4-tile-transicion" class="sim-multiview-tile">
+          <div class="sim-multiview-tile-header">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:12px; font-weight:800; color:#f8fafc;">4 · TRANSICIÓN</span>
+              <span id="badge-scene-4-transicion" style="padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700;">PAUSA</span>
+            </div>
+            <button type="button" id="btn-scene-4-transicion" style="height:24px; padding:0 10px; border-radius:5px; border:1px solid rgba(255,255,255,0.22); background:rgba(30,41,59,0.9); color:#f8fafc; font-size:11px; font-weight:700; cursor:pointer;">Al Aire</button>
+          </div>
+          <div class="sim-multiview-viewport" style="background:#020409;">
+            <iframe id="sim-transicion-preview-iframe" src="/transicion?preview=1&scene=starting" allowtransparency="true" style="width:100%; height:100%; border:0; pointer-events:none; display:block; background:#020409;"></iframe>
+          </div>
+          <div class="sim-multiview-tile-footer" style="padding:6px 8px; gap:4px; flex-wrap:wrap; justify-content:center;">
+            <button type="button" data-trans-sub="starting" class="btn-trans-sub" style="height:22px; padding:0 7px; border-radius:4px; border:1px solid rgba(255,255,255,0.16); background:rgba(30,41,59,0.9); color:#e2e8f0; font-size:10px; font-weight:700; cursor:pointer;">Iniciando</button>
+            <button type="button" data-trans-sub="lunch" class="btn-trans-sub" style="height:22px; padding:0 7px; border-radius:4px; border:1px solid rgba(255,255,255,0.16); background:rgba(30,41,59,0.9); color:#e2e8f0; font-size:10px; font-weight:700; cursor:pointer;">Pausa</button>
+            <button type="button" data-trans-sub="reconnecting" class="btn-trans-sub" style="height:22px; padding:0 7px; border-radius:4px; border:1px solid rgba(255,255,255,0.16); background:rgba(30,41,59,0.9); color:#e2e8f0; font-size:10px; font-weight:700; cursor:pointer;">Reconectando</button>
+            <button type="button" data-trans-sub="ending" class="btn-trans-sub" style="height:22px; padding:0 7px; border-radius:4px; border:1px solid rgba(255,255,255,0.16); background:rgba(30,41,59,0.9); color:#e2e8f0; font-size:10px; font-weight:700; cursor:pointer;">Despedida</button>
+          </div>
+        </div>
+      </div>
+    `;
+    directorBox.insertBefore(monitorWrap, directorBox.firstChild);
+
+    monitorWrap.querySelector('#btn-scene-4-principal').onclick = () => setSimBroadcastScene('principal');
+    monitorWrap.querySelector('#btn-scene-4-preescena').onclick = () => commuteSimScenes();
+    monitorWrap.querySelector('#btn-scene-4-fullscreen').onclick = () => setSimBroadcastScene('fullscreen');
+    monitorWrap.querySelector('#btn-scene-4-transicion').onclick = () => setSimBroadcastScene('transicion', simCamerasState?.transitionSubScene || 'starting');
+
+    monitorWrap.querySelectorAll('.btn-trans-sub').forEach(btn => {
+      btn.onclick = () => {
+        const sub = btn.getAttribute('data-trans-sub');
+        const iframe = document.getElementById('sim-transicion-preview-iframe');
+        if (iframe) iframe.src = `/transicion?preview=1&scene=${sub}`;
+        setSimBroadcastScene(simCamerasState?.activeScene === 'transicion' ? 'transicion' : undefined, sub);
+      };
+    });
+  }
+
+  monitorWrap.style.display = 'flex';
+
+  const actScene = state.activeScene || 'principal';
+  const subScene = state.transitionSubScene || 'starting';
+  const setTileState = (tileId, badgeId, btnId, isActive, idleLabel) => {
+    const tile = monitorWrap.querySelector(tileId);
+    const badge = monitorWrap.querySelector(badgeId);
+    const btn = monitorWrap.querySelector(btnId);
+    if (tile) tile.classList.toggle('is-cam-a', isActive);
+    if (badge) {
+      badge.textContent = isActive ? 'AL AIRE' : idleLabel;
+      badge.style.background = isActive ? 'rgba(56,189,248,0.25)' : 'rgba(255,255,255,0.08)';
+      badge.style.color = isActive ? '#38bdf8' : '#94a3b8';
+      badge.style.border = isActive ? '1px solid rgba(56,189,248,0.5)' : '1px solid rgba(255,255,255,0.12)';
+    }
+    if (btn) {
+      btn.textContent = isActive ? '● Al Aire' : 'Poner Al Aire';
+      btn.style.background = isActive ? 'rgba(14,116,144,0.38)' : 'rgba(30,41,59,0.9)';
+      btn.style.color = isActive ? '#38bdf8' : '#f8fafc';
+      btn.style.borderColor = isActive ? 'rgba(56,189,248,0.65)' : 'rgba(255,255,255,0.22)';
+    }
+  };
+
+  setTileState('#scene4-tile-principal', '#badge-scene-4-principal', '#btn-scene-4-principal', actScene === 'principal', 'EN ESPERA');
+  setTileState('#scene4-tile-fullscreen', '#badge-scene-4-fullscreen', '#btn-scene-4-fullscreen', actScene === 'fullscreen', 'RANKING');
+  setTileState('#scene4-tile-transicion', '#badge-scene-4-transicion', '#btn-scene-4-transicion', actScene === 'transicion', subScene.toUpperCase());
+
+  monitorWrap.querySelectorAll('.btn-trans-sub').forEach(btn => {
+    const isSub = btn.getAttribute('data-trans-sub') === subScene;
+    btn.style.borderColor = isSub ? '#38bdf8' : 'rgba(255,255,255,0.16)';
+    btn.style.background = isSub ? 'rgba(14,116,144,0.32)' : 'rgba(30,41,59,0.9)';
+    btn.style.color = isSub ? '#38bdf8' : '#e2e8f0';
+  });
+
+  const cameras = state.cameras || [];
+  const updateMonitorViewport = (prefix, busState, layoutBadgeId, pipBadgeId) => {
+    const slots = Array.isArray(busState?.slots) ? busState.slots : [];
+    const camCount = Math.max(1, Math.min(6, Number(busState?.camCount) || 2));
+    for (let i = 0; i < 6; i++) {
+      const slotEl = monitorWrap.querySelector(`#${prefix}-slot-${i}`);
+      const vidEl = monitorWrap.querySelector(`#${prefix}-video-${i}`);
+      const lblEl = monitorWrap.querySelector(`#${prefix}-label-${i}`);
+      if (!slotEl || !vidEl) continue;
+      const s = slots[i];
+      const cam = s?.cam || cameras.find(c => Number(c.sceneItemId) === Number(s?.camId)) || null;
+      const isVis = i < camCount && !!(s ? s.visible : cam) && state.enabled;
+      if (!isVis || !cam || !s) {
+        slotEl.style.opacity = '0';
+        slotEl.style.pointerEvents = 'none';
+        if (!vidEl.paused) vidEl.pause();
+        continue;
+      }
+      slotEl.style.opacity = '1';
+      slotEl.style.zIndex = '1';
+      slotEl.style.left = ((s.x / 1920) * 100).toFixed(2) + '%';
+      slotEl.style.top = ((s.y / 1080) * 100).toFixed(2) + '%';
+      slotEl.style.width = ((s.w / 1920) * 100).toFixed(2) + '%';
+      slotEl.style.height = ((s.h / 1080) * 100).toFixed(2) + '%';
+      slotEl.style.borderRight = s.borderRight ? '1px solid rgba(255,255,255,0.22)' : 'none';
+      slotEl.style.borderBottom = s.borderBottom ? '1px solid rgba(255,255,255,0.22)' : 'none';
+      if (lblEl) lblEl.textContent = `${i + 1}: ${cam.shortName || cam.sourceName}`;
+      if (vidEl.getAttribute('data-cam-url') !== cam.url) {
+        vidEl.setAttribute('data-cam-url', cam.url);
+        vidEl.src = cam.url;
+        vidEl.load();
+        vidEl.play().catch(() => {});
+      } else if (vidEl.paused) {
+        vidEl.play().catch(() => {});
+      }
+    }
+
+    // PiP Casteo en el monitor
+    const pipSlot = monitorWrap.querySelector(`#${prefix}-slot-pip`);
+    const pipVid = monitorWrap.querySelector(`#${prefix}-video-pip`);
+    const pipLbl = monitorWrap.querySelector(`#${prefix}-label-pip`);
+    const pip = busState?.pip || {};
+    const pipEnabled = !!(busState?.pipEnabled !== undefined ? busState.pipEnabled : pip.enabled);
+    const pipCam = pip.cam || cameras.find(c => Number(c.sceneItemId) === Number(busState?.pipCamId || pip.camId)) || null;
+    if (pipSlot && pipVid) {
+      if (!pipEnabled || !pipCam || !state.enabled) {
+        pipSlot.style.opacity = '0';
+        if (!pipVid.paused) pipVid.pause();
+      } else {
+        pipSlot.style.opacity = '1';
+        pipSlot.style.zIndex = '4';
+        pipSlot.style.left = (((pip.x || 1424) / 1920) * 100).toFixed(2) + '%';
+        pipSlot.style.top = (((pip.y || 740) / 1080) * 100).toFixed(2) + '%';
+        pipSlot.style.width = (((pip.w || 496) / 1920) * 100).toFixed(2) + '%';
+        pipSlot.style.height = (((pip.h || 279) / 1080) * 100).toFixed(2) + '%';
+        if (pipLbl) pipLbl.textContent = `🎙️ PiP: ${pipCam.shortName || pipCam.sourceName}`;
+        if (pipVid.getAttribute('data-cam-url') !== pipCam.url) {
+          pipVid.setAttribute('data-cam-url', pipCam.url);
+          pipVid.src = pipCam.url;
+          pipVid.load();
+          pipVid.play().catch(() => {});
+        } else if (pipVid.paused) {
+          pipVid.play().catch(() => {});
+        }
+      }
+    }
+
+    const layBadge = monitorWrap.querySelector(layoutBadgeId);
+    if (layBadge) {
+      const layKey = busState?.layout || 'split_lr';
+      layBadge.textContent = LAYOUT_DISPLAY_LABELS[layKey] || `${camCount} CÁM · ${layKey.toUpperCase()}`;
+    }
+    const pBadge = monitorWrap.querySelector(pipBadgeId);
+    if (pBadge) {
+      pBadge.textContent = pipEnabled && pipCam ? `🎙️ PiP Casteo: ${pipCam.shortName}` : '🎙️ PiP Casteo: OFF';
+      pBadge.style.opacity = pipEnabled ? '1' : '0.5';
+    }
+  };
+
+  updateMonitorViewport('sim-mon-prog', state, '#sim-monitor-layout-badge', '#sim-monitor-pip-badge');
+  updateMonitorViewport('sim-mon-prev', state.preview || state, '#sim-prev-layout-badge', '#sim-prev-pip-badge');
+}
+
+function renderIndependentBusControls(containerEl, targetBus, busState, cameras, accentColor) {
+  if (!containerEl || !busState) return;
+  const isPrev = targetBus === 'preview';
+  const ic = (n, sz = 14) => (window.Icon ? window.Icon(n, { size: sz }) : '');
+  const camCount = Math.max(1, Math.min(6, Number(busState.camCount) || 2));
+  const slotIds = Array.isArray(busState.slotIds) ? busState.slotIds : [busState.camAId, busState.camBId];
+  const pipEnabled = !!busState.pipEnabled;
+  const pipCamId = Number(busState.pipCamId) || (cameras[3]?.sceneItemId) || (cameras[0]?.sceneItemId) || 104;
+  const pipCorner = busState.pipCorner || 'br';
+  const bannerMode = busState.bannerMode || 'none';
+  const currentLayout = busState.layout || 'split_lr';
+
+  let root = containerEl.querySelector('.multi-cam-director-root');
+  if (!root) {
+    containerEl.innerHTML = `
+      <div class="multi-cam-director-root" style="display:flex; flex-direction:column; gap:10px; width:100%;">
+        <!-- 1. Selección de Cantidad de Cámaras + Margen de Banners -->
+        <div style="display:grid; grid-template-columns: 1.35fr 1fr; gap:10px; align-items:end;">
+          <div class="admin-field">
+            <label class="admin-label">1. ¿Cuántas cámaras colocar en la distribución?</label>
+            <div class="cam-count-pills" style="display:grid; grid-template-columns:repeat(6, 1fr); gap:4px;">
+              ${[1, 2, 3, 4, 5, 6].map(n => `
+                <button type="button" data-cam-count="${n}" style="height:30px; border-radius:6px; border:1px solid rgba(255,255,255,0.16); background:rgba(15,23,42,0.8); color:#e2e8f0; font-size:11px; font-weight:800; cursor:pointer;">${n} Cám</button>
+              `).join('')}
+            </div>
+          </div>
+          <div class="admin-field">
+            <label class="admin-label">Margen para banners</label>
+            <select class="select-filter bus-banner-select" style="height:30px; font-size:11px;">
+              <option value="none">Limpio (borde a borde)</option>
+              <option value="top">Espacio superior (130px)</option>
+              <option value="bottom">Espacio inferior (160px)</option>
+              <option value="both">Doble margen (arriba y abajo)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. Selectores manuales para cada posición activa (1 a N) -->
+        <div class="admin-field">
+          <label class="admin-label bus-slots-title">2. Asignación manual de cada cámara en la escena</label>
+          <div class="bus-slots-selectors-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">
+            ${[0, 1, 2, 3, 4, 5].map(idx => `
+              <div class="bus-slot-field" data-slot-wrap="${idx}" style="display:flex; flex-direction:column; gap:3px;">
+                <span style="font-size:10px; font-weight:700; color:#94a3b8;">Posición ${idx + 1} ${idx === 0 ? '(Principal)' : ''}</span>
+                <select class="select-filter" data-slot-select="${idx}" style="height:30px; font-size:11px;"></select>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- 3. Botones de Distribución (Layout) para la cantidad de cámaras elegida -->
+        <div class="admin-field">
+          <label class="admin-label">3. Formato de distribución en pantalla</label>
+          <div class="bus-layouts-row" style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px;"></div>
+        </div>
+
+        <!-- 4. Cámara PiP de Casteo Independiente (Superpuesta en cualquier distribución) -->
+        <div class="bus-pip-caster-box" style="padding:10px 12px; border-radius:9px; border:1px solid rgba(56,189,248,0.35); background:rgba(15,23,42,0.75); display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <div style="display:flex; align-items:center; gap:7px;">
+              <span style="font-size:14px;">🎙️</span>
+              <div>
+                <div style="font-size:12px; font-weight:800; color:#f8fafc;">Cámara PiP de Casteo (Mini-Cámara Superpuesta)</div>
+                <div style="font-size:10px; color:#94a3b8;">Actívala o desactívala sobre cualquier distribución de 1 a 6 cámaras</div>
+              </div>
+            </div>
+            <button type="button" class="btn-toggle-caster-pip" style="height:28px; padding:0 12px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer; white-space:nowrap;"></button>
+          </div>
+          <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap:8px;">
+            <div class="admin-field">
+              <label class="admin-label" style="font-size:10px;">Cámara del Caster (PiP)</label>
+              <select class="select-filter bus-pip-cam-select" style="height:28px; font-size:11px;"></select>
+            </div>
+            <div class="admin-field">
+              <label class="admin-label" style="font-size:10px;">Esquina del PiP</label>
+              <select class="select-filter bus-pip-corner-select" style="height:28px; font-size:11px;">
+                <option value="br">Inf. Derecha (sobre noticias)</option>
+                <option value="bl">Inf. Izquierda (sobre noticias)</option>
+                <option value="tr">Superior Derecha</option>
+                <option value="tl">Superior Izquierda</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        ${isPrev ? `
+          <button type="button" class="btn-bus-commute" style="margin-top:2px; height:36px; border-radius:8px; border:1.5px solid rgba(251,191,36,0.65); background:linear-gradient(90deg, rgba(180,83,9,0.34) 0%, rgba(14,116,144,0.4) 100%); color:#fef3c7; font-size:12px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <span>⇄ CONMUTAR PREESCENA ⇄ ESCENA PRINCIPAL</span>
+          </button>
+        ` : ''}
+      </div>
+    `;
+    root = containerEl.querySelector('.multi-cam-director-root');
+
+    // Eventos de Cantidad de Cámaras
+    root.querySelectorAll('button[data-cam-count]').forEach(btn => {
+      btn.onclick = () => {
+        const count = Number(btn.getAttribute('data-cam-count'));
+        updateBusConfig(targetBus, { camCount: count }, `${count} cámara(s) en distribución`);
+      };
+    });
+
+    // Evento de Margen para banners
+    const bannerSel = root.querySelector('.bus-banner-select');
+    if (bannerSel) {
+      bannerSel.onchange = () => {
+        updateBusConfig(targetBus, { bannerMode: bannerSel.value }, 'Margen de banners actualizado');
+      };
+    }
+
+    // Eventos de Selectores de cada posición (1 a 6)
+    root.querySelectorAll('select[data-slot-select]').forEach(sel => {
+      sel.onchange = () => {
+        const slotIndex = Number(sel.getAttribute('data-slot-select'));
+        updateBusConfig(targetBus, { slotIndex, slotCamId: Number(sel.value) }, `Posición ${slotIndex + 1} actualizada`);
+      };
+    });
+
+    // Eventos de Cámara PiP de Casteo
+    const pipToggleBtn = root.querySelector('.btn-toggle-caster-pip');
+    if (pipToggleBtn) {
+      pipToggleBtn.onclick = () => {
+        const currentBus = isPrev ? (simCamerasState?.preview || {}) : (simCamerasState || {});
+        const nextPip = !currentBus.pipEnabled;
+        updateBusConfig(targetBus, { pipEnabled: nextPip }, nextPip ? '🎙️ Cámara PiP de Casteo ACTIVADA' : '🎙️ Cámara PiP de Casteo OCULTA');
+      };
+    }
+    const pipCamSel = root.querySelector('.bus-pip-cam-select');
+    if (pipCamSel) {
+      pipCamSel.onchange = () => {
+        updateBusConfig(targetBus, { pipCamId: Number(pipCamSel.value), pipEnabled: true }, '🎙️ Cámara de Casteo asignada');
+      };
+    }
+    const pipCornerSel = root.querySelector('.bus-pip-corner-select');
+    if (pipCornerSel) {
+      pipCornerSel.onchange = () => {
+        updateBusConfig(targetBus, { pipCorner: pipCornerSel.value }, 'Esquina del PiP actualizada');
+      };
+    }
+
+    const commuteBtn = root.querySelector('.btn-bus-commute');
+    if (commuteBtn) commuteBtn.onclick = () => commuteSimScenes();
+  }
+
+  // Sincronizar estado de botones 1..6 Cámaras
+  root.querySelectorAll('button[data-cam-count]').forEach(btn => {
+    const n = Number(btn.getAttribute('data-cam-count'));
+    const active = n === camCount;
+    btn.style.borderColor = active ? accentColor : 'rgba(255,255,255,0.14)';
+    btn.style.background = active ? (isPrev ? 'rgba(180,83,9,0.34)' : 'rgba(14,116,144,0.34)') : 'rgba(15,23,42,0.8)';
+    btn.style.color = active ? accentColor : '#cbd5e1';
+  });
+
+  const bannerSel = root.querySelector('.bus-banner-select');
+  if (bannerSel) bannerSel.value = bannerMode;
+
+  const slotsTitle = root.querySelector('.bus-slots-title');
+  if (slotsTitle) {
+    slotsTitle.textContent = `2. Cámaras en la distribución (${camCount} posición${camCount > 1 ? 'es' : ''} activa${camCount > 1 ? 's' : ''})`;
+  }
+
+  // Poblar y mostrar únicamente las N posiciones activas
+  root.querySelectorAll('[data-slot-wrap]').forEach(wrap => {
+    const idx = Number(wrap.getAttribute('data-slot-wrap'));
+    wrap.style.display = idx < camCount ? 'flex' : 'none';
+    const sel = wrap.querySelector('select');
+    if (!sel) return;
+    sel.innerHTML = '';
+    cameras.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.sceneItemId;
+      opt.textContent = c.sourceName;
+      sel.appendChild(opt);
+    });
+    const val = slotIds[idx] || cameras[idx % Math.max(1, cameras.length)]?.sceneItemId;
+    if (val) sel.value = String(val);
+  });
+
+  // Renderizar botones de formato de distribución según camCount
+  const layoutsRow = root.querySelector('.bus-layouts-row');
+  if (layoutsRow) {
+    const presets = LAYOUT_OPTIONS_BY_COUNT[camCount] || LAYOUT_OPTIONS_BY_COUNT[2];
+    layoutsRow.innerHTML = presets.map(p => {
+      const isAct = p.id === currentLayout;
+      return `
+        <button type="button" class="btn-layout-preset" data-bus-layout="${p.id}" style="height:32px; font-size:11px; border-color:${isAct ? accentColor : ''}; color:${isAct ? accentColor : ''};">
+          ${ic(p.icon)}<span>${p.label}</span>
+        </button>
+      `;
+    }).join('');
+    layoutsRow.querySelectorAll('button[data-bus-layout]').forEach(btn => {
+      btn.onclick = () => {
+        const layId = btn.getAttribute('data-bus-layout');
+        updateBusConfig(targetBus, { layout: layId }, `Formato aplicado: ${btn.textContent.trim()}`);
+      };
+    });
+  }
+
+  // Sincronizar Cámara PiP de Casteo
+  const pipToggleBtn = root.querySelector('.btn-toggle-caster-pip');
+  if (pipToggleBtn) {
+    pipToggleBtn.textContent = pipEnabled ? '🎙️ PiP Casteo: ACTIVO' : '🎙️ PiP Casteo: OCULTO';
+    pipToggleBtn.style.border = pipEnabled ? '1px solid rgba(16,185,129,0.75)' : '1px solid rgba(255,255,255,0.22)';
+    pipToggleBtn.style.background = pipEnabled ? 'rgba(6,95,70,0.45)' : 'rgba(30,41,59,0.85)';
+    pipToggleBtn.style.color = pipEnabled ? '#34d399' : '#94a3b8';
+  }
+  const pipCamSel = root.querySelector('.bus-pip-cam-select');
+  if (pipCamSel) {
+    pipCamSel.innerHTML = '';
+    cameras.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.sceneItemId;
+      opt.textContent = c.sourceName;
+      pipCamSel.appendChild(opt);
+    });
+    if (pipCamId) pipCamSel.value = String(pipCamId);
+  }
+  const pipCornerSel = root.querySelector('.bus-pip-corner-select');
+  if (pipCornerSel) pipCornerSel.value = pipCorner;
+}
+
+function renderPreEscenaDirectorCard(state) {
+  const scenesView = document.getElementById('view-scenes');
+  const cardsGrid = scenesView ? scenesView.querySelector('.admin-cards-grid') : null;
+  const mainCamCard = scenesView ? scenesView.querySelector('section[aria-labelledby="title-obs-cameras"]') : null;
+  if (!cardsGrid || !mainCamCard) return;
+
+  const mainTitle = document.getElementById('title-obs-cameras');
+  if (mainTitle) {
+    mainTitle.textContent = 'Distribución Interna · 1 · Escena Principal';
+    const sub = mainTitle.parentElement?.querySelector('.admin-card-subtitle');
+    if (sub) sub.textContent = 'Elige de 1 a 6 cámaras + Cámara PiP de Casteo directamente en la Escena Principal';
+  }
+  const mainBadge = document.getElementById('layout-target-badge');
+  if (mainBadge) {
+    mainBadge.textContent = '1 · PRINCIPAL';
+    mainBadge.style.color = '#38bdf8';
+  }
+
+  const mainDirectorBox = document.getElementById('camera-layout-director-box');
+  if (mainDirectorBox) {
+    mainDirectorBox.style.display = 'flex';
+    renderIndependentBusControls(mainDirectorBox, 'program', state, state.cameras || [], '#38bdf8');
+  }
+
+  let prevCard = document.getElementById('sim-preescena-director-card');
+  if (!prevCard) {
+    prevCard = document.createElement('section');
+    prevCard.className = 'admin-panel-card';
+    prevCard.id = 'sim-preescena-director-card';
+    const ic = (n, sz = 18) => (window.Icon ? window.Icon(n, { size: sz }) : '');
+    prevCard.innerHTML = `
+      <div class="admin-card-header">
+        <div class="admin-card-header-main">
+          <div class="admin-card-icon">${ic('columns-2', 18)}</div>
+          <div class="admin-card-titles">
+            <h2 class="admin-card-title">Distribución Interna · 2 · PreEscena</h2>
+            <p class="admin-card-subtitle">Elige de 1 a 6 cámaras + Cámara PiP de Casteo en PreEscena antes de conmutar</p>
+          </div>
+        </div>
+        <div class="admin-card-header-meta">
+          <span class="admin-status-pill" id="prev-layout-target-badge" style="color:#fbbf24;">2 · PREESCENA</span>
+        </div>
+      </div>
+      <div class="admin-card-body">
+        <div id="preescena-layout-director-box" class="camera-layout-director-box" style="display:flex;"></div>
+      </div>
+    `;
+    if (mainCamCard.nextSibling) {
+      cardsGrid.insertBefore(prevCard, mainCamCard.nextSibling);
+    } else {
+      cardsGrid.appendChild(prevCard);
+    }
+  }
+
+  const prevDirectorBox = prevCard.querySelector('#preescena-layout-director-box');
+  if (prevDirectorBox) {
+    renderIndependentBusControls(prevDirectorBox, 'preview', state.preview || state, state.cameras || [], '#fbbf24');
+  }
+}
+
+function renderSimMultiviewCard(state) {
+  const scenesView = document.getElementById('view-scenes');
+  const cardsGrid = scenesView ? scenesView.querySelector('.admin-cards-grid') : null;
+  if (!cardsGrid) return;
+
+  let mvCard = document.getElementById('sim-multiview-card');
+  const cameras = (state && Array.isArray(state.cameras)) ? state.cameras : [];
+  if (cameras.length === 0) {
+    if (mvCard) mvCard.style.display = 'none';
+    return;
+  }
+
+  if (!mvCard) {
+    mvCard = document.createElement('section');
+    mvCard.className = 'admin-panel-card';
+    mvCard.id = 'sim-multiview-card';
+    const iconHtml = window.Icon ? window.Icon('layout-grid', { size: 18 }) : '';
+    mvCard.innerHTML = `
+      <div class="admin-card-header">
+        <div class="admin-card-header-main">
+          <div class="admin-card-icon">${iconHtml}</div>
+          <div class="admin-card-titles">
+            <h2 class="admin-card-title">Multiview de Cámaras en Vivo (6 entradas)</h2>
+            <p class="admin-card-subtitle">Envía cualquier cámara a una posición o al PiP de Casteo de PreEscena o de Escena Principal</p>
+          </div>
+        </div>
+        <div class="admin-card-header-meta">
+          <span class="admin-status-pill admin-status-pill--connected tabular-nums" id="sim-multiview-count-pill">${cameras.length} cámaras en vivo</span>
+        </div>
+      </div>
+      <div class="admin-card-body">
+        <div id="sim-multiview-grid" class="sim-multiview-grid"></div>
+      </div>
+    `;
+    cardsGrid.appendChild(mvCard);
+  }
+
+  mvCard.style.display = '';
+  const countPill = mvCard.querySelector('#sim-multiview-count-pill');
+  if (countPill) countPill.textContent = `${cameras.length} cámaras en vivo`;
+
+  const mvGrid = mvCard.querySelector('#sim-multiview-grid');
+  if (!mvGrid) return;
+
+  const progCount = Math.max(1, Math.min(6, Number(state.camCount) || 2));
+  const progSlots = (state.slotIds || []).slice(0, progCount).map(Number);
+  const progPip = state.pipEnabled ? Number(state.pipCamId) : null;
+
+  const prevObj = state.preview || {};
+  const prevCount = Math.max(1, Math.min(6, Number(prevObj.camCount) || 1));
+  const prevSlots = (prevObj.slotIds || []).slice(0, prevCount).map(Number);
+  const prevPip = prevObj.pipEnabled ? Number(prevObj.pipCamId) : null;
+
+  cameras.forEach(cam => {
+    const id = Number(cam.sceneItemId);
+    const inProgIdx = progSlots.indexOf(id);
+    const isProgPip = progPip === id;
+    const inPrevIdx = prevSlots.indexOf(id);
+    const isPrevPip = prevPip === id;
+
+    let tile = mvGrid.querySelector(`[data-mv-id="${id}"]`);
+    if (!tile) {
+      tile = document.createElement('div');
+      tile.className = 'sim-multiview-tile';
+      tile.setAttribute('data-mv-id', String(id));
+      tile.innerHTML = `
+        <div class="sim-multiview-tile-header">
+          <div style="display:flex; align-items:center; gap:6px; min-width:0;">
+            <span class="mv-cam-num" style="font-size:12px; font-weight:800; color:#f8fafc; white-space:nowrap;"></span>
+            <span class="mv-cam-tally" style="padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700; white-space:nowrap;"></span>
+          </div>
+          <div style="display:flex; align-items:center; gap:3px; flex-wrap:wrap;">
+            <button type="button" data-mv-bus="preview" data-mv-role="slot0" title="Enviar a PreEscena Posición 1" style="height:22px; padding:0 6px; border-radius:4px; border:1px solid rgba(251,191,36,0.55); background:rgba(180,83,9,0.24); color:#fbbf24; font-size:10px; font-weight:700; cursor:pointer;">Pre 1</button>
+            <button type="button" data-mv-bus="preview" data-mv-role="slot1" title="Enviar a PreEscena Posición 2" style="height:22px; padding:0 6px; border-radius:4px; border:1px solid rgba(251,191,36,0.55); background:rgba(180,83,9,0.24); color:#fbbf24; font-size:10px; font-weight:700; cursor:pointer;">Pre 2</button>
+            <button type="button" data-mv-bus="preview" data-mv-role="pip" title="Asignar como Cámara PiP Casteo en PreEscena" style="height:22px; padding:0 6px; border-radius:4px; border:1px solid rgba(251,191,36,0.55); background:rgba(180,83,9,0.24); color:#fef3c7; font-size:10px; font-weight:700; cursor:pointer;">🎙️Pre</button>
+            <button type="button" data-mv-bus="program" data-mv-role="slot0" title="Enviar directo a Principal Posición 1" style="height:22px; padding:0 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.55); background:rgba(14,116,144,0.24); color:#38bdf8; font-size:10px; font-weight:700; cursor:pointer;">Prin 1</button>
+            <button type="button" data-mv-bus="program" data-mv-role="slot1" title="Enviar directo a Principal Posición 2" style="height:22px; padding:0 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.55); background:rgba(14,116,144,0.24); color:#38bdf8; font-size:10px; font-weight:700; cursor:pointer;">Prin 2</button>
+            <button type="button" data-mv-bus="program" data-mv-role="pip" title="Asignar como Cámara PiP Casteo en Principal" style="height:22px; padding:0 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.55); background:rgba(14,116,144,0.24); color:#bae6fd; font-size:10px; font-weight:700; cursor:pointer;">🎙️Prin</button>
+          </div>
+        </div>
+        <div class="sim-multiview-viewport">
+          <video autoplay loop muted playsinline src="${cam.url}"></video>
+        </div>
+        <div class="sim-multiview-tile-footer">
+          <span style="font-size:12px; font-weight:600; color:#e2e8f0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;" title="${escapeHtml(cam.title || cam.sourceName)}">${escapeHtml(cam.title || cam.sourceName)}</span>
+          <div style="display:flex; gap:4px;">
+            <button type="button" data-mv-media="restart" title="Reiniciar video" style="height:22px; padding:0 7px; border-radius:4px; border:1px solid rgba(255,255,255,0.16); background:rgba(15,23,42,0.85); color:#cbd5e1; font-size:11px; cursor:pointer;">↺</button>
+            <button type="button" data-mv-media="pause" title="Pausar video" style="height:22px; padding:0 7px; border-radius:4px; border:1px solid rgba(255,255,255,0.16); background:rgba(15,23,42,0.85); color:#cbd5e1; font-size:11px; cursor:pointer;">⏸</button>
+            <button type="button" data-mv-media="play" title="Reproducir video" style="height:22px; padding:0 7px; border-radius:4px; border:1px solid rgba(255,255,255,0.16); background:rgba(15,23,42,0.85); color:#cbd5e1; font-size:11px; cursor:pointer;">▶</button>
+          </div>
+        </div>
+      `;
+      tile.querySelectorAll('button[data-mv-bus]').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const bus = btn.getAttribute('data-mv-bus');
+          const role = btn.getAttribute('data-mv-role');
+          if (role === 'pip') {
+            updateBusConfig(bus, { pipCamId: id, pipEnabled: true }, `🎙️ ${cam.shortName} en PiP de Casteo`);
+          } else if (role === 'slot0') {
+            updateBusConfig(bus, { slotIndex: 0, slotCamId: id }, `${cam.shortName} en Posición 1`);
+          } else if (role === 'slot1') {
+            updateBusConfig(bus, { slotIndex: 1, slotCamId: id }, `${cam.shortName} en Posición 2`);
+          }
+        };
+      });
+      tile.querySelectorAll('button[data-mv-media]').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const action = btn.getAttribute('data-mv-media');
+          const vid = tile.querySelector('video');
+          if (vid) {
+            if (action === 'restart') { vid.currentTime = 0; vid.play().catch(() => {}); }
+            else if (action === 'pause') { vid.pause(); }
+            else if (action === 'play') { vid.play().catch(() => {}); }
+          }
+          triggerMedia(cam.sourceName, action);
+        };
+      });
+      mvGrid.appendChild(tile);
+    }
+
+    const isOnAir = inProgIdx !== -1 || isProgPip;
+    const isOnPrev = inPrevIdx !== -1 || isPrevPip;
+    tile.classList.toggle('is-cam-a', isOnAir);
+    tile.classList.toggle('is-cam-b', !isOnAir && isOnPrev);
+
+    const numEl = tile.querySelector('.mv-cam-num');
+    const tallyEl = tile.querySelector('.mv-cam-tally');
+    if (numEl) numEl.textContent = (cam.shortName || `CAM ${cam.camIndex || ''}`).toUpperCase();
+    if (tallyEl) {
+      const tags = [];
+      if (inProgIdx !== -1) tags.push(`PRIN #${inProgIdx + 1}`);
+      if (isProgPip) tags.push(`🎙️PRIN PiP`);
+      if (inPrevIdx !== -1) tags.push(`PRE #${inPrevIdx + 1}`);
+      if (isPrevPip) tags.push(`🎙️PRE PiP`);
+      if (isOnAir) {
+        tallyEl.textContent = tags.join(' · ');
+        tallyEl.style.background = 'rgba(56,189,248,0.2)';
+        tallyEl.style.color = '#38bdf8';
+        tallyEl.style.border = '1px solid rgba(56,189,248,0.5)';
+      } else if (isOnPrev) {
+        tallyEl.textContent = tags.join(' · ');
+        tallyEl.style.background = 'rgba(251,191,36,0.2)';
+        tallyEl.style.color = '#fbbf24';
+        tallyEl.style.border = '1px solid rgba(251,191,36,0.5)';
+      } else {
+        tallyEl.textContent = 'EN ESPERA';
+        tallyEl.style.background = 'rgba(255,255,255,0.06)';
+        tallyEl.style.color = '#94a3b8';
+        tallyEl.style.border = '1px solid rgba(255,255,255,0.12)';
+      }
+    }
+    const vidEl = tile.querySelector('video');
+    if (vidEl && vidEl.paused) {
+      vidEl.play().catch(() => {});
+    }
+  });
+}
+
+
 function updateOBSUI(status) {
   obsStatus = status;
 
@@ -556,19 +1459,30 @@ function updateOBSUI(status) {
     dot.className = 'status-dot active';
     text.textContent = 'OBS conectado';
     noObsNotice.style.display = 'none';
-    deck.style.display = 'grid';
+    deck.style.display = hasActiveSimCameras() ? 'none' : 'grid';
     if (videoBox) videoBox.style.display = 'block';
     if (camEmptyHint) camEmptyHint.style.display = 'none';
     if (srcEmptyHint) srcEmptyHint.style.display = 'none';
 
     renderScenes(status.scenes, status.currentProgramScene);
-    if (status.currentSceneItems) {
-      renderSceneSources(status.currentSceneItems, status.currentProgramScene);
+    if (hasActiveSimCameras()) {
+      renderSimDirectorLiveMonitor(simCamerasState);
+      renderSimMultiviewCard(simCamerasState);
+    }
+    if (status.currentSceneItems || hasActiveSimCameras()) {
+      renderSceneSources(status.currentSceneItems || [], status.currentProgramScene);
     }
     updateOBSVideoUI(status);
     updateStudioModeUI();
     updateStreamButton(status.isStreaming);
     updateRecordButton(status.isRecording);
+  } else if (hasActiveSimCameras()) {
+    deck.style.display = 'none';
+    if (videoBox) videoBox.style.display = 'none';
+    updateStudioModeUI();
+    updateStreamButton(false);
+    updateRecordButton(false);
+    updateSimCamerasUI(simCamerasState);
   } else {
     dot.className = 'status-dot warning';
     text.textContent = 'OBS desconectado';
@@ -706,10 +1620,11 @@ function updateStudioModeUI() {
   }
 
   const destBox = document.getElementById('layout-dest-box');
-  if (destBox) destBox.style.display = isStudio ? 'flex' : 'none';
-  setLayoutTarget(isStudio ? 'preview' : 'program');
+  const showDest = isStudio || hasActiveSimCameras();
+  if (destBox) destBox.style.display = showDest ? 'flex' : 'none';
+  if (showDest && !currentLayoutTarget) currentLayoutTarget = 'preview';
+  setLayoutTarget(showDest ? (currentLayoutTarget || 'preview') : 'program');
 
-  // Si modo estudio está activo, asegurar polling y cargar capturas
   if (isStudio) {
     updateStudioPreviewUI(obsStatus.currentPreviewScene || obsStatus.currentProgramScene);
     refreshStudioScreenshots(false);
@@ -721,7 +1636,7 @@ function updateStudioModeUI() {
 
 function startStudioPolling() {
   stopStudioPolling();
-  if (studioFpsInterval <= 0) return; // Modo Pausa
+  if (studioFpsInterval <= 0) return;
 
   const pollLoop = async () => {
     if (!obsStatus.connected || !obsStatus.studioMode) {
@@ -834,7 +1749,7 @@ async function refreshStudioScreenshots(showNotice = false) {
   }
 }
 
-// ── Control de Fuentes, Cámaras y Multimedia en OBS ──
+// ── Control de Fuentes, Cámaras y Multimedia en OBS / Simulador ──
 function getSourceIcon(kind) {
   const k = (kind || '').toLowerCase();
   const render = (name) => (window.Icon ? window.Icon(name, { size: 15 }) : '');
@@ -857,17 +1772,22 @@ function renderSceneSources(items, sceneName) {
   if (!box || !container) return;
 
   const directorBox = document.getElementById('camera-layout-director-box');
+  const simActive = hasActiveSimCameras();
+  if (simActive && Array.isArray(simCamerasState.cameras)) {
+    const baseItems = Array.isArray(items) ? items.filter(i => !i.isSimulated) : [];
+    items = [...simCamerasState.cameras, ...baseItems];
+  }
 
-  if (!obsStatus.connected) {
+  if (!obsStatus.connected && !simActive) {
     box.style.display = 'none';
     if (directorBox) directorBox.style.display = 'none';
     return;
   }
 
   box.style.display = 'flex';
-  const name = sceneName || obsStatus.currentProgramScene || 'Escena';
+  const name = sceneName || obsStatus.currentProgramScene || (simActive ? 'Simulador Directo (videos/camaras)' : 'Escena');
   label.textContent = `Capas en: ${name}`;
-  caption.textContent = `${items ? items.length : 0} fuentes`;
+  caption.textContent = `${items ? items.length : 0} cámaras en bucle`;
   container.innerHTML = '';
 
   populateCameraLayoutSelectors(items, sceneName);
@@ -887,21 +1807,40 @@ function renderSceneSources(items, sceneName) {
     const kind = item.inputKind || 'fuente';
     const isMedia = kind.includes('ffmpeg') || kind.includes('vlc') || kind.includes('media');
     const isVisual = !kind.includes('wasapi') && !kind.includes('audio');
+    const isSimCam = !!item.isSimulated;
+    const isCamA = isSimCam && Number(simCamerasState?.camAId) === Number(item.sceneItemId);
+    const isCamB = isSimCam && Number(simCamerasState?.camBId) === Number(item.sceneItemId);
+
     const eyeIconHtml = window.Icon
       ? window.Icon(isVisible ? 'eye' : 'eye-off', { size: 15 })
       : (isVisible ? 'ON' : 'OFF');
 
-    // Fila principal
+    const slotTag = isCamA && isCamB
+      ? 'MESA 1 & 2'
+      : isCamA
+      ? 'MESA 1 (CAM A)'
+      : isCamB
+      ? 'MESA 2 (CAM B)'
+      : (isSimCam ? 'LOOP MP4' : kind.replace('_source', '').replace('_input', ''));
+
     const mainRow = document.createElement('div');
     mainRow.className = 'source-item-main';
 
+    const thumbHtml = (isSimCam && item.url)
+      ? `<video class="source-thumb-video" src="${item.url}" autoplay loop muted playsinline></video>`
+      : `<span class="source-icon">${icon}</span>`;
+
     mainRow.innerHTML = `
       <div class="source-item-info">
-        <span class="source-icon">${icon}</span>
-        <span class="source-name" title="${escapeHtml(item.sourceName)}">${escapeHtml(item.sourceName)}</span>
-        <span class="source-kind-tag">${kind.replace('_source', '').replace('_input', '')}</span>
+        ${thumbHtml}
+        <div style="display:flex; flex-direction:column; gap:3px; min-width:0; flex:1;">
+          <span class="source-name" title="${escapeHtml(item.sourceName)}">${escapeHtml(item.sourceName)}</span>
+          <div>
+            <span class="source-kind-tag" style="${(isCamA || isCamB) ? 'background:rgba(56,189,248,0.18);color:#38bdf8;border-color:rgba(56,189,248,0.4);' : ''}">${slotTag}</span>
+          </div>
+        </div>
       </div>
-      <button type="button" class="btn-source-eye ${isVisible ? 'visible' : ''}" id="btn-eye-${item.sceneItemId}" title="${isVisible ? 'Ocultar capa' : 'Mostrar capa'}" aria-label="${isVisible ? 'Ocultar' : 'Mostrar'} capa ${escapeHtml(item.sourceName)}">
+      <button type="button" class="btn-source-eye ${isVisible ? 'visible' : ''}" id="btn-eye-${item.sceneItemId}" title="${isVisible ? 'Ocultar cámara' : 'Mostrar cámara'}" aria-label="${isVisible ? 'Ocultar' : 'Mostrar'} capa ${escapeHtml(item.sourceName)}">
         ${eyeIconHtml}
       </button>
     `;
@@ -914,12 +1853,41 @@ function renderSceneSources(items, sceneName) {
 
     card.appendChild(mainRow);
 
-    // Barra de acciones / presets
     const actionsBar = document.createElement('div');
     actionsBar.className = 'source-actions-bar';
     const ic = (n) => (window.Icon ? window.Icon(n, { size: 12 }) : '');
 
-    if (isMedia) {
+    if (isSimCam) {
+      actionsBar.innerHTML = `
+        <button type="button" class="btn-source-preset ${isCamA ? 'active' : ''}" data-sim-slot="a" title="Asignar a Cámara A (Mesa 1 / Izquierda)">${ic('video')}<span>Mesa 1 (A)</span></button>
+        <button type="button" class="btn-source-preset ${isCamB ? 'active' : ''}" data-sim-slot="b" title="Asignar a Cámara B (Mesa 2 / Derecha)">${ic('video')}<span>Mesa 2 (B)</span></button>
+        <button type="button" class="btn-source-preset" data-sim-slot="full" title="Poner esta cámara en Pantalla Completa">${ic('maximize-2')}<span>Full</span></button>
+        <button type="button" class="btn-source-preset" data-action="restart" title="Reiniciar video desde el inicio">${ic('rotate-ccw')}<span>Reiniciar</span></button>
+        <button type="button" class="btn-source-preset" data-action="pause" title="Pausar video">${ic('pause')}<span>Pausa</span></button>
+        <button type="button" class="btn-source-preset" data-action="play" title="Reproducir video">${ic('play')}<span>Play</span></button>
+      `;
+      actionsBar.querySelectorAll('button[data-sim-slot]').forEach(btn => {
+        btn.onclick = () => {
+          const slot = btn.dataset.simSlot;
+          const selA = document.getElementById('select-cam-a');
+          const selB = document.getElementById('select-cam-b');
+          if (slot === 'a') {
+            if (selA) selA.value = String(item.sceneItemId);
+            applyCameraLayout(simCamerasState?.layout || 'split_lr');
+          } else if (slot === 'b') {
+            if (selB) selB.value = String(item.sceneItemId);
+            applyCameraLayout(simCamerasState?.layout || 'split_lr');
+          } else if (slot === 'full') {
+            if (selA) selA.value = String(item.sceneItemId);
+            applyCameraLayout('full_a');
+          }
+        };
+      });
+      actionsBar.querySelectorAll('button[data-action]').forEach(btn => {
+        btn.onclick = () => triggerMedia(item.sourceName, btn.dataset.action);
+      });
+      card.appendChild(actionsBar);
+    } else if (isMedia) {
       actionsBar.innerHTML = `
         <button type="button" class="btn-source-preset" data-action="restart" title="Reiniciar video desde el inicio">${ic('rotate-ccw')}<span>Reiniciar</span></button>
         <button type="button" class="btn-source-preset" data-action="pause" title="Pausar video">${ic('pause')}<span>Pausa</span></button>
@@ -965,7 +1933,7 @@ function toggleSourceVisibility(sceneItemId, enabled) {
     enabled: !!enabled
   });
   updateItemVisibilityUI(sceneItemId, enabled);
-  showToast(enabled ? 'Capa visible en OBS' : 'Capa oculta en OBS');
+  showToast(enabled ? 'Cámara visible en transmisión' : 'Cámara oculta en transmisión');
 }
 
 function setSourceTransformPreset(sceneItemId, preset) {
@@ -988,7 +1956,7 @@ function triggerMedia(inputName, action) {
 }
 
 // ── Director de Cámaras y Pantalla Dividida (Layouts) ──
-let currentLayoutTarget = 'program'; // 'preview' o 'program'
+let currentLayoutTarget = 'preview'; // 'preview' (PreEscena por defecto) o 'program' (Escena Principal)
 
 function setLayoutTarget(target) {
   currentLayoutTarget = target;
@@ -996,11 +1964,27 @@ function setLayoutTarget(target) {
   const btnProg = document.getElementById('btn-dest-prog');
   const badge = document.getElementById('layout-target-badge');
 
-  if (btnPrev) btnPrev.classList.toggle('active', target === 'preview');
-  if (btnProg) btnProg.classList.toggle('active', target === 'program');
+  if (btnPrev) {
+    btnPrev.textContent = 'PreEscena';
+    btnPrev.classList.toggle('active', target === 'preview');
+  }
+  if (btnProg) {
+    btnProg.textContent = 'Principal';
+    btnProg.classList.toggle('active', target === 'program');
+  }
   if (badge) {
-    badge.textContent = target === 'preview' ? 'PREVIEW' : 'EN VIVO';
-    badge.style.color = target === 'preview' ? 'var(--success)' : 'var(--live)';
+    badge.textContent = target === 'preview' ? 'EDITANDO: PREESCENA' : 'DIRECTO: PRINCIPAL';
+    badge.style.color = target === 'preview' ? '#fbbf24' : '#38bdf8';
+  }
+  // Sincronizar selectores con el bus seleccionado (PreEscena o Principal)
+  if (hasActiveSimCameras()) {
+    const bus = (target === 'preview' && simCamerasState.preview) ? simCamerasState.preview : simCamerasState;
+    const selectA = document.getElementById('select-cam-a');
+    const selectB = document.getElementById('select-cam-b');
+    const bannerSelect = document.getElementById('select-banner-mode');
+    if (selectA && bus.camAId) selectA.value = String(bus.camAId);
+    if (selectB && bus.camBId) selectB.value = String(bus.camBId);
+    if (bannerSelect && bus.bannerMode) bannerSelect.value = bus.bannerMode;
   }
 }
 
@@ -1009,10 +1993,13 @@ function populateCameraLayoutSelectors(items, sceneName) {
   const selectA = document.getElementById('select-cam-a');
   const selectB = document.getElementById('select-cam-b');
   const destBox = document.getElementById('layout-dest-box');
+  const bannerSelect = document.getElementById('select-banner-mode');
 
   if (!directorBox || !selectA || !selectB) return;
 
-  if (!obsStatus.connected) {
+  const simActive = hasActiveSimCameras();
+
+  if (!obsStatus.connected && !simActive) {
     directorBox.style.display = 'none';
     return;
   }
@@ -1020,29 +2007,29 @@ function populateCameraLayoutSelectors(items, sceneName) {
   directorBox.style.display = 'flex';
 
   if (destBox) {
-    destBox.style.display = obsStatus.studioMode ? 'flex' : 'none';
+    destBox.style.display = (simActive || (obsStatus.connected && obsStatus.studioMode)) ? 'flex' : 'none';
   }
-  if (obsStatus.studioMode) {
+  if (simActive || (obsStatus.connected && obsStatus.studioMode)) {
     if (!currentLayoutTarget) currentLayoutTarget = 'preview';
     setLayoutTarget(currentLayoutTarget);
   } else {
     setLayoutTarget('program');
   }
 
-  // Filtrar elementos visuales (cámaras, navegadores, imágenes, videos)
   const visualItems = (items || []).filter(item => {
     const k = (item.inputKind || '').toLowerCase();
     return !k.includes('wasapi') && !k.includes('audio');
   });
 
-  const prevValA = selectA.value;
-  const prevValB = selectB.value;
+  const activeBus = simCamerasState;
+  const prevValA = simActive && activeBus.camAId ? String(activeBus.camAId) : selectA.value;
+  const prevValB = simActive && activeBus.camBId ? String(activeBus.camBId) : selectB.value;
 
   selectA.innerHTML = '<option value="">Selecciona Cámara A...</option>';
   selectB.innerHTML = '<option value="">Selecciona Cámara B...</option>';
 
   visualItems.forEach(item => {
-    const kindTag = (item.inputKind || 'capa').replace('_source', '').replace('_input', '');
+    const kindTag = item.isSimulated ? 'LOOP' : (item.inputKind || 'capa').replace('_source', '').replace('_input', '');
     const optA = document.createElement('option');
     optA.value = item.sceneItemId;
     optA.textContent = `${item.sourceName} (${kindTag})`;
@@ -1054,7 +2041,6 @@ function populateCameraLayoutSelectors(items, sceneName) {
     selectB.appendChild(optB);
   });
 
-  // Restaurar selección previa si aún existe o autoseleccionar
   if (prevValA && visualItems.some(i => String(i.sceneItemId) === String(prevValA))) {
     selectA.value = prevValA;
   } else if (visualItems.length > 0) {
@@ -1066,10 +2052,36 @@ function populateCameraLayoutSelectors(items, sceneName) {
   } else if (visualItems.length > 1) {
     selectB.value = visualItems[1].sceneItemId;
   }
+
+  if (!selectA.dataset.simBound) {
+    selectA.dataset.simBound = '1';
+    selectA.addEventListener('change', () => {
+      if (hasActiveSimCameras()) {
+        applyCameraLayout(simCamerasState?.layout || 'split_lr');
+      }
+    });
+  }
+  if (!selectB.dataset.simBound) {
+    selectB.dataset.simBound = '1';
+    selectB.addEventListener('change', () => {
+      if (hasActiveSimCameras()) {
+        applyCameraLayout(simCamerasState?.layout || 'split_lr');
+      }
+    });
+  }
+  if (bannerSelect && !bannerSelect.dataset.simBound) {
+    bannerSelect.dataset.simBound = '1';
+    bannerSelect.addEventListener('change', () => {
+      if (hasActiveSimCameras()) {
+        applyCameraLayout(simCamerasState?.layout || 'split_lr');
+      }
+    });
+  }
 }
 
 async function applyCameraLayout(layout) {
-  if (!obsStatus.connected) {
+  const simActive = hasActiveSimCameras();
+  if (!obsStatus.connected && !simActive) {
     showToast('Conecta OBS Studio primero', 'error');
     return;
   }
@@ -1086,8 +2098,8 @@ async function applyCameraLayout(layout) {
     return;
   }
 
-  const target = obsStatus.studioMode ? currentLayoutTarget : 'program';
-  const targetScene = (target === 'preview' && obsStatus.studioMode)
+  const target = simActive ? 'program' : ((obsStatus.connected && obsStatus.studioMode) ? currentLayoutTarget : 'program');
+  const targetScene = (target === 'preview' && obsStatus.connected && obsStatus.studioMode)
     ? (obsStatus.currentPreviewScene || obsStatus.currentProgramScene)
     : obsStatus.currentProgramScene;
 
@@ -1106,6 +2118,9 @@ async function applyCameraLayout(layout) {
     });
     const data = await res.json();
     if (data.ok) {
+      if (data.state) {
+        updateSimCamerasUI(data.state);
+      }
       const layoutNames = {
         'split_lr': 'Pantalla Dividida (A | B)',
         'split_rl': 'Pantalla Dividida (B | A)',
@@ -1117,9 +2132,11 @@ async function applyCameraLayout(layout) {
         'full_b': 'Solo Cam B (Pantalla Completa)',
         'swap': 'Posiciones Invertidas (Swap A ⇄ B)'
       };
-      const destName = target === 'preview' ? 'Preview' : 'En Vivo';
+      const destName = target === 'preview' ? 'PreEscena (Preparación)' : 'Escena Principal (Al Aire)';
       showToast(`¡Layout ${layoutNames[layout] || layout} aplicado a ${destName}!`, 'success');
-      setTimeout(() => refreshStudioScreenshots(false), 200);
+      if (obsStatus.connected) {
+        setTimeout(() => refreshStudioScreenshots(false), 200);
+      }
     } else {
       showToast(`Error aplicando layout: ${data.error}`, 'error');
     }

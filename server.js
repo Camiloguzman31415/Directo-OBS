@@ -488,6 +488,12 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Señal Final Definitiva para OBS (Master Program Stream 1080p60)
+// Conmuta dinámicamente entre Escena Principal, FullScreen Clasificación y Transiciones
+app.get(['/envivo', '/en-vivo', '/program', '/master'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'overlay.html'));
+});
+
 app.get('/overlay', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'overlay.html'));
 });
@@ -1625,12 +1631,14 @@ function calculateCameraLayout({ layout, bannerMode }) {
     };
     const pipW = 540;
     const pipH = 304;
-    const pipX = 1920 - pipW - 24;
-    const pipY = (1080 - bottomMargin) - pipH - 20;
+    const tickerH = eventVisible ? (tickerSize === 'large' ? 76 : tickerSize === 'medium' ? 60 : 46) : 0;
+    const effectiveBottom = Math.max(bottomMargin, tickerH);
+    const pipX = 1920 - pipW;
+    const pipY = 1080 - effectiveBottom - pipH;
     result.camBTransform = {
       alignment: 5,
       positionX: pipX,
-      positionY: Math.max(topMargin + 20, pipY),
+      positionY: Math.max(topMargin, pipY),
       boundsType: 'OBS_BOUNDS_SCALE_INNER',
       boundsWidth: pipW,
       boundsHeight: pipH
@@ -1646,12 +1654,14 @@ function calculateCameraLayout({ layout, bannerMode }) {
     };
     const pipW = 540;
     const pipH = 304;
-    const pipX = 1920 - pipW - 24;
-    const pipY = (1080 - bottomMargin) - pipH - 20;
+    const tickerH = eventVisible ? (tickerSize === 'large' ? 76 : tickerSize === 'medium' ? 60 : 46) : 0;
+    const effectiveBottom = Math.max(bottomMargin, tickerH);
+    const pipX = 1920 - pipW;
+    const pipY = 1080 - effectiveBottom - pipH;
     result.camATransform = {
       alignment: 5,
       positionX: pipX,
-      positionY: Math.max(topMargin + 20, pipY),
+      positionY: Math.max(topMargin, pipY),
       boundsType: 'OBS_BOUNDS_SCALE_INNER',
       boundsWidth: pipW,
       boundsHeight: pipH
@@ -1679,8 +1689,682 @@ function calculateCameraLayout({ layout, bannerMode }) {
   return result;
 }
 
+// ── Simulador Integrado de Cámaras en Bucle (public/videos/camaras) ──
+const SIM_CAMERAS_DIR = path.join(__dirname, 'public', 'videos', 'camaras');
+
+function scanSimulatedCameras(existingCameras = []) {
+  try {
+    if (!fs.existsSync(SIM_CAMERAS_DIR)) return [];
+    const prevMap = new Map((existingCameras || []).map(c => [c.fileName, c]));
+    const files = fs.readdirSync(SIM_CAMERAS_DIR)
+      .filter(f => /\.(mp4|webm|mov|mkv)$/i.test(f))
+      .sort((a, b) => a.localeCompare(b, 'es'));
+
+    return files.map((fileName, idx) => {
+      const prev = prevMap.get(fileName);
+      const cleanTitle = fileName
+        .replace(/\.(mp4|webm|mov|mkv)$/i, '')
+        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const sceneItemId = 101 + idx;
+      return {
+        sceneItemId,
+        camIndex: idx + 1,
+        sourceName: `Cam ${idx + 1} · ${cleanTitle}`,
+        shortName: `Cam ${idx + 1}`,
+        title: cleanTitle,
+        fileName,
+        url: `/videos/camaras/${encodeURIComponent(fileName)}`,
+        inputKind: 'ffmpeg_source',
+        isSimulated: true,
+        sceneItemEnabled: prev ? prev.sceneItemEnabled : true
+      };
+    });
+  } catch (err) {
+    console.warn('[SimCameras] Error leyendo public/videos/camaras:', err.message);
+    return [];
+  }
+}
+
+const DEFAULT_LAYOUT_BY_COUNT = {
+  1: 'single',
+  2: 'split_lr',
+  3: 'main_left_2',
+  4: 'grid_2x2',
+  5: 'top2_bot3',
+  6: 'grid_3x2'
+};
+
+const VALID_LAYOUTS_BY_COUNT = {
+  1: ['single'],
+  2: ['split_lr', 'split_rl', 'split_tb', 'split_bt', 'focus_1_2'],
+  3: ['main_left_2', 'main_top_2', 'cols_3'],
+  4: ['grid_2x2', 'main_left_3', 'main_top_3'],
+  5: ['top2_bot3', 'main_left_4'],
+  6: ['grid_3x2', 'top1_bot5']
+};
+
+function computeMultiCameraGeometry(busConfig = {}, cameras = [], eventVisible = false, tickerSize = 'small') {
+  const camCount = Math.max(1, Math.min(6, Number(busConfig.camCount) || 2));
+  let layout = busConfig.layout || DEFAULT_LAYOUT_BY_COUNT[camCount];
+  const validForCount = VALID_LAYOUTS_BY_COUNT[camCount] || VALID_LAYOUTS_BY_COUNT[2];
+  if (!validForCount.includes(layout)) {
+    layout = DEFAULT_LAYOUT_BY_COUNT[camCount];
+  }
+
+  const bannerMode = busConfig.bannerMode || 'none';
+  const topMargin = (bannerMode === 'top' || bannerMode === 'both') ? 130 : 0;
+  const bottomMargin = (bannerMode === 'bottom' || bannerMode === 'both') ? 160 : 0;
+  const ux = 0;
+  const uy = topMargin;
+  const uw = 1920;
+  const uh = Math.max(240, 1080 - topMargin - bottomMargin);
+
+  let rects = [];
+  if (camCount === 1) {
+    rects = [{ x: ux, y: uy, w: uw, h: uh }];
+  } else if (camCount === 2) {
+    if (layout === 'split_tb' || layout === 'split_bt') {
+      const h1 = Math.floor(uh / 2);
+      const rTop = { x: ux, y: uy, w: uw, h: h1, borderBottom: true };
+      const rBot = { x: ux, y: uy + h1, w: uw, h: uh - h1 };
+      rects = (layout === 'split_bt') ? [rBot, rTop] : [rTop, rBot];
+    } else if (layout === 'focus_1_2') {
+      const w1 = Math.round(uw * 0.67);
+      rects = [
+        { x: ux, y: uy, w: w1, h: uh, borderRight: true },
+        { x: ux + w1, y: uy, w: uw - w1, h: uh }
+      ];
+    } else {
+      const w1 = Math.floor(uw / 2);
+      const rLeft = { x: ux, y: uy, w: w1, h: uh, borderRight: true };
+      const rRight = { x: ux + w1, y: uy, w: uw - w1, h: uh };
+      rects = (layout === 'split_rl') ? [rRight, rLeft] : [rLeft, rRight];
+    }
+  } else if (camCount === 3) {
+    if (layout === 'main_top_2') {
+      const hTop = Math.round(uh * 0.58);
+      const hBot = uh - hTop;
+      const wHalf = Math.floor(uw / 2);
+      rects = [
+        { x: ux, y: uy, w: uw, h: hTop, borderBottom: true },
+        { x: ux, y: uy + hTop, w: wHalf, h: hBot, borderRight: true },
+        { x: ux + wHalf, y: uy + hTop, w: uw - wHalf, h: hBot }
+      ];
+    } else if (layout === 'cols_3') {
+      const wCol = Math.floor(uw / 3);
+      rects = [
+        { x: ux, y: uy, w: wCol, h: uh, borderRight: true },
+        { x: ux + wCol, y: uy, w: wCol, h: uh, borderRight: true },
+        { x: ux + wCol * 2, y: uy, w: uw - wCol * 2, h: uh }
+      ];
+    } else {
+      const wLeft = Math.round(uw * 0.62);
+      const wRight = uw - wLeft;
+      const hHalf = Math.floor(uh / 2);
+      rects = [
+        { x: ux, y: uy, w: wLeft, h: uh, borderRight: true },
+        { x: ux + wLeft, y: uy, w: wRight, h: hHalf, borderBottom: true },
+        { x: ux + wLeft, y: uy + hHalf, w: wRight, h: uh - hHalf }
+      ];
+    }
+  } else if (camCount === 4) {
+    if (layout === 'main_left_3') {
+      const wLeft = Math.round(uw * 0.66);
+      const wRight = uw - wLeft;
+      const h3 = Math.floor(uh / 3);
+      rects = [
+        { x: ux, y: uy, w: wLeft, h: uh, borderRight: true },
+        { x: ux + wLeft, y: uy, w: wRight, h: h3, borderBottom: true },
+        { x: ux + wLeft, y: uy + h3, w: wRight, h: h3, borderBottom: true },
+        { x: ux + wLeft, y: uy + h3 * 2, w: wRight, h: uh - h3 * 2 }
+      ];
+    } else if (layout === 'main_top_3') {
+      const hTop = Math.round(uh * 0.62);
+      const hBot = uh - hTop;
+      const w3 = Math.floor(uw / 3);
+      rects = [
+        { x: ux, y: uy, w: uw, h: hTop, borderBottom: true },
+        { x: ux, y: uy + hTop, w: w3, h: hBot, borderRight: true },
+        { x: ux + w3, y: uy + hTop, w: w3, h: hBot, borderRight: true },
+        { x: ux + w3 * 2, y: uy + hTop, w: uw - w3 * 2, h: hBot }
+      ];
+    } else {
+      const wHalf = Math.floor(uw / 2);
+      const hHalf = Math.floor(uh / 2);
+      rects = [
+        { x: ux, y: uy, w: wHalf, h: hHalf, borderRight: true, borderBottom: true },
+        { x: ux + wHalf, y: uy, w: uw - wHalf, h: hHalf, borderBottom: true },
+        { x: ux, y: uy + hHalf, w: wHalf, h: uh - hHalf, borderRight: true },
+        { x: ux + wHalf, y: uy + hHalf, w: uw - wHalf, h: uh - hHalf }
+      ];
+    }
+  } else if (camCount === 5) {
+    if (layout === 'main_left_4') {
+      const wLeft = Math.round(uw * 0.50);
+      const wRight = uw - wLeft;
+      const wR2 = Math.floor(wRight / 2);
+      const hHalf = Math.floor(uh / 2);
+      rects = [
+        { x: ux, y: uy, w: wLeft, h: uh, borderRight: true },
+        { x: ux + wLeft, y: uy, w: wR2, h: hHalf, borderRight: true, borderBottom: true },
+        { x: ux + wLeft + wR2, y: uy, w: wRight - wR2, h: hHalf, borderBottom: true },
+        { x: ux + wLeft, y: uy + hHalf, w: wR2, h: uh - hHalf, borderRight: true },
+        { x: ux + wLeft + wR2, y: uy + hHalf, w: wRight - wR2, h: uh - hHalf }
+      ];
+    } else {
+      const hHalf = Math.floor(uh / 2);
+      const w2 = Math.floor(uw / 2);
+      const w3 = Math.floor(uw / 3);
+      rects = [
+        { x: ux, y: uy, w: w2, h: hHalf, borderRight: true, borderBottom: true },
+        { x: ux + w2, y: uy, w: uw - w2, h: hHalf, borderBottom: true },
+        { x: ux, y: uy + hHalf, w: w3, h: uh - hHalf, borderRight: true },
+        { x: ux + w3, y: uy + hHalf, w: w3, h: uh - hHalf, borderRight: true },
+        { x: ux + w3 * 2, y: uy + hHalf, w: uw - w3 * 2, h: uh - hHalf }
+      ];
+    }
+  } else {
+    if (layout === 'top1_bot5') {
+      const hTop = Math.round(uh * 0.64);
+      const hBot = uh - hTop;
+      const w5 = Math.floor(uw / 5);
+      rects = [
+        { x: ux, y: uy, w: uw, h: hTop, borderBottom: true },
+        { x: ux, y: uy + hTop, w: w5, h: hBot, borderRight: true },
+        { x: ux + w5, y: uy + hTop, w: w5, h: hBot, borderRight: true },
+        { x: ux + w5 * 2, y: uy + hTop, w: w5, h: hBot, borderRight: true },
+        { x: ux + w5 * 3, y: uy + hTop, w: w5, h: hBot, borderRight: true },
+        { x: ux + w5 * 4, y: uy + hTop, w: uw - w5 * 4, h: hBot }
+      ];
+    } else {
+      const w3 = Math.floor(uw / 3);
+      const hHalf = Math.floor(uh / 2);
+      rects = [
+        { x: ux, y: uy, w: w3, h: hHalf, borderRight: true, borderBottom: true },
+        { x: ux + w3, y: uy, w: w3, h: hHalf, borderRight: true, borderBottom: true },
+        { x: ux + w3 * 2, y: uy, w: uw - w3 * 2, h: hHalf, borderBottom: true },
+        { x: ux, y: uy + hHalf, w: w3, h: uh - hHalf, borderRight: true },
+        { x: ux + w3, y: uy + hHalf, w: w3, h: uh - hHalf, borderRight: true },
+        { x: ux + w3 * 2, y: uy + hHalf, w: uw - w3 * 2, h: uh - hHalf }
+      ];
+    }
+  }
+
+  const rawSlots = Array.isArray(busConfig.slotIds) ? busConfig.slotIds : [];
+  const slots = [];
+  for (let i = 0; i < 6; i++) {
+    const camId = Number(rawSlots[i]) || (cameras[i % Math.max(1, cameras.length)]?.sceneItemId) || (101 + i);
+    const cam = cameras.find(c => Number(c.sceneItemId) === camId) || cameras[0] || null;
+    const r = rects[i] || { x: 0, y: 0, w: 0, h: 0 };
+    slots.push({
+      slotIndex: i,
+      camId,
+      cam,
+      x: r.x,
+      y: r.y,
+      w: r.w,
+      h: r.h,
+      borderRight: !!r.borderRight,
+      borderBottom: !!r.borderBottom,
+      visible: i < camCount && !!cam
+    });
+  }
+
+  const pipEnabled = !!busConfig.pipEnabled;
+  const pipCamId = Number(busConfig.pipCamId) || (cameras[3]?.sceneItemId) || (cameras[0]?.sceneItemId) || 104;
+  const pipCam = cameras.find(c => Number(c.sceneItemId) === pipCamId) || cameras[0] || null;
+  const pipCorner = ['br', 'bl', 'tr', 'tl'].includes(busConfig.pipCorner) ? busConfig.pipCorner : 'br';
+  const pipW = 496;
+  const pipH = 279;
+  const tickerH = eventVisible ? (tickerSize === 'large' ? 76 : tickerSize === 'medium' ? 60 : 46) : 0;
+  const effectiveBottom = Math.max(bottomMargin, tickerH);
+
+  let pipX = 1920 - pipW;
+  let pipY = 1080 - effectiveBottom - pipH;
+  if (pipCorner === 'bl') {
+    pipX = 0;
+    pipY = 1080 - effectiveBottom - pipH;
+  } else if (pipCorner === 'tr') {
+    pipX = 1920 - pipW;
+    pipY = topMargin;
+  } else if (pipCorner === 'tl') {
+    pipX = 0;
+    pipY = topMargin;
+  }
+
+  const pip = {
+    enabled: pipEnabled,
+    camId: pipCamId,
+    cam: pipCam,
+    corner: pipCorner,
+    x: pipX,
+    y: Math.max(0, pipY),
+    w: pipW,
+    h: pipH,
+    visible: pipEnabled && !!pipCam
+  };
+
+  return {
+    camCount,
+    layout,
+    bannerMode,
+    slotIds: slots.map(s => s.camId),
+    slots,
+    pipEnabled,
+    pipCamId,
+    pipCorner,
+    pip
+  };
+}
+
+let simCamerasState = {
+  enabled: true,
+  activeScene: 'principal',      // 'principal' | 'fullscreen' | 'transicion'
+  transitionSubScene: 'starting', // 'starting' | 'lunch' | 'reconnecting' | 'ending'
+  camCount: 2,
+  layout: 'split_lr',
+  bannerMode: 'none',
+  slotIds: [101, 102, 103, 104, 105, 106],
+  pipEnabled: true,
+  pipCamId: 104,
+  pipCorner: 'br',
+  camAId: 101,
+  camBId: 102,
+  preview: {
+    camCount: 1,
+    layout: 'single',
+    bannerMode: 'none',
+    slotIds: [103, 101, 102, 105, 106, 104],
+    pipEnabled: true,
+    pipCamId: 104,
+    pipCorner: 'br',
+    camAId: 103,
+    camBId: 101
+  },
+  muted: true,
+  cameras: []
+};
+
+function normalizeBusState(bus, cams, defaultOffset = 0) {
+  if (!bus) return;
+  bus.camCount = Math.max(1, Math.min(6, Number(bus.camCount) || 2));
+  const validLayouts = VALID_LAYOUTS_BY_COUNT[bus.camCount] || VALID_LAYOUTS_BY_COUNT[2];
+  if (!validLayouts.includes(bus.layout)) {
+    bus.layout = DEFAULT_LAYOUT_BY_COUNT[bus.camCount];
+  }
+  if (!Array.isArray(bus.slotIds) || bus.slotIds.length < 6) {
+    const base = Array.isArray(bus.slotIds) ? bus.slotIds.slice() : [bus.camAId, bus.camBId];
+    bus.slotIds = [];
+    for (let i = 0; i < 6; i++) {
+      const candidate = Number(base[i]);
+      if (cams.some(c => c.sceneItemId === candidate)) {
+        bus.slotIds.push(candidate);
+      } else if (cams.length > 0) {
+        bus.slotIds.push(cams[(i + defaultOffset) % cams.length].sceneItemId);
+      } else {
+        bus.slotIds.push(101 + i);
+      }
+    }
+  } else if (cams.length > 0) {
+    bus.slotIds = bus.slotIds.slice(0, 6).map((id, i) => {
+      const numId = Number(id);
+      return cams.some(c => c.sceneItemId === numId)
+        ? numId
+        : cams[(i + defaultOffset) % cams.length].sceneItemId;
+    });
+  }
+  bus.camAId = bus.slotIds[0];
+  bus.camBId = bus.slotIds[1] || bus.slotIds[0];
+  if (bus.pipEnabled === undefined) bus.pipEnabled = false;
+  if (cams.length > 0 && !cams.some(c => c.sceneItemId === Number(bus.pipCamId))) {
+    const willyCam = cams.find(c => /willy/i.test(c.fileName || c.sourceName));
+    bus.pipCamId = willyCam ? willyCam.sceneItemId : (cams[3] || cams[0]).sceneItemId;
+  }
+  if (!['br', 'bl', 'tr', 'tl'].includes(bus.pipCorner)) {
+    bus.pipCorner = 'br';
+  }
+}
+
+function syncSimCamerasState() {
+  const cams = scanSimulatedCameras(simCamerasState.cameras);
+  simCamerasState.cameras = cams;
+  normalizeBusState(simCamerasState, cams, 0);
+  if (!simCamerasState.preview) {
+    simCamerasState.preview = {
+      camCount: 1,
+      layout: 'single',
+      bannerMode: 'none',
+      slotIds: [103, 101, 102, 105, 106, 104],
+      pipEnabled: true,
+      pipCamId: 104,
+      pipCorner: 'br'
+    };
+  }
+  normalizeBusState(simCamerasState.preview, cams, 2);
+
+  if (cams.length > 0) {
+    const activeSet = new Set();
+    for (let i = 0; i < simCamerasState.camCount; i++) {
+      activeSet.add(Number(simCamerasState.slotIds[i]));
+    }
+    if (simCamerasState.pipEnabled && simCamerasState.pipCamId) {
+      activeSet.add(Number(simCamerasState.pipCamId));
+    }
+    cams.forEach(c => {
+      c.sceneItemEnabled = simCamerasState.enabled && activeSet.has(c.sceneItemId);
+    });
+  }
+  return getSimCamerasPayload();
+}
+
+function getSimCamerasPayload(extra = {}) {
+  const progGeo = computeMultiCameraGeometry(
+    simCamerasState,
+    simCamerasState.cameras,
+    !!eventVisible,
+    tickerSize || 'small'
+  );
+  const prevGeo = computeMultiCameraGeometry(
+    simCamerasState.preview || {},
+    simCamerasState.cameras,
+    !!eventVisible,
+    tickerSize || 'small'
+  );
+  const transforms = calculateCameraLayout({
+    layout: simCamerasState.layout,
+    bannerMode: simCamerasState.bannerMode || 'none'
+  });
+  const camA = progGeo.slots[0]?.cam || null;
+  const camB = progGeo.slots[1]?.cam || camA;
+  const previewCamA = prevGeo.slots[0]?.cam || camA;
+  const previewCamB = prevGeo.slots[1]?.cam || camB;
+  return {
+    enabled: !!simCamerasState.enabled && simCamerasState.cameras.length > 0,
+    activeScene: simCamerasState.activeScene || 'principal',
+    transitionSubScene: simCamerasState.transitionSubScene || (fsTheme && fsTheme.scene !== 'ranking' ? fsTheme.scene : 'starting'),
+    camCount: progGeo.camCount,
+    layout: progGeo.layout,
+    bannerMode: progGeo.bannerMode,
+    slotIds: progGeo.slotIds,
+    slots: progGeo.slots,
+    pipEnabled: progGeo.pipEnabled,
+    pipCamId: progGeo.pipCamId,
+    pipCorner: progGeo.pipCorner,
+    pip: progGeo.pip,
+    camAId: progGeo.slotIds[0],
+    camBId: progGeo.slotIds[1],
+    camA,
+    camB,
+    preview: {
+      camCount: prevGeo.camCount,
+      layout: prevGeo.layout,
+      bannerMode: prevGeo.bannerMode,
+      slotIds: prevGeo.slotIds,
+      slots: prevGeo.slots,
+      pipEnabled: prevGeo.pipEnabled,
+      pipCamId: prevGeo.pipCamId,
+      pipCorner: prevGeo.pipCorner,
+      pip: prevGeo.pip,
+      camAId: prevGeo.slotIds[0],
+      camBId: prevGeo.slotIds[1],
+      camA: previewCamA,
+      camB: previewCamB
+    },
+    muted: simCamerasState.muted !== false,
+    cameras: simCamerasState.cameras,
+    transforms,
+    ...extra
+  };
+}
+
+function broadcastSimCamerasState(extra = {}) {
+  const payload = getSimCamerasPayload(extra);
+  broadcastToOverlays({ type: 'sim_cameras_state', state: payload });
+  broadcastToPanels({ type: 'sim_cameras_state', state: payload });
+  return payload;
+}
+
+syncSimCamerasState();
+
+app.get('/api/sim-cameras', (req, res) => {
+  const state = syncSimCamerasState();
+  res.json({ ok: true, state });
+});
+
+function applyBusUpdates(bus, body = {}) {
+  const {
+    camCount,
+    layout,
+    bannerMode,
+    slotIds,
+    slotIndex,
+    slotCamId,
+    camAId,
+    camBId,
+    pipEnabled,
+    pipCamId,
+    pipCorner
+  } = body;
+
+  if (camCount !== undefined) {
+    const newCount = Math.max(1, Math.min(6, Number(camCount) || 2));
+    if (newCount !== bus.camCount) {
+      bus.camCount = newCount;
+      const valid = VALID_LAYOUTS_BY_COUNT[newCount] || [];
+      if (!valid.includes(bus.layout)) {
+        bus.layout = DEFAULT_LAYOUT_BY_COUNT[newCount];
+      }
+    }
+  }
+  if (bannerMode !== undefined) bus.bannerMode = bannerMode;
+  if (Array.isArray(slotIds)) {
+    for (let i = 0; i < Math.min(6, slotIds.length); i++) {
+      if (slotIds[i]) bus.slotIds[i] = Number(slotIds[i]);
+    }
+  }
+  if (slotIndex !== undefined && slotCamId !== undefined) {
+    const idx = Math.max(0, Math.min(5, Number(slotIndex) || 0));
+    bus.slotIds[idx] = Number(slotCamId);
+  }
+  if (camAId !== undefined && camAId !== '') bus.slotIds[0] = Number(camAId);
+  if (camBId !== undefined && camBId !== '') bus.slotIds[1] = Number(camBId);
+
+  if (pipEnabled !== undefined) bus.pipEnabled = !!pipEnabled;
+  if (pipCamId !== undefined && pipCamId !== '') bus.pipCamId = Number(pipCamId);
+  if (pipCorner !== undefined && ['br', 'bl', 'tr', 'tl'].includes(pipCorner)) bus.pipCorner = pipCorner;
+
+  if (layout === 'swap' || layout === 'rotate') {
+    const count = Math.max(2, bus.camCount || 2);
+    const activeSlice = bus.slotIds.slice(0, count);
+    activeSlice.push(activeSlice.shift());
+    for (let i = 0; i < count; i++) {
+      bus.slotIds[i] = activeSlice[i];
+    }
+  } else if (layout) {
+    // Compatibilidad con presets clásicos
+    if (layout === 'full_a') {
+      bus.camCount = 1;
+      bus.layout = 'single';
+    } else if (layout === 'full_b') {
+      bus.camCount = 1;
+      bus.layout = 'single';
+      bus.slotIds[0] = bus.slotIds[1];
+    } else if (layout === 'pip_a_main') {
+      bus.pipEnabled = !bus.pipEnabled;
+    } else {
+      bus.layout = layout;
+    }
+  }
+  bus.camAId = bus.slotIds[0];
+  bus.camBId = bus.slotIds[1] || bus.slotIds[0];
+}
+
+app.post('/api/sim-cameras', async (req, res) => {
+  syncSimCamerasState();
+  const {
+    enabled,
+    target,
+    muted,
+    action,
+    inputName,
+    activeScene,
+    transitionSubScene
+  } = req.body || {};
+
+  if (enabled !== undefined) simCamerasState.enabled = !!enabled;
+  if (muted !== undefined) simCamerasState.muted = !!muted;
+
+  // Conmutar PreEscena ⇄ Escena Principal
+  if (action === 'commute') {
+    const prevCopy = JSON.parse(JSON.stringify(simCamerasState.preview));
+    simCamerasState.preview = {
+      camCount: simCamerasState.camCount,
+      layout: simCamerasState.layout,
+      bannerMode: simCamerasState.bannerMode || 'none',
+      slotIds: (simCamerasState.slotIds || []).slice(),
+      pipEnabled: !!simCamerasState.pipEnabled,
+      pipCamId: Number(simCamerasState.pipCamId),
+      pipCorner: simCamerasState.pipCorner || 'br',
+      camAId: simCamerasState.camAId,
+      camBId: simCamerasState.camBId
+    };
+    simCamerasState.camCount = prevCopy.camCount || 2;
+    simCamerasState.layout = prevCopy.layout || 'split_lr';
+    simCamerasState.bannerMode = prevCopy.bannerMode || 'none';
+    simCamerasState.slotIds = (prevCopy.slotIds || []).slice();
+    simCamerasState.pipEnabled = !!prevCopy.pipEnabled;
+    simCamerasState.pipCamId = Number(prevCopy.pipCamId);
+    simCamerasState.pipCorner = prevCopy.pipCorner || 'br';
+    simCamerasState.camAId = Number(prevCopy.camAId);
+    simCamerasState.camBId = Number(prevCopy.camBId);
+    simCamerasState.activeScene = 'principal';
+    simCamerasState.enabled = true;
+    if (liveRankingVisible && liveRankingViewMode === 'fullscreen') {
+      liveRankingVisible = false;
+      broadcastToOverlays({ type: 'live_ranking_hide' });
+      broadcastToPanels({
+        type: 'sync_live_ranking',
+        visible: false,
+        data: liveRankingData,
+        roundId: liveRankingRoundId,
+        compId: liveRankingCompId,
+        top: liveRankingTop,
+        cutoff: liveRankingCutoff,
+        pollInterval: liveRankingPollInterval,
+        dynamicPaging: liveRankingDynamicPaging,
+        autoBalance: liveRankingAutoBalance,
+        pageDuration: liveRankingPageDuration,
+        viewMode: liveRankingViewMode,
+        fsTheme
+      });
+    }
+    syncSimCamerasState();
+    const state = broadcastSimCamerasState({ commuted: true });
+    return res.json({ ok: true, commuted: true, state });
+  }
+
+  if (transitionSubScene && ['starting', 'lunch', 'reconnecting', 'ending'].includes(transitionSubScene)) {
+    simCamerasState.transitionSubScene = transitionSubScene;
+    fsTheme.scene = transitionSubScene;
+    broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
+  }
+
+  // Cambiar entre las 4 escenas principales: 'principal' | 'fullscreen' | 'transicion'
+  if (activeScene) {
+    simCamerasState.activeScene = activeScene;
+    if (activeScene === 'transicion') {
+      fsTheme.scene = simCamerasState.transitionSubScene || 'starting';
+      broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
+    }
+    if (activeScene === 'principal') {
+      simCamerasState.enabled = true;
+      if (liveRankingVisible && liveRankingViewMode === 'fullscreen') {
+        liveRankingVisible = false;
+        broadcastToOverlays({ type: 'live_ranking_hide' });
+      }
+    } else if (activeScene === 'fullscreen') {
+      fsTheme.scene = 'ranking';
+      liveRankingViewMode = 'fullscreen';
+      liveRankingVisible = true;
+      if (!liveRankingData && tournamentData && Array.isArray(tournamentData.competitors) && tournamentData.competitors.length > 0) {
+        liveRankingData = {
+          eventId: '333',
+          eventName: '3x3x3 Cube',
+          roundId: '147188',
+          roundName: 'Ronda 1',
+          roundNumber: 1,
+          totalRounds: 3,
+          competitionName: tournamentData.name || 'Colombian Nationals Paipa 2026',
+          ranking: tournamentData.competitors.slice(0, 16).map((c, idx) => ({
+            ranking: idx + 1,
+            name: c.name,
+            wcaId: c.wcaId || '',
+            countryIso2: (c.countryIso2 || 'co').toLowerCase(),
+            displayTime: c.prAverageFormatted || c.prSingleFormatted || '15.20',
+            averageFormatted: c.prAverageFormatted || '15.20',
+            bestFormatted: c.prSingleFormatted || '12.00',
+            solvesCompleted: 5,
+            totalSolves: 5,
+            attemptsDetail: [
+              { displayText: c.prSingleFormatted || '12.00', formatted: c.prSingleFormatted || '12.00', isTrimmed: true },
+              { displayText: '14.50', formatted: '14.50', isTrimmed: false },
+              { displayText: '15.10', formatted: '15.10', isTrimmed: false },
+              { displayText: '15.80', formatted: '15.80', isTrimmed: false },
+              { displayText: '19.20', formatted: '19.20', isTrimmed: true }
+            ]
+          }))
+        };
+      }
+      broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
+      if (liveRankingData) {
+        broadcastToOverlays({
+          type: 'live_ranking_show',
+          data: liveRankingData,
+          dynamicPaging: liveRankingDynamicPaging,
+          autoBalance: liveRankingAutoBalance,
+          pageSize: liveRankingPageSize || 10,
+          pageDuration: liveRankingPageDuration,
+          viewMode: 'fullscreen'
+        });
+      }
+    }
+
+    // MODO MASTER DIGITAL (/envivo): OBS Studio permanece 100% fijo e inalterado en su escena única.
+    // Toda la conmutación entre Escena Principal, PreEscena, FullScreen y Transiciones se realiza
+    // limpiamente dentro de la señal web /envivo sin alterar la escena activa en OBS.
+    if (activeScene === 'transicion') {
+      const sub = simCamerasState.transitionSubScene || 'starting';
+      fsTheme.scene = sub;
+      broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
+    }
+    broadcastToPanels({
+      type: 'sync_live_ranking',
+      visible: liveRankingVisible,
+      data: liveRankingData,
+      roundId: liveRankingRoundId,
+      compId: liveRankingCompId,
+      top: liveRankingTop,
+      cutoff: liveRankingCutoff,
+      pollInterval: liveRankingPollInterval,
+      dynamicPaging: liveRankingDynamicPaging,
+      autoBalance: liveRankingAutoBalance,
+      pageDuration: liveRankingPageDuration,
+      viewMode: liveRankingViewMode,
+      fsTheme
+    });
+  }
+
+  const bus = (target === 'preview') ? simCamerasState.preview : simCamerasState;
+  applyBusUpdates(bus, req.body || {});
+
+  syncSimCamerasState();
+  const state = broadcastSimCamerasState((action && action !== 'commute') ? { mediaAction: { action, inputName, ts: Date.now() } } : {});
+  res.json({ ok: true, state });
+});
+
 app.post('/api/obs/apply-layout', async (req, res) => {
-  if (!obsConnected) return res.status(400).json({ error: 'OBS no está conectado' });
   const {
     sceneName,
     target = 'active',
@@ -1691,6 +2375,25 @@ app.post('/api/obs/apply-layout', async (req, res) => {
     bannerSourceId,
     bannerPosition
   } = req.body;
+
+  // Si OBS no está conectado o se están operando cámaras simuladas (IDs >= 101), aplicar sobre el simulador en bucle (PreEscena o Principal)
+  if (!obsConnected || Number(camAId) >= 101 || Number(camBId) >= 101 || req.body?.camCount !== undefined || req.body?.pipEnabled !== undefined || req.body?.slotIds !== undefined) {
+    syncSimCamerasState();
+    simCamerasState.enabled = true;
+    const isPreviewTarget = (target === 'preview');
+    const bus = isPreviewTarget ? simCamerasState.preview : simCamerasState;
+    applyBusUpdates(bus, req.body || {});
+    syncSimCamerasState();
+    const state = broadcastSimCamerasState();
+    return res.json({
+      ok: true,
+      simulated: true,
+      target: isPreviewTarget ? 'preview' : 'program',
+      layout: bus.layout,
+      bannerMode: bus.bannerMode,
+      state
+    });
+  }
 
   let targetScene = sceneName;
   if (!targetScene) {
@@ -2378,10 +3081,17 @@ function handleSocketConnection(ws, req) {
         data: versusData
       }));
     }
+
+    // Enviar estado actual de cámaras simuladas (public/videos/camaras)
+    socket.send(JSON.stringify({
+      type: 'sim_cameras_state',
+      state: syncSimCamerasState()
+    }));
   }
 
   function initPanel(socket) {
     console.log(`[WS] Panel de operador conectado (Total: ${panelClients.size})`);
+    const simState = syncSimCamerasState();
     socket.send(JSON.stringify({
       type: 'init_state',
       tournamentData,
@@ -2426,7 +3136,8 @@ function handleSocketConnection(ws, req) {
       versusData,
       fsTheme,
       overlayCount: overlayClients.size,
-      obsStatus
+      obsStatus,
+      simCamerasState: simState
     }));
   }
 
@@ -2565,6 +3276,7 @@ function handleSocketConnection(ws, req) {
           event: currentEvent
         });
         broadcastToPanels({ type: 'sync_state', currentEvent, eventVisible, tickerSize });
+        broadcastSimCamerasState();
         break;
 
       case 'set_ticker_size':
@@ -2580,6 +3292,7 @@ function handleSocketConnection(ws, req) {
             type: 'ticker_size_updated',
             size: tickerSize
           });
+          broadcastSimCamerasState();
         }
         break;
 
@@ -2595,6 +3308,7 @@ function handleSocketConnection(ws, req) {
         eventVisible = false;
         broadcastToOverlays({ type: 'hide_event' });
         broadcastToPanels({ type: 'sync_state', eventVisible: false });
+        broadcastSimCamerasState();
         break;
 
       case 'hide_all':
@@ -2611,6 +3325,7 @@ function handleSocketConnection(ws, req) {
         broadcastToOverlays({ type: 'hide_competitor' });
         broadcastToOverlays({ type: 'hide_banner' });
         broadcastToOverlays({ type: 'hide_event' });
+        broadcastSimCamerasState();
         broadcastToOverlays({ type: 'live_ranking_hide' });
         broadcastToOverlays({ type: 'hide_competitor_showcase' });
         broadcastToOverlays({ type: 'hide_big_logo' });
@@ -3074,7 +3789,33 @@ function handleSocketConnection(ws, req) {
         break;
 
       case 'obs_toggle_item':
-        if (obsConnected && msg.sceneItemId !== undefined) {
+        if (Number(msg.sceneItemId) >= 101 || !obsConnected) {
+          syncSimCamerasState();
+          const itemId = Number(msg.sceneItemId);
+          if (msg.enabled) {
+            simCamerasState.enabled = true;
+            if (itemId !== Number(simCamerasState.camAId) && itemId !== Number(simCamerasState.camBId)) {
+              simCamerasState.camAId = itemId;
+            }
+            if (simCamerasState.layout === 'full_b' && itemId === Number(simCamerasState.camAId)) {
+              simCamerasState.layout = 'full_a';
+            } else if (simCamerasState.layout === 'full_a' && itemId === Number(simCamerasState.camBId)) {
+              simCamerasState.layout = 'full_b';
+            }
+          } else {
+            if (simCamerasState.layout === 'full_a' && itemId === Number(simCamerasState.camAId)) {
+              simCamerasState.enabled = false;
+            } else if (simCamerasState.layout === 'full_b' && itemId === Number(simCamerasState.camBId)) {
+              simCamerasState.enabled = false;
+            } else if (itemId === Number(simCamerasState.camAId)) {
+              simCamerasState.layout = 'full_b';
+            } else if (itemId === Number(simCamerasState.camBId)) {
+              simCamerasState.layout = 'full_a';
+            }
+          }
+          syncSimCamerasState();
+          broadcastSimCamerasState();
+        } else if (obsConnected && msg.sceneItemId !== undefined) {
           obs.call('SetSceneItemEnabled', {
             sceneName: msg.sceneName || obsStatus.currentProgramScene,
             sceneItemId: Number(msg.sceneItemId),
@@ -3084,7 +3825,29 @@ function handleSocketConnection(ws, req) {
         break;
 
       case 'obs_set_item_transform_preset':
-        if (obsConnected && msg.sceneItemId !== undefined && msg.preset) {
+        if (Number(msg.sceneItemId) >= 101 || !obsConnected) {
+          syncSimCamerasState();
+          const itemId = Number(msg.sceneItemId);
+          simCamerasState.enabled = true;
+          if (msg.preset === 'fullscreen') {
+            simCamerasState.camAId = itemId;
+            simCamerasState.layout = 'full_a';
+          } else if (msg.preset === 'split_left') {
+            simCamerasState.camAId = itemId;
+            simCamerasState.layout = 'split_lr';
+          } else if (msg.preset === 'split_right') {
+            simCamerasState.camBId = itemId;
+            simCamerasState.layout = 'split_lr';
+          } else if (msg.preset === 'pip_br' || msg.preset === 'pip_tr') {
+            simCamerasState.camBId = itemId;
+            simCamerasState.layout = 'pip_a_main';
+          } else {
+            simCamerasState.camAId = itemId;
+            simCamerasState.layout = 'full_a';
+          }
+          syncSimCamerasState();
+          broadcastSimCamerasState();
+        } else if (obsConnected && msg.sceneItemId !== undefined && msg.preset) {
           const transform = getTransformForPreset(msg.preset);
           if (transform) {
             obs.call('SetSceneItemTransform', {
@@ -3097,7 +3860,15 @@ function handleSocketConnection(ws, req) {
         break;
 
       case 'obs_media_action':
-        if (obsConnected && msg.inputName) {
+        if (!obsConnected || (msg.inputName && msg.inputName.startsWith('Cam '))) {
+          broadcastSimCamerasState({
+            mediaAction: {
+              inputName: msg.inputName,
+              action: msg.action || 'restart',
+              ts: Date.now()
+            }
+          });
+        } else if (obsConnected && msg.inputName) {
           let mediaAction = 'OBS_WEBMEDIA_INPUT_ACTION_RESTART';
           if (msg.action === 'pause') mediaAction = 'OBS_WEBMEDIA_INPUT_ACTION_PAUSE';
           else if (msg.action === 'play') mediaAction = 'OBS_WEBMEDIA_INPUT_ACTION_PLAY';
@@ -3108,6 +3879,24 @@ function handleSocketConnection(ws, req) {
             mediaAction
           }).catch(err => console.error('[OBS Media Action Error]', err.message));
         }
+        break;
+
+      case 'sim_cameras_update':
+        syncSimCamerasState();
+        if (msg.enabled !== undefined) simCamerasState.enabled = !!msg.enabled;
+        if (msg.layout === 'swap') {
+          const tmp = simCamerasState.camAId;
+          simCamerasState.camAId = simCamerasState.camBId;
+          simCamerasState.camBId = tmp;
+        } else if (msg.layout) {
+          simCamerasState.layout = msg.layout;
+        }
+        if (msg.bannerMode !== undefined) simCamerasState.bannerMode = msg.bannerMode;
+        if (msg.camAId !== undefined) simCamerasState.camAId = Number(msg.camAId);
+        if (msg.camBId !== undefined) simCamerasState.camBId = Number(msg.camBId);
+        if (msg.muted !== undefined) simCamerasState.muted = !!msg.muted;
+        syncSimCamerasState();
+        broadcastSimCamerasState();
         break;
     }
   }
@@ -3156,6 +3945,7 @@ server.listen(PORT, async () => {
   console.log('   DirectoOBS v2.0 - Node.js Broadcast Engine');
   console.log('====================================================');
   console.log(`▸ Panel de Control:   http://localhost:${PORT}`);
+  console.log(`▸ Señal En Vivo (OBS Master): http://localhost:${PORT}/envivo`);
   console.log(`▸ Overlay para OBS:   http://localhost:${PORT}/overlay`);
   console.log(`▸ WebSocket (HTTP):   ws://localhost:${PORT}/ws`);
   console.log(`▸ WebSocket (Legacy): ws://localhost:${OBS_WS_PORT}`);

@@ -1073,8 +1073,116 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-block-size: 380px;
+    max-block-size: 330px;
     overflow-y: auto;
+  }
+
+  #admin-root .source-thumb-video {
+    inline-size: 84px;
+    block-size: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #04070d;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    flex-shrink: 0;
+  }
+
+  #admin-root section[aria-labelledby="title-obs-sources"] {
+    display: none !important;
+  }
+
+  #admin-root #view-scenes .admin-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 1024px) {
+    #admin-root #view-scenes .admin-cards-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  #admin-root section[aria-labelledby="title-obs-scenes"],
+  #admin-root #sim-multiview-card {
+    grid-column: 1 / -1;
+  }
+
+  #admin-root .scenes-4-multiview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  @media (max-width: 1360px) {
+    #admin-root .scenes-4-multiview-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  #admin-root .sim-multiview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  @media (max-width: 1100px) {
+    #admin-root .sim-multiview-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  #admin-root .sim-multiview-tile {
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #070b14;
+    border: 1.5px solid rgba(255, 255, 255, 0.14);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  #admin-root .sim-multiview-tile.is-cam-a {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35), 0 8px 24px rgba(2, 132, 199, 0.18);
+  }
+
+  #admin-root .sim-multiview-tile.is-cam-b {
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.35), 0 8px 24px rgba(217, 119, 6, 0.16);
+  }
+
+  #admin-root .sim-multiview-tile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(15, 23, 42, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  #admin-root .sim-multiview-viewport {
+    position: relative;
+    inline-size: 100%;
+    aspect-ratio: 16 / 9;
+    background: #020409;
+    overflow: hidden;
+  }
+
+  #admin-root .sim-multiview-viewport video {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  #admin-root .sim-multiview-tile-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(11, 17, 30, 0.96);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   #admin-root .source-item-card {

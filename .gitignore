@@ -21,6 +21,8 @@ prueba_with_overlay.jpg
 live_state.json
 scratch/
 *.mov
+public/videos/camaras/*
+!public/videos/camaras/.gitkeep
 public/uploads/avatars/*
 !public/uploads/avatars/.gitkeep
 

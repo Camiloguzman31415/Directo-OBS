@@ -340,7 +340,8 @@
 
     const obsPill = document.getElementById('obs-status-pill');
     if (obsPill && typeof obsStatus !== 'undefined') {
-      obsPill.className = `admin-status-pill ${obsStatus.connected ? 'admin-status-pill--connected' : 'admin-status-pill--warning'}`;
+      const simOk = typeof hasActiveSimCameras === 'function' && hasActiveSimCameras() && simCamerasState?.enabled;
+      obsPill.className = `admin-status-pill ${(obsStatus.connected || simOk) ? 'admin-status-pill--connected' : 'admin-status-pill--warning'}`;
     }
 
     // Sincronizar chips .is-active en todos los SliderField cuando llegan cambios por WebSocket

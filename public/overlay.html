@@ -1348,19 +1348,57 @@
     display: block !important;
   }
 
-  /* Si la página NO es la ruta dedicada /fullscreen, NUNCA mostrar el overlay de pantalla completa */
-  body:not(.is-fullscreen-page) #fullscreen-ranking-overlay {
+  /* El overlay de pantalla completa se muestra en rutas dedicadas o cuando la escena activa en /overlay es fullscreen o transicion */
+  body.is-fullscreen-page,
+  body.is-transicion-page,
+  body.is-scene-fullscreen-active,
+  body.is-scene-transicion-active {
+    background: #020409 !important;
+  }
+
+  body.is-fullscreen-page #fullscreen-ranking-overlay,
+  body.is-transicion-page #fullscreen-ranking-overlay,
+  body.is-scene-fullscreen-active #fullscreen-ranking-overlay,
+  body.is-scene-transicion-active #fullscreen-ranking-overlay {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: scale(1) !important;
+    display: block !important;
+    z-index: 9999 !important;
+  }
+
+  body:not(.is-fullscreen-page):not(.is-scene-fullscreen-active):not(.is-scene-transicion-active) #fullscreen-ranking-overlay:not(.visible) {
     display: none !important;
   }
 
-  /* Si la página es la ruta dedicada /fullscreen, ocultar banners de competidor y evento */
+  /* Si la escena activa es pantalla completa o transición, ocultar banners de competidor, ticker y cámaras */
   body.is-fullscreen-page #banner,
   body.is-fullscreen-page #event-badge,
   body.is-fullscreen-page #live-ranking-overlay,
   body.is-fullscreen-page #competitor-showcase-card,
   body.is-fullscreen-page #tournament-big-logo-overlay,
   body.is-fullscreen-page #head-to-head-overlay,
-  body.is-fullscreen-page #versus-banner {
+  body.is-fullscreen-page #versus-banner,
+  body.is-scene-fullscreen-active #banner,
+  body.is-scene-fullscreen-active #event-badge,
+  body.is-scene-fullscreen-active #live-ranking-overlay,
+  body.is-scene-fullscreen-active #competitor-showcase-card,
+  body.is-scene-fullscreen-active #tournament-big-logo-overlay,
+  body.is-scene-fullscreen-active #head-to-head-overlay,
+  body.is-scene-fullscreen-active #versus-banner,
+  body.is-scene-transicion-active #banner,
+  body.is-scene-transicion-active #event-badge,
+  body.is-scene-transicion-active #live-ranking-overlay,
+  body.is-scene-transicion-active #competitor-showcase-card,
+  body.is-scene-transicion-active #tournament-big-logo-overlay,
+  body.is-scene-transicion-active #head-to-head-overlay,
+  body.is-scene-transicion-active #versus-banner {
+    display: none !important;
+  }
+
+  body.is-fullscreen-page #sim-cameras-stage,
+  body.is-scene-fullscreen-active #sim-cameras-stage,
+  body.is-scene-transicion-active #sim-cameras-stage {
     display: none !important;
   }
 
@@ -4579,15 +4617,22 @@
     dedicatedScene = 'ending';
   }
 
-  const isTransitionPage = path.includes('/transicion') || path.includes('/transiciones');
-  const isFullscreenPage = path.includes('/fullscreen');
-  const isDedicatedScene = !!dedicatedScene;
+  const isEnvivoMaster = path.includes('/envivo') || path.includes('/en-vivo') || path.includes('/program') || path.includes('/master');
+  if (isEnvivoMaster) {
+    document.body.classList.add('is-envivo-master');
+  }
+
+  const isTransitionPage = !isEnvivoMaster && (path.includes('/transicion') || path.includes('/transiciones'));
+  const isFullscreenPage = !isEnvivoMaster && path.includes('/fullscreen');
+  const isDedicatedScene = !isEnvivoMaster && !!dedicatedScene;
   const isDedicatedFullscreen = isDedicatedScene ||
     isTransitionPage ||
     isFullscreenPage ||
-    urlParams.get('mode') === 'fullscreen' ||
-    urlParams.get('view') === 'fullscreen' ||
-    urlParams.get('fullscreen') === '1';
+    (!isEnvivoMaster && (
+      urlParams.get('mode') === 'fullscreen' ||
+      urlParams.get('view') === 'fullscreen' ||
+      urlParams.get('fullscreen') === '1'
+    ));
 
   let liveRankingTimer = null;
   let liveRankingCurrentPage = 0;
@@ -5208,9 +5253,12 @@
     }
 
     // Determinar modo activo:
-    // La pantalla completa (fsOverlay) SOLO se muestra en la ruta dedicada /fullscreen.
-    // En la ruta /overlay normal NUNCA se muestra la pantalla completa gigante, solo el mini widget si viewMode es 'widget'.
-    if (isDedicatedFullscreen) {
+    const isFullscreenActive = isDedicatedFullscreen ||
+      document.body.classList.contains('is-scene-fullscreen-active') ||
+      (lastSimCamerasState && lastSimCamerasState.activeScene === 'fullscreen') ||
+      liveRankingConfig.viewMode === 'fullscreen';
+
+    if (isFullscreenActive) {
       if (lrOverlay) lrOverlay.classList.remove('visible');
       if (fsOverlay) fsOverlay.classList.add('visible');
     } else {
@@ -5867,6 +5915,8 @@
             banner.classList.remove('visible');
           } else if (msg.type === 'hide_event') {
             eventBadge.classList.remove('visible');
+          } else if (msg.type === 'sim_cameras_state') {
+            applySimulatedCameras(msg.state);
           }
         } catch (e) {
           console.error('[DirectoOBS Overlay] Error parseando mensaje:', e);
@@ -6113,7 +6163,7 @@
 
   function applyFsScene(scene, themeData) {
     const td = themeData || activeFsThemeState || {};
-    let targetScene = dedicatedScene || td.scene || 'ranking';
+    let targetScene = dedicatedScene || scene || td.scene || 'ranking';
     if (typeof isFullscreenPage !== 'undefined' && isFullscreenPage) {
       targetScene = 'ranking';
     } else if (typeof isTransitionPage !== 'undefined' && isTransitionPage) {
@@ -6254,6 +6304,27 @@
     applyFsScene(dedicatedScene || 'ranking', activeFsThemeState);
   }
 
+  if (urlParams.get('preview') === '1') {
+    document.documentElement.style.width = '100%';
+    document.documentElement.style.height = '100%';
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.background = '#020409';
+    document.body.style.background = '#020409';
+    const fitPreviewScale = () => {
+      const w = window.innerWidth || document.documentElement.clientWidth || 384;
+      const scale = w / 1920;
+      document.body.style.width = '1920px';
+      document.body.style.height = '1080px';
+      document.body.style.transformOrigin = '0 0';
+      document.body.style.transform = `scale(${scale})`;
+      document.body.style.overflow = 'hidden';
+    };
+    fitPreviewScale();
+    window.addEventListener('resize', fitPreviewScale);
+    setTimeout(fitPreviewScale, 80);
+    setTimeout(fitPreviewScale, 250);
+  }
+
   applyFont('barlow_slim');
   connect();
 
@@ -6265,15 +6336,20 @@
         if (st.fsTheme) {
           applyFsTheme(st.fsTheme);
         }
-        if (st.data && (isDedicatedFullscreen ? true : (st.visible && st.viewMode === 'widget'))) {
-          renderLiveRanking({
-            data: st.data,
-            dynamicPaging: st.dynamicPaging,
-            autoBalance: st.autoBalance,
-            pageSize: st.pageSize,
-            pageDuration: st.pageDuration,
-            viewMode: isDedicatedFullscreen ? 'fullscreen' : (st.viewMode || 'widget')
-          });
+        if (st.data) {
+          currentRawRankingData = st.data;
+          const isFsScene = isDedicatedFullscreen || (lastSimCamerasState && lastSimCamerasState.activeScene === 'fullscreen');
+          const isWidgetScene = st.visible && st.viewMode === 'widget';
+          if (isFsScene || isWidgetScene) {
+            renderLiveRanking({
+              data: st.data,
+              dynamicPaging: st.dynamicPaging,
+              autoBalance: st.autoBalance,
+              pageSize: st.pageSize,
+              pageDuration: st.pageDuration,
+              viewMode: isFsScene ? 'fullscreen' : (st.viewMode || 'widget')
+            });
+          }
         }
       }
     })
@@ -6328,6 +6404,338 @@
       .catch(() => {});
   }
   loadSponsors();
+
+  // ── Simulador de Cámaras en Bucle (videos/camaras): 1 a 6 cámaras + PiP Casteo independiente ──
+  let simCamStage = null;
+  let simCamSlots = [];
+  let simCamVideos = [];
+  let simCamPipSlot = null;
+  let simCamPipVideo = null;
+  let lastActionSeqApplied = 0;
+  let lastSimCamerasState = null;
+
+  function ensureSimCamStage() {
+    if (isDedicatedFullscreen) return null;
+    if (simCamStage) return simCamStage;
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `
+      #sim-cameras-stage {
+        position: fixed;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+        display: none;
+        background: #06090f;
+      }
+      body.is-fullscreen-page #sim-cameras-stage,
+      body.is-transicion-page #sim-cameras-stage {
+        display: none !important;
+      }
+      #sim-cameras-stage.active {
+        display: block;
+      }
+      .sim-cam-slot {
+        position: absolute;
+        overflow: hidden;
+        background: #000;
+        transition: left 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                    top 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                    width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                    height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                    opacity 0.25s ease;
+        box-sizing: border-box;
+      }
+      .sim-cam-slot.pip-slot {
+        border: 3px solid rgba(56, 189, 248, 0.92);
+        border-radius: 12px;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.82);
+      }
+      .sim-cam-slot.pip-slot.corner-br {
+        border-right: none;
+        border-bottom: none;
+        border-radius: 12px 0 0 0;
+      }
+      .sim-cam-slot.pip-slot.corner-bl {
+        border-left: none;
+        border-bottom: none;
+        border-radius: 0 12px 0 0;
+      }
+      .sim-cam-slot.pip-slot.corner-tr {
+        border-right: none;
+        border-top: none;
+        border-radius: 0 0 0 12px;
+      }
+      .sim-cam-slot.pip-slot.corner-tl {
+        border-left: none;
+        border-top: none;
+        border-radius: 0 0 12px 0;
+      }
+      .sim-cam-slot.split-right-border {
+        border-right: 2px solid rgba(255, 255, 255, 0.18);
+      }
+      .sim-cam-slot.split-bottom-border {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.18);
+      }
+      .sim-cam-slot video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+    `;
+    document.head.appendChild(styleEl);
+
+    simCamStage = document.createElement('div');
+    simCamStage.id = 'sim-cameras-stage';
+    simCamSlots = [];
+    simCamVideos = [];
+
+    const letterIds = ['a', 'b', 'c', 'd', 'e', 'f'];
+    for (let i = 0; i < 6; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'sim-cam-slot';
+      const vid = document.createElement('video');
+      vid.id = `sim-cam-video-${letterIds[i]}`;
+      vid.autoplay = true;
+      vid.loop = true;
+      vid.muted = true;
+      vid.playsInline = true;
+      slot.appendChild(vid);
+      simCamStage.appendChild(slot);
+      simCamSlots.push(slot);
+      simCamVideos.push(vid);
+    }
+
+    simCamPipSlot = document.createElement('div');
+    simCamPipSlot.className = 'sim-cam-slot pip-slot corner-br';
+    simCamPipSlot.id = 'sim-cam-pip-slot';
+    simCamPipVideo = document.createElement('video');
+    simCamPipVideo.id = 'sim-cam-video-pip';
+    simCamPipVideo.autoplay = true;
+    simCamPipVideo.loop = true;
+    simCamPipVideo.muted = true;
+    simCamPipVideo.playsInline = true;
+    simCamPipSlot.appendChild(simCamPipVideo);
+    simCamStage.appendChild(simCamPipSlot);
+
+    document.body.insertBefore(simCamStage, document.body.firstChild);
+    return simCamStage;
+  }
+
+  function updateSimSlot(slotEl, videoEl, camObj, transform, zIndex, extraClass) {
+    if (!slotEl || !videoEl) return;
+    slotEl.className = 'sim-cam-slot' + (extraClass ? ' ' + extraClass : '');
+    if (!camObj || !transform || !transform.visible) {
+      slotEl.style.opacity = '0';
+      slotEl.style.pointerEvents = 'none';
+      if (!videoEl.paused) videoEl.pause();
+      return;
+    }
+    slotEl.style.opacity = '1';
+    slotEl.style.zIndex = String(zIndex || 1);
+    slotEl.style.left = (transform.x || 0) + 'px';
+    slotEl.style.top = (transform.y || 0) + 'px';
+    slotEl.style.width = (transform.w || 1920) + 'px';
+    slotEl.style.height = (transform.h || 1080) + 'px';
+
+    if (videoEl.getAttribute('data-cam-url') !== camObj.url) {
+      videoEl.setAttribute('data-cam-url', camObj.url);
+      videoEl.src = camObj.url;
+      videoEl.load();
+      videoEl.play().catch(() => {});
+    } else if (videoEl.paused) {
+      videoEl.play().catch(() => {});
+    }
+  }
+
+  let simSceneForcedFs = false;
+  function applySimulatedCameras(state) {
+    if (isDedicatedFullscreen || !state) return;
+
+    // Conmutación entre las 4 escenas principales en /overlay y /envivo
+    const actScene = state.activeScene || 'principal';
+    lastSimCamerasState = state;
+
+    if (actScene === 'fullscreen') {
+      simSceneForcedFs = true;
+      document.body.classList.add('is-scene-fullscreen-active');
+      document.body.classList.remove('is-scene-transicion-active');
+
+      // Pausar reproducción de videos de cámaras mientras está en fullscreen para ahorrar recursos
+      simCamVideos.forEach(v => { if (v && !v.paused) v.pause(); });
+      if (simCamPipVideo && !simCamPipVideo.paused) simCamPipVideo.pause();
+
+      if (fsOverlay) {
+        fsOverlay.style.display = 'block';
+        fsOverlay.classList.add('visible');
+        applyFsScene('ranking', activeFsThemeState);
+        if (currentRawRankingData) {
+          renderCurrentPage(false);
+          setTimeout(() => autoFitFullscreenTable(), 60);
+        } else {
+          fetch('/api/live/status')
+            .then(r => r.json())
+            .then(st => {
+              if (st && st.data) {
+                renderLiveRanking({
+                  data: st.data,
+                  dynamicPaging: st.dynamicPaging,
+                  autoBalance: st.autoBalance,
+                  pageSize: st.pageSize,
+                  pageDuration: st.pageDuration,
+                  viewMode: 'fullscreen'
+                });
+                setTimeout(() => autoFitFullscreenTable(), 60);
+              }
+            })
+            .catch(() => {});
+        }
+      }
+      return;
+    } else if (actScene === 'transicion') {
+      simSceneForcedFs = true;
+      document.body.classList.add('is-scene-transicion-active');
+      document.body.classList.remove('is-scene-fullscreen-active');
+
+      // Pausar cámaras mientras está en transición
+      simCamVideos.forEach(v => { if (v && !v.paused) v.pause(); });
+      if (simCamPipVideo && !simCamPipVideo.paused) simCamPipVideo.pause();
+
+      if (fsOverlay) {
+        fsOverlay.style.display = 'block';
+        fsOverlay.classList.add('visible');
+        applyFsScene(state.transitionSubScene || 'starting', activeFsThemeState);
+      }
+      return;
+    } else if (actScene === 'principal') {
+      simSceneForcedFs = false;
+      document.body.classList.remove('is-scene-fullscreen-active');
+      document.body.classList.remove('is-scene-transicion-active');
+      if (fsOverlay && !isDedicatedFullscreen) {
+        fsOverlay.classList.remove('visible');
+        fsOverlay.style.display = 'none';
+      }
+      const stage = ensureSimCamStage();
+      if (stage) {
+        stage.style.display = '';
+        stage.classList.add('active');
+      }
+      // Reanudar inmediatamente todos los videos de cámaras
+      simCamVideos.forEach(v => {
+        if (v && v.src && v.paused) v.play().catch(() => {});
+      });
+      if (simCamPipVideo && simCamPipVideo.src && simCamPipVideo.paused) {
+        simCamPipVideo.play().catch(() => {});
+      }
+    }
+
+    const stage = ensureSimCamStage();
+    if (!stage) return;
+
+    const cameras = Array.isArray(state.cameras) ? state.cameras : [];
+    if (!state.enabled || cameras.length === 0) {
+      stage.classList.remove('active');
+      simCamVideos.forEach(v => v && v.pause());
+      if (simCamPipVideo) simCamPipVideo.pause();
+      return;
+    }
+
+    stage.classList.add('active');
+    lastSimCamerasState = state;
+
+    const slots = Array.isArray(state.slots) ? state.slots : [];
+    const camCount = Math.max(1, Math.min(6, Number(state.camCount) || 2));
+    for (let i = 0; i < 6; i++) {
+      const s = slots[i];
+      const camObj = s?.cam || cameras.find(c => Number(c.sceneItemId) === Number(s?.camId)) || null;
+      const isVisible = i < camCount && !!(s ? s.visible : camObj);
+      const borderClasses = [];
+      if (s?.borderRight) borderClasses.push('split-right-border');
+      if (s?.borderBottom) borderClasses.push('split-bottom-border');
+      updateSimSlot(
+        simCamSlots[i],
+        simCamVideos[i],
+        camObj,
+        s ? { x: s.x, y: s.y, w: s.w, h: s.h, visible: isVisible } : { visible: false },
+        1,
+        borderClasses.join(' ')
+      );
+    }
+
+    // Cámara PiP de Casteo independiente
+    const pip = state.pip || {};
+    const pipEnabled = !!(state.pipEnabled !== undefined ? state.pipEnabled : pip.enabled);
+    const pipCam = pip.cam || cameras.find(c => Number(c.sceneItemId) === Number(state.pipCamId || pip.camId)) || null;
+    const pipCorner = state.pipCorner || pip.corner || 'br';
+    const bMode = state.bannerMode || 'none';
+    const topMargin = (bMode === 'top' || bMode === 'both') ? 130 : 0;
+    const bottomMargin = (bMode === 'bottom' || bMode === 'both') ? 160 : 0;
+    const isTickerVis = !!(eventBadge && eventBadge.classList.contains('visible'));
+    const liveTickerH = isTickerVis
+      ? (eventBadge.offsetHeight || (eventBadge.classList.contains('ticker-size-large') ? 76 : eventBadge.classList.contains('ticker-size-medium') ? 60 : 46))
+      : 0;
+    const effectivePipBottom = Math.max(bottomMargin, liveTickerH);
+
+    const pipW = pip.w || 496;
+    const pipH = pip.h || 279;
+    let pipX = 1920 - pipW;
+    let pipY = 1080 - effectivePipBottom - pipH;
+    if (pipCorner === 'bl') {
+      pipX = 0;
+      pipY = 1080 - effectivePipBottom - pipH;
+    } else if (pipCorner === 'tr') {
+      pipX = 1920 - pipW;
+      pipY = topMargin;
+    } else if (pipCorner === 'tl') {
+      pipX = 0;
+      pipY = topMargin;
+    }
+
+    updateSimSlot(
+      simCamPipSlot,
+      simCamPipVideo,
+      pipCam,
+      { x: pipX, y: Math.max(0, pipY), w: pipW, h: pipH, visible: pipEnabled && !!pipCam },
+      4,
+      `pip-slot corner-${pipCorner}`
+    );
+
+    if (state.mediaAction && state.mediaAction.ts && state.mediaAction.ts !== lastActionSeqApplied) {
+      lastActionSeqApplied = state.mediaAction.ts;
+      const act = state.mediaAction.action;
+      const targetName = state.mediaAction.inputName;
+      const allVids = [...simCamVideos, simCamPipVideo];
+      allVids.forEach(v => {
+        if (!v) return;
+        const matchedCam = cameras.find(c => c.url === v.getAttribute('data-cam-url'));
+        if (!matchedCam || matchedCam.sourceName !== targetName) return;
+        if (act === 'restart') { v.currentTime = 0; v.play().catch(() => {}); }
+        else if (act === 'pause') { v.pause(); }
+        else if (act === 'play') { v.play().catch(() => {}); }
+        else if (act === 'stop') { v.pause(); v.currentTime = 0; }
+      });
+    }
+  }
+
+  if (eventBadge && typeof MutationObserver !== 'undefined') {
+    const tickerObs = new MutationObserver(() => {
+      if (lastSimCamerasState && (lastSimCamerasState.pipEnabled || lastSimCamerasState.pip?.enabled)) {
+        applySimulatedCameras(lastSimCamerasState);
+      }
+    });
+    tickerObs.observe(eventBadge, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  fetch('/api/sim-cameras')
+    .then(r => r.json())
+    .then(st => {
+      if (st && st.ok) applySimulatedCameras(st.state || st);
+    })
+    .catch(() => {});
 
 </script>
 </body>
