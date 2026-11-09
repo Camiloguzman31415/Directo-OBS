@@ -6552,11 +6552,50 @@
     }
   }
 
-  let simSceneForcedFs = false;
-  function applySimulatedCameras(state) {
-    if (isDedicatedFullscreen || !state) return;
+      let isStingerActive = false;
+  function playStingerTransition(onCut) {
+    const layer = document.getElementById('master-stinger-layer');
+    const video = document.getElementById('master-stinger-video');
+    if (!layer || !video) {
+      if (typeof onCut === 'function') onCut();
+      return;
+    }
 
-    // Conmutación entre las 4 escenas principales en /overlay y /envivo
+    layer.style.display = 'block';
+    video.currentTime = 0;
+    isStingerActive = true;
+
+    let cutTriggered = false;
+    const executeCut = () => {
+      if (cutTriggered) return;
+      cutTriggered = true;
+      if (typeof onCut === 'function') onCut();
+    };
+
+    // La cortina roja cubre 100% de la pantalla a los 380 ms
+    const cutTimer = setTimeout(executeCut, 380);
+
+    video.onended = () => {
+      executeCut();
+      layer.style.display = 'none';
+      isStingerActive = false;
+    };
+
+    video.play().catch(() => {
+      // Si el navegador bloquea audio sin interacción previa, silenciar y reproducir video
+      video.muted = true;
+      video.play().catch(() => {
+        executeCut();
+        layer.style.display = 'none';
+        isStingerActive = false;
+      });
+    });
+  }
+
+  let simSceneForcedFs = false;
+  let isFirstSimCamerasLoad = true;
+
+  function applySceneDOM(state) {
     const actScene = state.activeScene || 'principal';
     lastSimCamerasState = state;
 
@@ -6645,7 +6684,6 @@
     }
 
     stage.classList.add('active');
-    lastSimCamerasState = state;
 
     const slots = Array.isArray(state.slots) ? state.slots : [];
     const camCount = Math.max(1, Math.min(6, Number(state.camCount) || 2));
@@ -6721,6 +6759,23 @@
     }
   }
 
+  function applySimulatedCameras(state, forceDirect = false) {
+    if (isDedicatedFullscreen || !state) return;
+
+    const prevScene = lastSimCamerasState ? (lastSimCamerasState.activeScene || 'principal') : null;
+    const nextScene = state.activeScene || 'principal';
+    const isSceneChanged = !isFirstSimCamerasLoad && prevScene !== null && (prevScene !== nextScene || state.commuted);
+    isFirstSimCamerasLoad = false;
+
+    if (isSceneChanged && !forceDirect && !urlParams.get('preview')) {
+      playStingerTransition(() => {
+        applySceneDOM(state);
+      });
+    } else {
+      applySceneDOM(state);
+    }
+  }
+
   if (eventBadge && typeof MutationObserver !== 'undefined') {
     const tickerObs = new MutationObserver(() => {
       if (lastSimCamerasState && (lastSimCamerasState.pipEnabled || lastSimCamerasState.pip?.enabled)) {
@@ -6736,6 +6791,12 @@
       if (st && st.ok) applySimulatedCameras(st.state || st);
     })
     .catch(() => {});
+
+
+<!-- Capa Master Stinger de Transición Broadcast (Ovejita con Cortina Roja) -->
+<div id="master-stinger-layer" style="position: fixed; inset: 0; width: 1920px; height: 1080px; z-index: 99999; pointer-events: none; display: none;">
+  <video id="master-stinger-video" src="/videos/cortina_transparente.webm" playsinline preload="auto" style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+</div>
 
 </script>
 </body>
