@@ -6574,8 +6574,15 @@
 
     // La cortina roja cubre 100% de la pantalla a los 380 ms
     const cutTimer = setTimeout(executeCut, 380);
+    const safetyTimer = setTimeout(() => {
+      executeCut();
+      layer.style.display = 'none';
+      isStingerActive = false;
+    }, 1600);
 
     video.onended = () => {
+      clearTimeout(cutTimer);
+      clearTimeout(safetyTimer);
       executeCut();
       layer.style.display = 'none';
       isStingerActive = false;
@@ -6793,11 +6800,12 @@
     .catch(() => {});
 
 
+</script>
+
 <!-- Capa Master Stinger de Transición Broadcast (Ovejita con Cortina Roja) -->
 <div id="master-stinger-layer" style="position: fixed; inset: 0; width: 1920px; height: 1080px; z-index: 99999; pointer-events: none; display: none;">
   <video id="master-stinger-video" src="/videos/cortina_transparente.webm" playsinline preload="auto" style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
 </div>
 
-</script>
 </body>
 </html>
