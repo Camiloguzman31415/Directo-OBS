@@ -3661,6 +3661,40 @@
     opacity: 0.7;
     text-shadow: none !important;
   }
+
+  /* Transición Stinger Wipe Sincronizada con el trozo de tela */
+  @keyframes stingerCurtainWipe {
+    0% {
+      transform: translate3d(-100%, 0, 0);
+    }
+    48% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(100%, 0, 0);
+    }
+  }
+
+  @keyframes stingerSceneWipeIn {
+    0% {
+      clip-path: inset(0 100% 0 0);
+    }
+    48% {
+      clip-path: inset(0 0% 0 0);
+    }
+    100% {
+      clip-path: inset(0 0% 0 0);
+    }
+  }
+
+  .stinger-curtain-active {
+    animation: stingerCurtainWipe 1050ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  }
+
+  .stinger-scene-wipe-in {
+    animation: stingerSceneWipeIn 1050ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+    will-change: clip-path;
+  }
 </style>
 </head>
 <body>
@@ -6553,7 +6587,7 @@
   }
 
   let isStingerActive = false;
-  function playStingerTransition(onCut) {
+  function playStingerTransition(onCut, nextScene = 'fullscreen') {
     const layer = document.getElementById('master-stinger-layer');
     const box = document.getElementById('master-stinger-anim-box');
     const video = document.getElementById('master-stinger-video');
@@ -6563,8 +6597,6 @@
     }
 
     layer.style.display = 'block';
-    video.pause();
-    video.currentTime = 0;
     isStingerActive = true;
 
     // Reproducir audio sincronizado de la cortina si el navegador lo permite
@@ -6574,53 +6606,64 @@
       curtainAudio.play().catch(() => {});
     } catch {}
 
-    // 1. Entrada natural por la izquierda con el telón cerrado (500 ms)
-    box.style.transition = 'none';
-    box.style.transform = 'translate3d(-100%, 0, 0)';
-    void box.offsetWidth; // Forzar reflow para animación limpia a 60 FPS
-    box.style.transition = 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1)';
-    box.style.transform = 'translate3d(0, 0, 0)';
+    // Iniciar video inmediatamente: la ovejita y la cortina se reproducen desde el inicio
+    video.currentTime = 0;
+    video.play().catch(() => {
+      video.muted = true;
+      video.play().catch(() => {});
+    });
 
-    let cutTriggered = false;
-    const executeCut = () => {
-      if (cutTriggered) return;
-      cutTriggered = true;
-      if (typeof onCut === 'function') onCut();
-    };
+    // Determinar la escena entrante para sincronizar su desenmascarado con el primer trozo de tela
+    const stage = ensureSimCamStage();
+    let incomingEl = (nextScene === 'fullscreen' || nextScene === 'transicion') ? fsOverlay : stage;
+    let outgoingEl = (incomingEl === fsOverlay) ? stage : fsOverlay;
 
-    // 2. Punto de corte EXACTO al cubrir el 100% de la pantalla (500 ms):
-    // - El cambio de escena detrás es 100% invisible porque la pantalla está totalmente tapada
-    // - En este milisegundo exacto arranca la ovejita a jalar y abrir la cortina hacia la derecha
-    const cutTimer = setTimeout(() => {
-      executeCut();
-      video.play().catch(() => {
-        video.muted = true;
-        video.play().catch(() => {
-          layer.style.display = 'none';
-          isStingerActive = false;
-        });
-      });
-    }, 500);
+    if (incomingEl) {
+      incomingEl.classList.remove('stinger-scene-wipe-in');
+      incomingEl.style.clipPath = 'inset(0 100% 0 0)';
+    }
 
-    const safetyTimer = setTimeout(() => {
-      executeCut();
+    // Iniciar la nueva escena detrás del recorte (el recorte evita que se vea por delante de la tela)
+    if (typeof onCut === 'function') onCut();
+
+    // Mantener la escena saliente activa de fondo durante la transición
+    if (outgoingEl) {
+      outgoingEl.style.display = '';
+      if (outgoingEl === fsOverlay) outgoingEl.classList.add('visible');
+    }
+
+    // Elevar la escena entrante por encima de la saliente pero por debajo de la cortina
+    if (incomingEl) {
+      incomingEl.style.zIndex = '9000';
+    }
+
+    // Aplicar las animaciones sincronizadas al primer trozo de tela y a la escena entrante
+    box.classList.remove('stinger-curtain-active');
+    void box.offsetWidth; // Forzar reflow a 60 FPS
+
+    box.classList.add('stinger-curtain-active');
+    if (incomingEl) {
+      incomingEl.classList.add('stinger-scene-wipe-in');
+    }
+
+    // Al finalizar el barrido completo (1080 ms), limpiar y dejar la nueva escena al 100%
+    const endTransition = () => {
+      box.classList.remove('stinger-curtain-active');
+      if (incomingEl) {
+        incomingEl.classList.remove('stinger-scene-wipe-in');
+        incomingEl.style.clipPath = '';
+        incomingEl.style.zIndex = '';
+      }
+      if (outgoingEl && outgoingEl === fsOverlay && nextScene === 'principal') {
+        outgoingEl.classList.remove('visible');
+        outgoingEl.style.display = 'none';
+      }
       layer.style.display = 'none';
-      box.style.transition = 'none';
       box.style.transform = 'translate3d(-100%, 0, 0)';
       isStingerActive = false;
-    }, 2400);
-
-    // 3. Salida sincronizada: la propia animación del video lleva a la ovejita y la cortina
-    // saliendo por la derecha a su ritmo natural, descubriendo la nueva escena detrás
-    video.onended = () => {
-      clearTimeout(cutTimer);
-      clearTimeout(safetyTimer);
-      executeCut();
-      layer.style.display = 'none';
-      box.style.transition = 'none';
-      box.style.transform = 'translate3d(-100%, 0, 0)';
-      isStingerActive = false;
     };
+
+    setTimeout(endTransition, 1080);
   }
 
   let simSceneForcedFs = false;
@@ -6801,7 +6844,7 @@
     if (isSceneChanged && !forceDirect && !urlParams.get('preview')) {
       playStingerTransition(() => {
         applySceneDOM(state);
-      });
+      }, nextScene);
     } else {
       applySceneDOM(state);
     }
