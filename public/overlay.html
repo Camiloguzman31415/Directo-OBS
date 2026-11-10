@@ -6919,12 +6919,6 @@
       return;
     }
 
-    // Si la escena activa ya es nextScene y no hay cambio real, no-op total para evitar saltos o re-renderizados
-    if (!isFirstSimCamerasLoad && prevScene === nextScene && currentActiveScene === nextScene) {
-      lastSimCamerasState = state;
-      return;
-    }
-
     // El cambio de escena real SOLO ocurre si prevScene y nextScene son distintos
     const isSceneChanged = !isFirstSimCamerasLoad && prevScene !== nextScene;
     isFirstSimCamerasLoad = false;
