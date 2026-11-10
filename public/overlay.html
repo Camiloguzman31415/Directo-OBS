@@ -6571,7 +6571,10 @@
   let transitioningToScene = null;
   let activeStingerTimer = null;
   let activeStingerCutTimer = null;
-  let activeCurtainAudio = null;
+  const curtainTransitionAudio = new Audio('/audio/sonido%20cortina.mp3');
+  curtainTransitionAudio.preload = 'auto';
+  curtainTransitionAudio.volume = 0.9;
+  try { curtainTransitionAudio.load(); } catch {}
   let pendingNextState = null;
 
   function cleanupStingerArtifacts() {
@@ -6583,6 +6586,10 @@
       clearTimeout(activeStingerCutTimer);
       activeStingerCutTimer = null;
     }
+    try {
+      curtainTransitionAudio.pause();
+      curtainTransitionAudio.currentTime = 0;
+    } catch {}
     const layer = document.getElementById('master-stinger-layer');
     const box = document.getElementById('master-stinger-anim-box');
     const video = document.getElementById('master-stinger-video');
@@ -6632,15 +6639,15 @@
     layer.style.display = 'block';
     document.body.classList.add('is-stinger-in-progress');
 
-    // Audio sincronizado de la cortina (detener el previo si había)
+    // Audio sincronizado de la cortina (reproducción instantánea desde buffer en memoria)
     try {
-      if (activeCurtainAudio) {
-        activeCurtainAudio.pause();
-        activeCurtainAudio.currentTime = 0;
+      curtainTransitionAudio.pause();
+      curtainTransitionAudio.currentTime = 0;
+      curtainTransitionAudio.volume = 0.9;
+      const playPromise = curtainTransitionAudio.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(() => {});
       }
-      activeCurtainAudio = new Audio('/audio/sonido%20cortina.mp3');
-      activeCurtainAudio.volume = 0.85;
-      activeCurtainAudio.play().catch(() => {});
     } catch {}
 
     // Video de la ovejita y la cortina roja (iniciar desde t=0)
