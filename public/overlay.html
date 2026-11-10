@@ -1402,16 +1402,16 @@
     display: none !important;
   }
 
-  /* Mientras la transición de stinger está activa, garantizar visibilidad continua de cámaras y overlays sin pantallas negras */
-  body.is-stinger-in-progress #sim-cameras-stage {
+  /* Mientras la transición de stinger está activa, garantizar visibilidad continua de cámaras y overlays participantes sin pantallas negras */
+  body.is-stinger-in-progress.stinger-involves-stage #sim-cameras-stage {
     display: block !important;
   }
-  body.is-stinger-in-progress #fullscreen-ranking-overlay {
+  body.is-stinger-in-progress.stinger-involves-fs #fullscreen-ranking-overlay {
     display: block !important;
     opacity: 1 !important;
   }
-  body.is-stinger-in-progress #banner,
-  body.is-stinger-in-progress #event-badge {
+  body.is-stinger-in-progress.stinger-involves-stage #banner,
+  body.is-stinger-in-progress.stinger-involves-stage #event-badge {
     display: flex !important;
   }
 
@@ -6600,48 +6600,151 @@
   }
 
   let isStingerActive = false;
-  function playStingerTransition(nextState, nextScene = 'fullscreen') {
+  let currentActiveScene = 'principal';
+  let transitioningToScene = null;
+  let activeStingerTimer = null;
+  let activeCurtainAudio = null;
+  let currentStingerIncomingEl = null;
+  let currentStingerOutgoingEl = null;
+  let pendingNextState = null;
+
+  function cleanupStingerArtifacts() {
+    if (activeStingerTimer) {
+      clearTimeout(activeStingerTimer);
+      activeStingerTimer = null;
+    }
+    const layer = document.getElementById('master-stinger-layer');
+    const box = document.getElementById('master-stinger-anim-box');
+    const video = document.getElementById('master-stinger-video');
+
+    if (box) {
+      box.classList.remove('stinger-curtain-active');
+      box.style.transform = 'translate3d(-100%, 0, 0)';
+    }
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
+    if (currentStingerIncomingEl) {
+      currentStingerIncomingEl.classList.remove('stinger-scene-wipe-in');
+      currentStingerIncomingEl.style.clipPath = '';
+      currentStingerIncomingEl.style.zIndex = '';
+      currentStingerIncomingEl = null;
+    }
+    if (currentStingerOutgoingEl) {
+      currentStingerOutgoingEl.classList.remove('stinger-scene-wipe-in');
+      currentStingerOutgoingEl.style.clipPath = '';
+      currentStingerOutgoingEl.style.zIndex = '';
+      currentStingerOutgoingEl = null;
+    }
+    document.body.classList.remove('is-stinger-in-progress', 'stinger-involves-stage', 'stinger-involves-fs');
+    if (layer) layer.style.display = 'none';
+    isStingerActive = false;
+    transitioningToScene = null;
+  }
+
+  function playStingerTransition(nextState, nextScene = 'fullscreen', prevScene = null) {
+    const fromScene = prevScene || currentActiveScene || 'principal';
+    const toScene = nextScene || 'principal';
+
+    // 1. REGLA ESTRICTA: Si la escena origen y destino son la misma, NUNCA ejecutar stinger
+    if (fromScene === toScene) {
+      applySceneDOM(nextState);
+      return;
+    }
+
+    // 2. Si ya hay una transición en curso, cancelarla atómicamente antes de iniciar la nueva
+    if (isStingerActive || activeStingerTimer) {
+      cleanupStingerArtifacts();
+    }
+
     const layer = document.getElementById('master-stinger-layer');
     const box = document.getElementById('master-stinger-anim-box');
     const video = document.getElementById('master-stinger-video');
     if (!layer || !video || !box) {
       applySceneDOM(nextState);
+      currentActiveScene = toScene;
       return;
     }
 
-    layer.style.display = 'block';
     isStingerActive = true;
-    document.body.classList.add('is-stinger-in-progress');
+    transitioningToScene = toScene;
+    pendingNextState = nextState;
 
-    // Reproducir audio sincronizado de la cortina si el navegador lo permite
+    // Clases en body para que solo los elementos participantes estén visibles (evita fantasmas de cámaras)
+    document.body.classList.add('is-stinger-in-progress');
+    const involvesStage = (fromScene === 'principal' || toScene === 'principal');
+    const involvesFs = (fromScene === 'fullscreen' || fromScene === 'transicion' || toScene === 'fullscreen' || toScene === 'transicion');
+    if (involvesStage) document.body.classList.add('stinger-involves-stage');
+    if (involvesFs) document.body.classList.add('stinger-involves-fs');
+
+    layer.style.display = 'block';
+
+    // Audio sincronizado de la cortina (detener el previo si había)
     try {
-      const curtainAudio = new Audio('/audio/sonido%20cortina.mp3');
-      curtainAudio.volume = 0.85;
-      curtainAudio.play().catch(() => {});
+      if (activeCurtainAudio) {
+        activeCurtainAudio.pause();
+        activeCurtainAudio.currentTime = 0;
+      }
+      activeCurtainAudio = new Audio('/audio/sonido%20cortina.mp3');
+      activeCurtainAudio.volume = 0.85;
+      activeCurtainAudio.play().catch(() => {});
     } catch {}
 
-    // Iniciar video inmediatamente: la ovejita y la cortina se reproducen desde el inicio
+    // Video de la ovejita y la cortina roja (reanudar desde t=0)
     video.currentTime = 0;
     video.play().catch(() => {
       video.muted = true;
       video.play().catch(() => {});
     });
 
-    // Determinar la escena entrante para sincronizar su desenmascarado con el primer trozo de tela
     const stage = ensureSimCamStage();
-    let incomingEl = (nextScene === 'fullscreen' || nextScene === 'transicion') ? fsOverlay : stage;
-    let outgoingEl = (incomingEl === fsOverlay) ? stage : fsOverlay;
+    let incomingEl = null;
+    let outgoingEl = null;
 
-    // 1. Preparar la escena entrante oculta detrás de su máscara inicial
+    if (fromScene === 'principal' && (toScene === 'fullscreen' || toScene === 'transicion')) {
+      outgoingEl = stage;
+      incomingEl = fsOverlay;
+    } else if ((fromScene === 'fullscreen' || fromScene === 'transicion') && toScene === 'principal') {
+      outgoingEl = fsOverlay;
+      incomingEl = stage;
+    } else if (fromScene !== toScene && involvesFs && !involvesStage) {
+      // Transición entre fullscreen y transicion (ambas usan fsOverlay internamente)
+      outgoingEl = fsOverlay;
+      incomingEl = null;
+    }
+
+    currentStingerIncomingEl = incomingEl;
+    currentStingerOutgoingEl = outgoingEl;
+
+    // 1. Preparar la escena saliente (permanece 100% visible de fondo en z-index: 100)
+    if (outgoingEl) {
+      outgoingEl.style.zIndex = '100';
+      outgoingEl.style.clipPath = '';
+      if (outgoingEl === stage) {
+        stage.style.display = '';
+        stage.classList.add('active');
+        simCamVideos.forEach(v => { if (v && v.src && v.paused) v.play().catch(() => {}); });
+        if (simCamPipVideo && simCamPipVideo.src && simCamPipVideo.paused) {
+          simCamPipVideo.play().catch(() => {});
+        }
+      } else if (outgoingEl === fsOverlay) {
+        fsOverlay.style.display = 'block';
+        fsOverlay.classList.add('visible');
+        fsOverlay.style.opacity = '1';
+      }
+    }
+
+    // 2. Preparar la escena entrante (oculta detrás de su máscara inicial en z-index: 9000)
     if (incomingEl) {
       incomingEl.classList.remove('stinger-scene-wipe-in');
       incomingEl.style.clipPath = 'inset(0 100% 0 0)';
       incomingEl.style.zIndex = '9000';
       incomingEl.style.display = 'block';
       if (incomingEl === fsOverlay) {
-        incomingEl.classList.add('visible');
-        incomingEl.style.opacity = '1';
-        if (nextScene === 'fullscreen') {
+        fsOverlay.classList.add('visible');
+        fsOverlay.style.opacity = '1';
+        if (toScene === 'fullscreen') {
           applyFsScene('ranking', activeFsThemeState);
           if (currentRawRankingData) {
             renderCurrentPage(false);
@@ -6664,42 +6767,34 @@
               })
               .catch(() => {});
           }
-        } else if (nextScene === 'transicion') {
+        } else if (toScene === 'transicion') {
           applyFsScene(nextState?.transitionSubScene || 'starting', activeFsThemeState);
         }
       } else if (incomingEl === stage) {
         stage.classList.add('active');
         stage.style.display = '';
-        // Reanudar cámaras inmediatamente si la escena entrante es la principal
         simCamVideos.forEach(v => { if (v && v.src && v.paused) v.play().catch(() => {}); });
         if (simCamPipVideo && simCamPipVideo.src && simCamPipVideo.paused) {
           simCamPipVideo.play().catch(() => {});
         }
       }
-    }
-
-    // 2. Garantizar que la escena saliente continúe 100% visible de fondo durante el barrido
-    if (outgoingEl) {
-      outgoingEl.style.zIndex = '100';
-      outgoingEl.style.clipPath = '';
-      if (outgoingEl === stage) {
-        stage.style.display = '';
-        stage.classList.add('active');
-        // Asegurar que las cámaras sigan reproduciéndose sin interrupción ni parpadeo negro
-        simCamVideos.forEach(v => { if (v && v.src && v.paused) v.play().catch(() => {}); });
-        if (simCamPipVideo && simCamPipVideo.src && simCamPipVideo.paused) {
-          simCamPipVideo.play().catch(() => {});
+    } else if (!incomingEl && involvesFs && !involvesStage) {
+      // Cambio interno entre fullscreen y transicion a mitad de camino de la cortina (480ms)
+      setTimeout(() => {
+        if (isStingerActive && transitioningToScene === toScene) {
+          if (toScene === 'fullscreen') {
+            applyFsScene('ranking', activeFsThemeState);
+            if (currentRawRankingData) renderCurrentPage(false);
+          } else {
+            applyFsScene(nextState?.transitionSubScene || 'starting', activeFsThemeState);
+          }
         }
-      } else if (outgoingEl === fsOverlay) {
-        fsOverlay.style.display = 'block';
-        fsOverlay.classList.add('visible');
-        fsOverlay.style.opacity = '1';
-      }
+      }, 480);
     }
 
-    // 3. Disparar animaciones sincronizadas al trozo de tela de la cortina
+    // 3. Disparar animaciones sincronizadas al primer trozo de tela
     box.classList.remove('stinger-curtain-active');
-    void box.offsetWidth; // Forzar reflow a 60 FPS
+    void box.offsetWidth;
     box.classList.add('stinger-curtain-active');
 
     if (incomingEl) {
@@ -6707,10 +6802,15 @@
       incomingEl.classList.add('stinger-scene-wipe-in');
     }
 
-    // 4. Al finalizar el barrido completo (1080 ms), aplicar el estado final limpio
-    const endTransition = () => {
-      // Aplicar el estado DOM definitivo (clases del body y gestión de recursos)
-      applySceneDOM(nextState);
+    // 4. Temporizador único (1060ms): finalizar atómicamente y aplicar estado definitivo
+    activeStingerTimer = setTimeout(() => {
+      activeStingerTimer = null;
+      currentActiveScene = toScene;
+      transitioningToScene = null;
+      isStingerActive = false;
+
+      // Aplicar estado DOM final
+      applySceneDOM(pendingNextState || nextState);
 
       box.classList.remove('stinger-curtain-active');
       if (incomingEl) {
@@ -6719,19 +6819,23 @@
         incomingEl.style.zIndex = '';
       }
       if (outgoingEl) {
+        outgoingEl.style.clipPath = '';
         outgoingEl.style.zIndex = '';
       }
-      if (outgoingEl && outgoingEl === fsOverlay && nextScene === 'principal') {
-        outgoingEl.classList.remove('visible');
-        outgoingEl.style.display = 'none';
+      if (outgoingEl === fsOverlay && toScene === 'principal') {
+        fsOverlay.classList.remove('visible');
+        fsOverlay.style.display = 'none';
       }
       layer.style.display = 'none';
       box.style.transform = 'translate3d(-100%, 0, 0)';
-      document.body.classList.remove('is-stinger-in-progress');
-      isStingerActive = false;
-    };
+      video.pause();
+      video.currentTime = 0;
 
-    setTimeout(endTransition, 1080);
+      document.body.classList.remove('is-stinger-in-progress', 'stinger-involves-stage', 'stinger-involves-fs');
+      currentStingerIncomingEl = null;
+      currentStingerOutgoingEl = null;
+      pendingNextState = null;
+    }, 1060);
   }
 
   let simSceneForcedFs = false;
@@ -6740,6 +6844,7 @@
   function applySceneDOM(state) {
     const actScene = state.activeScene || 'principal';
     lastSimCamerasState = state;
+    currentActiveScene = actScene;
 
     if (actScene === 'fullscreen') {
       simSceneForcedFs = true;
@@ -6904,15 +7009,28 @@
   function applySimulatedCameras(state, forceDirect = false) {
     if (isDedicatedFullscreen || !state) return;
 
-    const prevScene = lastSimCamerasState ? (lastSimCamerasState.activeScene || 'principal') : null;
+    const prevScene = transitioningToScene || currentActiveScene || (lastSimCamerasState ? (lastSimCamerasState.activeScene || 'principal') : 'principal');
     const nextScene = state.activeScene || 'principal';
-    const isSceneChanged = !isFirstSimCamerasLoad && prevScene !== null && (prevScene !== nextScene || state.commuted);
+
+    // Si ya estamos en plena animación dirigiéndonos a nextScene, solo actualizar estado pendiente
+    if (isStingerActive && transitioningToScene === nextScene) {
+      pendingNextState = state;
+      return;
+    }
+
+    // El cambio de escena real SOLO ocurre si prevScene y nextScene son distintos
+    const isSceneChanged = !isFirstSimCamerasLoad && prevScene !== nextScene;
     isFirstSimCamerasLoad = false;
 
     if (isSceneChanged && !forceDirect && !urlParams.get('preview')) {
-      playStingerTransition(state, nextScene);
+      playStingerTransition(state, nextScene, prevScene);
     } else {
-      applySceneDOM(state);
+      if (prevScene === nextScene && isStingerActive) {
+        pendingNextState = state;
+      } else {
+        currentActiveScene = nextScene;
+        applySceneDOM(state);
+      }
     }
   }
 
@@ -6936,7 +7054,7 @@
     if (e.data && e.data.type === 'test-stinger') {
       const nextSc = e.data.target || 'fullscreen';
       const mockState = { ...(lastSimCamerasState || {}), activeScene: nextSc };
-      playStingerTransition(mockState, nextSc);
+      playStingerTransition(mockState, nextSc, currentActiveScene);
     }
   });
 
