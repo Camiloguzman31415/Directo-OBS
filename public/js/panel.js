@@ -621,6 +621,11 @@ async function commuteSimScenes() {
 }
 
 async function setSimBroadcastScene(scene, transitionSubScene) {
+  // Si la escena solicitada ya es la escena activa al aire y no hay cambio de sub-escena de transición,
+  // evitamos re-enviar la petición para no provocar re-renderizados ni rebotes innecesarios en la tabla
+  if (scene && simCamerasState && simCamerasState.activeScene === scene && !transitionSubScene) {
+    return;
+  }
   try {
     const payload = {};
     if (scene) payload.activeScene = scene;

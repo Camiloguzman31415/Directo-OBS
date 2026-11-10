@@ -1336,15 +1336,15 @@
     opacity: 0;
     pointer-events: none;
     overflow: hidden;
-    transform: scale(0.99);
-    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: none !important;
+    transition: opacity 0.2s ease;
     font-family: var(--font-text);
   }
 
   #fullscreen-ranking-overlay.visible {
     opacity: 1 !important;
     pointer-events: auto !important;
-    transform: scale(1) !important;
+    transform: none !important;
     display: block !important;
   }
 
@@ -2491,7 +2491,7 @@
     width: calc(50px + 46px + var(--fs-name-col-width, 360px) + 600px + 135px + 135px);
     max-width: 1350px;
     flex-shrink: 0;
-    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: width 0.2s ease;
   }
 
   /* Header de la Tabla (Pegado a la tabla como etiqueta / hoja de cálculo) */
@@ -2505,7 +2505,7 @@
     box-sizing: border-box;
     position: relative;
     z-index: 5;
-    transition: grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s ease;
+    transition: grid-template-columns 0.2s ease, height 0.2s ease;
   }
 
   .fs-head-spacer {
@@ -2594,26 +2594,23 @@
     overflow: hidden;
     position: relative;
     z-index: 2;
-    transition: opacity 0.26s cubic-bezier(0.4, 0, 0.2, 1), transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.2s ease;
   }
 
   .fs-rows-container.page-fade-out {
     opacity: 0;
-    transform: translateY(-8px) scale(0.995);
   }
 
   .fs-rows-container.page-fade-in {
-    animation: fsPageSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: fsPageSlideIn 0.25s ease forwards;
   }
 
   @keyframes fsPageSlideIn {
     0% {
       opacity: 0;
-      transform: translateY(8px) scale(0.995);
     }
     100% {
       opacity: 1;
-      transform: translateY(0) scale(1);
     }
   }
 
@@ -2625,7 +2622,7 @@
     background: rgba(14, 16, 20, 0.88);
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     box-sizing: border-box;
-    transition: background 0.15s ease, grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s ease;
+    transition: background 0.15s ease, grid-template-columns 0.2s ease, height 0.2s ease;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -6758,9 +6755,14 @@
         fsOverlay.style.display = 'block';
         fsOverlay.classList.add('visible');
         applyFsScene('ranking', activeFsThemeState);
+        // Si ya existen filas renderizadas en la tabla fullscreen, no re-generar el HTML
+        // para evitar que la tabla parpadee o ejecute animaciones de rebote repetitivas
+        const hasExistingRows = fsRowsContainer && fsRowsContainer.children.length > 0;
         if (currentRawRankingData) {
-          renderCurrentPage(false);
-          setTimeout(() => autoFitFullscreenTable(), 60);
+          if (!hasExistingRows) {
+            renderCurrentPage(false);
+            setTimeout(() => autoFitFullscreenTable(), 60);
+          }
         } else {
           fetch('/api/live/status')
             .then(r => r.json())
@@ -6914,6 +6916,12 @@
     // Si ya estamos en plena animación dirigiéndonos a nextScene, solo actualizar estado pendiente
     if (isStingerActive && transitioningToScene === nextScene) {
       pendingNextState = state;
+      return;
+    }
+
+    // Si la escena activa ya es nextScene y no hay cambio real, no-op total para evitar saltos o re-renderizados
+    if (!isFirstSimCamerasLoad && prevScene === nextScene && currentActiveScene === nextScene) {
+      lastSimCamerasState = state;
       return;
     }
 

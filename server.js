@@ -2273,6 +2273,7 @@ app.post('/api/sim-cameras', async (req, res) => {
 
   // Cambiar entre las 4 escenas principales: 'principal' | 'fullscreen' | 'transicion'
   if (activeScene) {
+    const prevActiveScene = simCamerasState.activeScene;
     simCamerasState.activeScene = activeScene;
     if (activeScene === 'transicion') {
       fsTheme.scene = simCamerasState.transitionSubScene || 'starting';
@@ -2317,17 +2318,20 @@ app.post('/api/sim-cameras', async (req, res) => {
           }))
         };
       }
-      broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
-      if (liveRankingData) {
-        broadcastToOverlays({
-          type: 'live_ranking_show',
-          data: liveRankingData,
-          dynamicPaging: liveRankingDynamicPaging,
-          autoBalance: liveRankingAutoBalance,
-          pageSize: liveRankingPageSize || 10,
-          pageDuration: liveRankingPageDuration,
-          viewMode: 'fullscreen'
-        });
+      // SOLO re-emitir live_ranking_show a los overlays si la escena REALMENTE cambió a fullscreen desde otra escena
+      if (prevActiveScene !== 'fullscreen') {
+        broadcastToOverlays({ type: 'fs_theme_updated', data: fsTheme });
+        if (liveRankingData) {
+          broadcastToOverlays({
+            type: 'live_ranking_show',
+            data: liveRankingData,
+            dynamicPaging: liveRankingDynamicPaging,
+            autoBalance: liveRankingAutoBalance,
+            pageSize: liveRankingPageSize || 10,
+            pageDuration: liveRankingPageDuration,
+            viewMode: 'fullscreen'
+          });
+        }
       }
     }
 
