@@ -1364,7 +1364,7 @@
     pointer-events: auto !important;
     transform: scale(1) !important;
     display: block !important;
-    z-index: 9999 !important;
+    z-index: 3000;
   }
 
   body:not(.is-fullscreen-page):not(.is-scene-fullscreen-active):not(.is-scene-transicion-active) #fullscreen-ranking-overlay:not(.visible) {
@@ -1397,22 +1397,9 @@
   }
 
   body.is-fullscreen-page #sim-cameras-stage,
-  body.is-scene-fullscreen-active:not(.is-stinger-in-progress) #sim-cameras-stage,
-  body.is-scene-transicion-active:not(.is-stinger-in-progress) #sim-cameras-stage {
+  body.is-scene-fullscreen-active #sim-cameras-stage,
+  body.is-scene-transicion-active #sim-cameras-stage {
     display: none !important;
-  }
-
-  /* Mientras la transición de stinger está activa, garantizar visibilidad continua de cámaras y overlays participantes sin pantallas negras */
-  body.is-stinger-in-progress.stinger-involves-stage #sim-cameras-stage {
-    display: block !important;
-  }
-  body.is-stinger-in-progress.stinger-involves-fs #fullscreen-ranking-overlay {
-    display: block !important;
-    opacity: 1 !important;
-  }
-  body.is-stinger-in-progress.stinger-involves-stage #banner,
-  body.is-stinger-in-progress.stinger-involves-stage #event-badge {
-    display: flex !important;
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3675,38 +3662,18 @@
     text-shadow: none !important;
   }
 
-  /* Transición Stinger Wipe Sincronizada con el trozo de tela */
-  @keyframes stingerCurtainWipe {
+  /* Animación de entrada de la cortina (350ms): entra desde la izquierda cubriendo la pantalla */
+  @keyframes stingerCurtainSlideIn {
     0% {
       transform: translate3d(-100%, 0, 0);
     }
-    48% {
+    100% {
       transform: translate3d(0, 0, 0);
     }
-    100% {
-      transform: translate3d(100%, 0, 0);
-    }
   }
 
-  @keyframes stingerSceneWipeIn {
-    0% {
-      clip-path: inset(0 100% 0 0);
-    }
-    48% {
-      clip-path: inset(0 0% 0 0);
-    }
-    100% {
-      clip-path: inset(0 0% 0 0);
-    }
-  }
-
-  .stinger-curtain-active {
-    animation: stingerCurtainWipe 1050ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
-  }
-
-  .stinger-scene-wipe-in {
-    animation: stingerSceneWipeIn 1050ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
-    will-change: clip-path;
+  .stinger-curtain-slide-in {
+    animation: stingerCurtainSlideIn 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   }
 </style>
 </head>
@@ -6603,9 +6570,8 @@
   let currentActiveScene = 'principal';
   let transitioningToScene = null;
   let activeStingerTimer = null;
+  let activeStingerCutTimer = null;
   let activeCurtainAudio = null;
-  let currentStingerIncomingEl = null;
-  let currentStingerOutgoingEl = null;
   let pendingNextState = null;
 
   function cleanupStingerArtifacts() {
@@ -6613,31 +6579,23 @@
       clearTimeout(activeStingerTimer);
       activeStingerTimer = null;
     }
+    if (activeStingerCutTimer) {
+      clearTimeout(activeStingerCutTimer);
+      activeStingerCutTimer = null;
+    }
     const layer = document.getElementById('master-stinger-layer');
     const box = document.getElementById('master-stinger-anim-box');
     const video = document.getElementById('master-stinger-video');
 
     if (box) {
-      box.classList.remove('stinger-curtain-active');
+      box.classList.remove('stinger-curtain-slide-in');
       box.style.transform = 'translate3d(-100%, 0, 0)';
     }
     if (video) {
       video.pause();
       video.currentTime = 0;
     }
-    if (currentStingerIncomingEl) {
-      currentStingerIncomingEl.classList.remove('stinger-scene-wipe-in');
-      currentStingerIncomingEl.style.clipPath = '';
-      currentStingerIncomingEl.style.zIndex = '';
-      currentStingerIncomingEl = null;
-    }
-    if (currentStingerOutgoingEl) {
-      currentStingerOutgoingEl.classList.remove('stinger-scene-wipe-in');
-      currentStingerOutgoingEl.style.clipPath = '';
-      currentStingerOutgoingEl.style.zIndex = '';
-      currentStingerOutgoingEl = null;
-    }
-    document.body.classList.remove('is-stinger-in-progress', 'stinger-involves-stage', 'stinger-involves-fs');
+    document.body.classList.remove('is-stinger-in-progress');
     if (layer) layer.style.display = 'none';
     isStingerActive = false;
     transitioningToScene = null;
@@ -6654,7 +6612,7 @@
     }
 
     // 2. Si ya hay una transición en curso, cancelarla atómicamente antes de iniciar la nueva
-    if (isStingerActive || activeStingerTimer) {
+    if (isStingerActive || activeStingerTimer || activeStingerCutTimer) {
       cleanupStingerArtifacts();
     }
 
@@ -6671,14 +6629,8 @@
     transitioningToScene = toScene;
     pendingNextState = nextState;
 
-    // Clases en body para que solo los elementos participantes estén visibles (evita fantasmas de cámaras)
-    document.body.classList.add('is-stinger-in-progress');
-    const involvesStage = (fromScene === 'principal' || toScene === 'principal');
-    const involvesFs = (fromScene === 'fullscreen' || fromScene === 'transicion' || toScene === 'fullscreen' || toScene === 'transicion');
-    if (involvesStage) document.body.classList.add('stinger-involves-stage');
-    if (involvesFs) document.body.classList.add('stinger-involves-fs');
-
     layer.style.display = 'block';
+    document.body.classList.add('is-stinger-in-progress');
 
     // Audio sincronizado de la cortina (detener el previo si había)
     try {
@@ -6691,151 +6643,59 @@
       activeCurtainAudio.play().catch(() => {});
     } catch {}
 
-    // Video de la ovejita y la cortina roja (reanudar desde t=0)
+    // Video de la ovejita y la cortina roja (iniciar desde t=0)
     video.currentTime = 0;
     video.play().catch(() => {
       video.muted = true;
       video.play().catch(() => {});
     });
 
-    const stage = ensureSimCamStage();
-    let incomingEl = null;
-    let outgoingEl = null;
-
-    if (fromScene === 'principal' && (toScene === 'fullscreen' || toScene === 'transicion')) {
-      outgoingEl = stage;
-      incomingEl = fsOverlay;
-    } else if ((fromScene === 'fullscreen' || fromScene === 'transicion') && toScene === 'principal') {
-      outgoingEl = fsOverlay;
-      incomingEl = stage;
-    } else if (fromScene !== toScene && involvesFs && !involvesStage) {
-      // Transición entre fullscreen y transicion (ambas usan fsOverlay internamente)
-      outgoingEl = fsOverlay;
-      incomingEl = null;
-    }
-
-    currentStingerIncomingEl = incomingEl;
-    currentStingerOutgoingEl = outgoingEl;
-
-    // 1. Preparar la escena saliente (permanece 100% visible de fondo en z-index: 100)
-    if (outgoingEl) {
-      outgoingEl.style.zIndex = '100';
-      outgoingEl.style.clipPath = '';
-      if (outgoingEl === stage) {
-        stage.style.display = '';
-        stage.classList.add('active');
-        simCamVideos.forEach(v => { if (v && v.src && v.paused) v.play().catch(() => {}); });
-        if (simCamPipVideo && simCamPipVideo.src && simCamPipVideo.paused) {
-          simCamPipVideo.play().catch(() => {});
-        }
-      } else if (outgoingEl === fsOverlay) {
-        fsOverlay.style.display = 'block';
-        fsOverlay.classList.add('visible');
-        fsOverlay.style.opacity = '1';
-      }
-    }
-
-    // 2. Preparar la escena entrante (oculta detrás de su máscara inicial en z-index: 9000)
-    if (incomingEl) {
-      incomingEl.classList.remove('stinger-scene-wipe-in');
-      incomingEl.style.clipPath = 'inset(0 100% 0 0)';
-      incomingEl.style.zIndex = '9000';
-      incomingEl.style.display = 'block';
-      if (incomingEl === fsOverlay) {
-        fsOverlay.classList.add('visible');
-        fsOverlay.style.opacity = '1';
-        if (toScene === 'fullscreen') {
-          applyFsScene('ranking', activeFsThemeState);
-          if (currentRawRankingData) {
-            renderCurrentPage(false);
-            setTimeout(() => autoFitFullscreenTable(), 60);
-          } else {
-            fetch('/api/live/status')
-              .then(r => r.json())
-              .then(st => {
-                if (st && st.data) {
-                  renderLiveRanking({
-                    data: st.data,
-                    dynamicPaging: st.dynamicPaging,
-                    autoBalance: st.autoBalance,
-                    pageSize: st.pageSize,
-                    pageDuration: st.pageDuration,
-                    viewMode: 'fullscreen'
-                  });
-                  setTimeout(() => autoFitFullscreenTable(), 60);
-                }
-              })
-              .catch(() => {});
-          }
-        } else if (toScene === 'transicion') {
-          applyFsScene(nextState?.transitionSubScene || 'starting', activeFsThemeState);
-        }
-      } else if (incomingEl === stage) {
-        stage.classList.add('active');
-        stage.style.display = '';
-        simCamVideos.forEach(v => { if (v && v.src && v.paused) v.play().catch(() => {}); });
-        if (simCamPipVideo && simCamPipVideo.src && simCamPipVideo.paused) {
-          simCamPipVideo.play().catch(() => {});
-        }
-      }
-    } else if (!incomingEl && involvesFs && !involvesStage) {
-      // Cambio interno entre fullscreen y transicion a mitad de camino de la cortina (480ms)
-      setTimeout(() => {
-        if (isStingerActive && transitioningToScene === toScene) {
-          if (toScene === 'fullscreen') {
-            applyFsScene('ranking', activeFsThemeState);
-            if (currentRawRankingData) renderCurrentPage(false);
-          } else {
-            applyFsScene(nextState?.transitionSubScene || 'starting', activeFsThemeState);
-          }
-        }
-      }, 480);
-    }
-
-    // 3. Disparar animaciones sincronizadas al primer trozo de tela
-    box.classList.remove('stinger-curtain-active');
+    // Disparar animación de entrada: la cortina roja entra por la izquierda tapando la escena saliente
+    box.classList.remove('stinger-curtain-slide-in');
+    box.style.transform = 'translate3d(-100%, 0, 0)';
     void box.offsetWidth;
-    box.classList.add('stinger-curtain-active');
+    box.classList.add('stinger-curtain-slide-in');
 
-    if (incomingEl) {
-      void incomingEl.offsetWidth;
-      incomingEl.classList.add('stinger-scene-wipe-in');
-    }
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // EL PUNTO DE TRANSICIÓN (CUT POINT A LOS 350 MS):
+    // La cortina roja cubre 100% de la pantalla (de x=0 a x=1920, frame 10).
+    // Conmutamos la escena en el DOM de forma completamente invisible.
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    activeStingerCutTimer = setTimeout(() => {
+      activeStingerCutTimer = null;
+      if (!isStingerActive) return;
 
-    // 4. Temporizador único (1060ms): finalizar atómicamente y aplicar estado definitivo
+      // El box se queda quieto en el centro
+      box.classList.remove('stinger-curtain-slide-in');
+      box.style.transform = 'translate3d(0, 0, 0)';
+
+      // Aplicar el nuevo estado de la escena entrante
+      applySceneDOM(pendingNextState || nextState);
+      currentActiveScene = toScene;
+
+      // A partir de este momento, el video alcanza el frame 11 donde la oveja
+      // empieza a jalar la cortina hacia la derecha, descubriendo la nueva escena
+      // de izquierda a derecha de forma natural a través de su canal alfa.
+    }, 350);
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // FIN DE LA TRANSICIÓN (A LOS 1450 MS):
+    // La ovejita y la cortina salieron completamente por la derecha.
+    // Ocultar capa del stinger y dejar la nueva escena 100% limpia.
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     activeStingerTimer = setTimeout(() => {
       activeStingerTimer = null;
-      currentActiveScene = toScene;
       transitioningToScene = null;
       isStingerActive = false;
 
-      // Aplicar estado DOM final
-      applySceneDOM(pendingNextState || nextState);
-
-      box.classList.remove('stinger-curtain-active');
-      if (incomingEl) {
-        incomingEl.classList.remove('stinger-scene-wipe-in');
-        incomingEl.style.clipPath = '';
-        incomingEl.style.zIndex = '';
-      }
-      if (outgoingEl) {
-        outgoingEl.style.clipPath = '';
-        outgoingEl.style.zIndex = '';
-      }
-      if (outgoingEl === fsOverlay && toScene === 'principal') {
-        fsOverlay.classList.remove('visible');
-        fsOverlay.style.display = 'none';
-      }
       layer.style.display = 'none';
       box.style.transform = 'translate3d(-100%, 0, 0)';
       video.pause();
       video.currentTime = 0;
 
-      document.body.classList.remove('is-stinger-in-progress', 'stinger-involves-stage', 'stinger-involves-fs');
-      currentStingerIncomingEl = null;
-      currentStingerOutgoingEl = null;
+      document.body.classList.remove('is-stinger-in-progress');
       pendingNextState = null;
-    }, 1060);
+    }, 1450);
   }
 
   let simSceneForcedFs = false;
