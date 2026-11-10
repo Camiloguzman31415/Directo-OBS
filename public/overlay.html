@@ -6571,9 +6571,9 @@
   let transitioningToScene = null;
   let activeStingerTimer = null;
   let activeStingerCutTimer = null;
-  const curtainTransitionAudio = new Audio('/audio/sonido%20cortina.mp3');
+  const curtainTransitionAudio = new Audio('/audio/sonido%20cortina.mp3?v=3');
   curtainTransitionAudio.preload = 'auto';
-  curtainTransitionAudio.volume = 0.9;
+  curtainTransitionAudio.volume = 1.0;
   try { curtainTransitionAudio.load(); } catch {}
   let pendingNextState = null;
 
@@ -6643,7 +6643,7 @@
     try {
       curtainTransitionAudio.pause();
       curtainTransitionAudio.currentTime = 0;
-      curtainTransitionAudio.volume = 0.95;
+      curtainTransitionAudio.volume = 1.0;
       const playPromise = curtainTransitionAudio.play();
       if (playPromise && playPromise.catch) {
         playPromise.catch(() => {});
