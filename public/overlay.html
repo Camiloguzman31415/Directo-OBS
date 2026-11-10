@@ -3675,6 +3675,13 @@
   .stinger-curtain-slide-in {
     animation: stingerCurtainSlideIn 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   }
+
+  #master-stinger-layer {
+    transition: none !important;
+  }
+  #master-stinger-anim-box {
+    transition: none;
+  }
 </style>
 </head>
 <body>
@@ -6600,10 +6607,15 @@
     }
     if (video) {
       video.pause();
-      video.currentTime = 0;
+      // NOTA: No hacemos video.currentTime = 0 aquí para evitar que el frame 0 (rojo)
+      // se decodifique en la GPU antes de que Chromium complete el desmonte de la capa.
     }
     document.body.classList.remove('is-stinger-in-progress');
-    if (layer) layer.style.display = 'none';
+    if (layer) {
+      layer.style.display = 'none';
+      layer.style.visibility = 'hidden';
+      layer.style.opacity = '0';
+    }
     isStingerActive = false;
     transitioningToScene = null;
   }
@@ -6636,7 +6648,26 @@
     transitioningToScene = toScene;
     pendingNextState = nextState;
 
+    // Asegurar que la capa esté completamente invisible y fuera de pantalla ANTES de rebobinar el video a 0
+    layer.style.display = 'none';
+    layer.style.visibility = 'hidden';
+    layer.style.opacity = '0';
+    box.classList.remove('stinger-curtain-slide-in');
+    box.style.transform = 'translate3d(-100%, 0, 0)';
+
+    // Resetear el video al frame 0 únicamente mientras la capa está 100% oculta y fuera de pantalla
+    try {
+      video.pause();
+      video.currentTime = 0;
+    } catch {}
+
+    // Forzar reflow en estado oculto
+    void box.offsetWidth;
+
+    // Mostrar la capa con el box en -100% (fuera de pantalla a la izquierda)
     layer.style.display = 'block';
+    layer.style.visibility = 'visible';
+    layer.style.opacity = '1';
     document.body.classList.add('is-stinger-in-progress');
 
     // Audio sincronizado de la cortina (reproducción instantánea desde buffer en memoria)
@@ -6652,13 +6683,10 @@
 
     // Video de la ovejita y la cortina roja (estrictamente mudo; el audio va por curtainTransitionAudio)
     video.muted = true;
-    video.currentTime = 0;
-    video.play().catch(() => {});
+    const vp = video.play();
+    if (vp && vp.catch) vp.catch(() => {});
 
     // Disparar animación de entrada: la cortina roja entra por la izquierda tapando la escena saliente
-    box.classList.remove('stinger-curtain-slide-in');
-    box.style.transform = 'translate3d(-100%, 0, 0)';
-    void box.offsetWidth;
     box.classList.add('stinger-curtain-slide-in');
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -6684,7 +6712,7 @@
     }, 350);
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // FIN DE LA TRANSICIÓN (A LOS 1450 MS):
+    // FIN DE LA TRANSICIÓN (A LOS 1420 MS):
     // La ovejita y la cortina salieron completamente por la derecha.
     // Ocultar capa del stinger y dejar la nueva escena 100% limpia.
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -6693,14 +6721,20 @@
       transitioningToScene = null;
       isStingerActive = false;
 
+      // Triple garantía de ocultación atómica inmediata
       layer.style.display = 'none';
+      layer.style.visibility = 'hidden';
+      layer.style.opacity = '0';
+      box.classList.remove('stinger-curtain-slide-in');
       box.style.transform = 'translate3d(-100%, 0, 0)';
+
+      // Pausar el video en su último frame (que es 100% transparente).
+      // NUNCA hacer video.currentTime = 0 aquí para prevenir carreras de renderizado en Chromium/GPU.
       video.pause();
-      video.currentTime = 0;
 
       document.body.classList.remove('is-stinger-in-progress');
       pendingNextState = null;
-    }, 1450);
+    }, 1420);
   }
 
   let simSceneForcedFs = false;
@@ -6927,7 +6961,7 @@
 </script>
 
 <!-- Capa Master Stinger de Transición Broadcast (Ovejita con Cortina Roja) -->
-<div id="master-stinger-layer" style="position: fixed; inset: 0; width: 1920px; height: 1080px; z-index: 99999; pointer-events: none; overflow: hidden; display: none;">
+<div id="master-stinger-layer" style="position: fixed; inset: 0; width: 1920px; height: 1080px; z-index: 99999; pointer-events: none; overflow: hidden; display: none; visibility: hidden; opacity: 0;">
   <div id="master-stinger-anim-box" style="position: absolute; inset: 0; width: 1920px; height: 1080px; will-change: transform; transform: translate3d(-100%, 0, 0);">
     <video id="master-stinger-video" src="/videos/cortina_transparente.webm" muted playsinline preload="auto" style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
   </div>
