@@ -315,13 +315,16 @@ function handleServerMessage(msg) {
         loadLiveCompetitionRounds(targetRoundId, true);
       }
 
+      if (msg.isLiveRankingMockActive !== undefined) isRankingMockActive = !!msg.isLiveRankingMockActive;
+      if (msg.liveRankingMockPreset) rankingMockPreset = msg.liveRankingMockPreset;
       if (msg.liveRankingData) {
         liveRankingData = msg.liveRankingData;
         renderLiveRankingPreview(liveRankingData);
-      } else if (targetRoundId) {
+      } else if (targetRoundId && !isRankingMockActive) {
         fetchLiveRoundRanking(targetRoundId, false);
       }
       updateLiveRankingUI();
+      updateRankingMockUI();
 
       // Hidratar estado de Banner Versus
       if (msg.versusBannerVisible !== undefined) versusBannerVisible = !!msg.versusBannerVisible;
@@ -493,6 +496,8 @@ function handleServerMessage(msg) {
 
     case 'sync_live_ranking':
       liveRankingVisible = !!msg.visible;
+      if (msg.isMock !== undefined) isRankingMockActive = !!msg.isMock;
+      if (msg.mockPreset) rankingMockPreset = msg.mockPreset;
       if (msg.data) {
         liveRankingData = msg.data;
         renderLiveRankingPreview(liveRankingData);
@@ -537,6 +542,7 @@ function handleServerMessage(msg) {
         if (pillDemo) pillDemo.style.display = 'none';
       }
       updateLiveRankingUI();
+      updateRankingMockUI();
       break;
 
     case 'live_ranking_updated':
@@ -4201,13 +4207,13 @@ function updateViewModeButtons() {
 }
 
 function sendShowLiveRanking() {
-  if (!liveRankingSelectedRoundId) {
-    showToast('Selecciona o carga una ronda de WCA Live primero', 'warning');
+  if (!liveRankingSelectedRoundId && !isRankingMockActive) {
+    showToast('Selecciona una ronda de WCA Live o usa "Mockear Tabla"', 'warning');
     return;
   }
 
-  // Si no tenemos datos aún, intentar cargar y luego mostrar
-  if (!liveRankingData) {
+  // Si no tenemos datos aún y no es mock, intentar cargar y luego mostrar
+  if (!liveRankingData && !isRankingMockActive) {
     fetchLiveRoundRanking(liveRankingSelectedRoundId).then(() => {
       sendWS({
         type: 'live_ranking_show',
@@ -4232,21 +4238,21 @@ function sendShowLiveRanking() {
 
   sendWS({
     type: 'live_ranking_show',
-    roundId: liveRankingSelectedRoundId,
-    compId: liveRankingCompId,
+    roundId: liveRankingSelectedRoundId || 'mock_ranking_round',
+    compId: liveRankingCompId || 'mock_comp',
     top: liveRankingTop,
     pageSize: liveRankingTop,
     pageDuration: liveRankingPageDuration,
     dynamicPaging: liveRankingDynamicPaging,
     autoBalance: liveRankingAutoBalance,
     cutoff: liveRankingCutoff,
-    pollInterval: liveRankingPollInterval,
+    pollInterval: isRankingMockActive ? 0 : liveRankingPollInterval,
     viewMode: liveRankingViewMode,
     data: liveRankingData
   });
   liveRankingVisible = true;
   updateLiveRankingUI();
-  showToast('Ranking en Vivo AL AIRE en OBS', 'success');
+  showToast(isRankingMockActive ? 'Tabla de Clasificación (Mock) AL AIRE en OBS' : 'Ranking en Vivo AL AIRE en OBS', 'success');
 }
 
 function sendHideLiveRanking() {
@@ -6018,6 +6024,137 @@ function updateVersusMockUI() {
   stepBtns.forEach(btn => {
     const s = parseInt(btn.getAttribute('data-step'), 10);
     if (s === versusMockStep && isVersusMockActive) {
+      btn.classList.add('is-active', 'admin-btn--primary');
+      btn.classList.remove('admin-btn--ghost');
+    } else {
+      btn.classList.remove('is-active', 'admin-btn--primary');
+      btn.classList.add('admin-btn--ghost');
+    }
+  });
+}
+
+// ═════════════════════════════════════════════════════════════════
+// HERRAMIENTAS DE MOCK Y SIMULACIÓN PARA TABLA DE CLASIFICACIÓN
+// ═════════════════════════════════════════════════════════════════
+let isRankingMockActive = false;
+let rankingMockPreset = 'world_finals';
+
+function toggleRankingMockSection() {
+  const box = document.getElementById('ranking-mock-box');
+  const btn = document.getElementById('btn-toggle-ranking-mock');
+  if (!box) return;
+  const isHidden = box.style.display === 'none';
+  box.style.display = isHidden ? 'flex' : 'none';
+  if (btn) {
+    if (isHidden) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  }
+}
+
+async function triggerRankingMock(preset = 'world_finals') {
+  try {
+    rankingMockPreset = preset;
+    isRankingMockActive = true;
+    showToast(`Cargando mock de clasificación: ${preset.toUpperCase()}...`, 'info');
+
+    const res = await fetch('/api/live/ranking/mock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        preset,
+        top: liveRankingTop,
+        cutoff: liveRankingCutoff,
+        viewMode: liveRankingViewMode,
+        visible: liveRankingVisible
+      })
+    });
+    const d = await res.json();
+    if (d.ok && d.data) {
+      liveRankingData = d.data;
+      renderLiveRankingPreview(liveRankingData);
+      updatePagingSummary();
+      updateRankingMockUI();
+      updateLiveRankingUI();
+      showToast('¡Tabla de clasificación mock cargada con éxito!', 'success');
+    }
+  } catch (err) {
+    showToast('Error cargando mock de clasificación: ' + err.message, 'error');
+  }
+}
+
+async function setRankingMockCutoff(cutoff) {
+  try {
+    liveRankingCutoff = parseInt(cutoff, 10) || 0;
+    const cutoffInput = document.getElementById('live-cutoff-input');
+    if (cutoffInput) cutoffInput.value = liveRankingCutoff;
+
+    const res = await fetch('/api/live/ranking/mock/cutoff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cutoff: liveRankingCutoff })
+    });
+    const d = await res.json();
+    if (d.ok && d.data) {
+      liveRankingData = d.data;
+      renderLiveRankingPreview(liveRankingData);
+      updatePagingSummary();
+      updateRankingMockUI();
+      showToast(`Corte establecido en: ${liveRankingCutoff === 0 ? 'Sin corte' : 'Top ' + liveRankingCutoff}`, 'info');
+    }
+  } catch (err) {
+    showToast('Error actualizando corte: ' + err.message, 'error');
+  }
+}
+
+async function resetRankingMock() {
+  try {
+    isRankingMockActive = false;
+    const res = await fetch('/api/live/ranking/mock/reset', { method: 'POST' });
+    const d = await res.json();
+    if (d.ok) {
+      liveRankingData = d.data;
+      renderLiveRankingPreview(liveRankingData);
+      updatePagingSummary();
+      updateRankingMockUI();
+      updateLiveRankingUI();
+      showToast('Mock de clasificación desactivado. Restaurado estado de WCA Live.', 'info');
+    }
+  } catch (err) {
+    showToast('Error restableciendo mock: ' + err.message, 'error');
+  }
+}
+
+function updateRankingMockUI() {
+  const badge = document.getElementById('ranking-mock-badge');
+  if (badge) {
+    badge.style.display = isRankingMockActive ? 'inline-flex' : 'none';
+    if (isRankingMockActive) {
+      const pName = rankingMockPreset === 'world_finals' ? 'FINAL MUNDIAL' :
+                    rankingMockPreset === 'colombia_nationals' ? 'PAIPA 2026' : 'EN CURSO';
+      badge.textContent = `MOCK: ${pName}`;
+    }
+  }
+
+  // Resaltar preset activo
+  const btnWorld = document.getElementById('btn-mock-rf-world');
+  const btnCol = document.getElementById('btn-mock-rf-col');
+  const btnProg = document.getElementById('btn-mock-rf-prog');
+
+  [btnWorld, btnCol, btnProg].forEach(b => b?.classList.remove('is-active', 'admin-btn--primary'));
+  if (isRankingMockActive) {
+    if (rankingMockPreset === 'world_finals' && btnWorld) btnWorld.classList.add('is-active', 'admin-btn--primary');
+    else if (rankingMockPreset === 'colombia_nationals' && btnCol) btnCol.classList.add('is-active', 'admin-btn--primary');
+    else if (rankingMockPreset === 'in_progress' && btnProg) btnProg.classList.add('is-active', 'admin-btn--primary');
+  }
+
+  // Resaltar botón de corte activo
+  const cutoffBtns = document.querySelectorAll('#ranking-mock-cutoff-btns button');
+  cutoffBtns.forEach(btn => {
+    const c = parseInt(btn.getAttribute('data-cutoff'), 10);
+    if (c === liveRankingCutoff) {
       btn.classList.add('is-active', 'admin-btn--primary');
       btn.classList.remove('admin-btn--ghost');
     } else {

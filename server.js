@@ -20,7 +20,8 @@ import {
   fetchLiveRoundRanking,
   resolveWcaLiveId,
   calculateAo5Stats,
-  fetchLiveVersusData
+  fetchLiveVersusData,
+  formatWcaTime
 } from './server/wcaLiveService.js';
 import {
   startFinalsDemo,
@@ -379,6 +380,10 @@ if (liveRankingRoundId) {
       console.warn(`[LiveRanking] No se pudo precargar ranking para ${liveRankingRoundId}:`, err.message);
     });
 }
+
+// Variables de Mock para Tabla de Clasificación en Vivo
+let isLiveRankingMockActive = false;
+let currentLiveRankingMockPreset = 'world_finals';
 
 // ── Polling y Gestión en Tiempo Real de Banner de Finales Versus (WCA Live) ──
 let isVersusPollingInFlight = false;
@@ -1048,6 +1053,8 @@ app.get('/api/live/status', (req, res) => {
     pageSize: liveRankingPageSize,
     pageDuration: liveRankingPageDuration,
     viewMode: liveRankingViewMode,
+    isMock: isLiveRankingMockActive,
+    mockPreset: currentLiveRankingMockPreset,
     data: liveRankingData,
     fsTheme: fsTheme
   });
@@ -1307,6 +1314,527 @@ app.post('/api/versus/refresh', async (req, res) => {
   try {
     await refreshVersusData();
     res.json({ ok: true, data: versusData });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// ── Generador de Datos Mock para Tabla de Clasificación ──
+function generateMockRankingData(preset = 'world_finals', overrides = {}) {
+  const eventId = overrides.eventId || '333';
+  const eventName = overrides.eventName || '3x3x3 Cube';
+  let roundName = 'Final';
+  let roundNumber = 4;
+  let totalRounds = 4;
+  let competitionName = 'WCA World Championship Paipa 2026';
+  let advancingCutoff = overrides.cutoff !== undefined ? overrides.cutoff : 0;
+  let isOpen = false;
+  let isFinished = true;
+  let rawList = [];
+
+  if (preset === 'world_finals') {
+    roundName = 'Final';
+    competitionName = tournamentData?.name || 'WCA World Championship Paipa 2026';
+    if (advancingCutoff === undefined || advancingCutoff === 0) advancingCutoff = 4;
+    rawList = [
+      {
+        name: 'Tymon Kolasiński',
+        wcaId: '2016KOLA02',
+        countryIso2: 'pl',
+        rawAttempts: [412, 478, 495, 485, 520],
+        average: 486,
+        best: 412,
+        singleRecordTag: 'WR',
+        averageRecordTag: 'WR'
+      },
+      {
+        name: 'Max Park',
+        wcaId: '2012PARK03',
+        countryIso2: 'us',
+        rawAttempts: [431, 512, 498, 496, 545],
+        average: 502,
+        best: 431,
+        averageRecordTag: 'CR'
+      },
+      {
+        name: 'Yiheng Wang (王艺衡)',
+        wcaId: '2019WANG68',
+        countryIso2: 'cn',
+        rawAttempts: [415, 504, 511, 512, 580],
+        average: 509,
+        best: 415
+      },
+      {
+        name: 'Luke Garrett',
+        wcaId: '2017GARR05',
+        countryIso2: 'us',
+        rawAttempts: [480, 525, 550, 569, 588],
+        average: 548,
+        best: 480
+      },
+      {
+        name: 'Sean Patrick Sanchez',
+        wcaId: '2018SANC03',
+        countryIso2: 'ph',
+        rawAttempts: [490, 540, 570, 576, 610],
+        average: 562,
+        best: 490,
+        averageRecordTag: 'NR'
+      },
+      {
+        name: 'Ruihang Xu (许瑞航)',
+        wcaId: '2017XUHA01',
+        countryIso2: 'cn',
+        rawAttempts: [498, 562, 582, 581, 625],
+        average: 575,
+        best: 498
+      },
+      {
+        name: 'Nahm Sung-Hyuk (남성혁)',
+        wcaId: '2016SUNG01',
+        countryIso2: 'kr',
+        rawAttempts: [510, 585, 592, 590, 640],
+        average: 589,
+        best: 510,
+        averageRecordTag: 'NR'
+      },
+      {
+        name: 'Yezhen Han (韩业臻)',
+        wcaId: '2019HANY01',
+        countryIso2: 'cn',
+        rawAttempts: [515, 590, 595, 597, 630],
+        average: 594,
+        best: 515
+      },
+      {
+        name: 'Patrick Ponce',
+        wcaId: '2012PONC02',
+        countryIso2: 'us',
+        rawAttempts: [520, 605, 612, 613, 650],
+        average: 610,
+        best: 520
+      },
+      {
+        name: 'Matty Hiroto Inaba',
+        wcaId: '2016INAB01',
+        countryIso2: 'us',
+        rawAttempts: [530, 615, 620, 619, 660],
+        average: 618,
+        best: 530
+      },
+      {
+        name: 'Alexandre Carlier',
+        wcaId: '2014CARL02',
+        countryIso2: 'fr',
+        rawAttempts: [540, 618, 625, 623, 675],
+        average: 622,
+        best: 540,
+        averageRecordTag: 'NR'
+      },
+      {
+        name: 'Kyle Santucci',
+        wcaId: '2017SANT23',
+        countryIso2: 'ca',
+        rawAttempts: [550, 630, 638, 637, 680],
+        average: 635,
+        best: 550
+      }
+    ];
+  } else if (preset === 'colombia_nationals') {
+    roundName = 'Semifinal';
+    roundNumber = 3;
+    competitionName = tournamentData?.name || 'Colombian Nationals Paipa 2026';
+    if (advancingCutoff === undefined || advancingCutoff === 0) advancingCutoff = 8;
+    const comps = (tournamentData && Array.isArray(tournamentData.competitors)) ? tournamentData.competitors.slice(0, 16) : [];
+    const mockRoster = [
+      { name: 'Andrés Felipe Cuervo', wcaId: '2014CUER01', iso2: 'co', avg: 785 },
+      { name: 'Camilo Andrés Guzmán', wcaId: '2017PENA05', iso2: 'co', avg: 820 },
+      { name: 'Juan Camilo Neira', wcaId: '2016NEIR01', iso2: 'co', avg: 865 },
+      { name: 'Santiago Hernández', wcaId: '2018HERN02', iso2: 'co', avg: 890 },
+      { name: 'David Alejandro Moreno', wcaId: '2019MORE04', iso2: 'co', avg: 925 },
+      { name: 'Carlos Mario López', wcaId: '2015LOPE03', iso2: 'co', avg: 960 },
+      { name: 'Felipe Gómez Silva', wcaId: '2017GOME05', iso2: 'co', avg: 980 },
+      { name: 'Sebastián Patiño', wcaId: '2018PATI01', iso2: 'co', avg: 1015 },
+      { name: 'Mateo Restrepo', wcaId: '2016REST02', iso2: 'co', avg: 1045 },
+      { name: 'Daniel Esteban Silva', wcaId: '2017SILV03', iso2: 'co', avg: 1080 },
+      { name: 'Nicolás Jaramillo', wcaId: '2019JARA01', iso2: 'co', avg: 1120 },
+      { name: 'Alejandro Morales', wcaId: '2015MORA04', iso2: 'co', avg: 1150 },
+      { name: 'Julián David Castro', wcaId: '2018CAST06', iso2: 'co', avg: 1195 },
+      { name: 'Esteban Martínez', wcaId: '2016MART10', iso2: 'co', avg: 1240 },
+      { name: 'Samuel Rojas Díaz', wcaId: '2019ROJA02', iso2: 'co', avg: 1290 },
+      { name: 'Gabriel Pardo Niño', wcaId: '2017PARD03', iso2: 'co', avg: 1350 }
+    ];
+
+    rawList = mockRoster.map((mn, idx) => {
+      const realComp = comps[idx];
+      const baseAvg = mn.avg;
+      const b = Math.round(baseAvg * 0.86);
+      const s1 = Math.round(baseAvg * 0.93);
+      const s2 = Math.round(baseAvg * 0.98);
+      const s3 = Math.round(baseAvg * 1.01);
+      const s4 = Math.round(baseAvg * 1.04);
+      const s5 = Math.round(baseAvg * 1.14);
+      return {
+        name: realComp?.name || mn.name,
+        wcaId: realComp?.wcaId || mn.wcaId,
+        countryIso2: (realComp?.countryIso2 || mn.iso2).toLowerCase(),
+        rawAttempts: [s1, s2, s3, s4, s5],
+        average: baseAvg,
+        best: b,
+        singleRecordTag: idx === 0 ? 'NR' : idx === 1 ? 'PR' : null,
+        averageRecordTag: idx === 0 ? 'NR' : null
+      };
+    });
+  } else if (preset === 'in_progress') {
+    roundName = 'Ronda 1';
+    roundNumber = 1;
+    competitionName = tournamentData?.name || 'Colombian Nationals Paipa 2026';
+    isOpen = true;
+    isFinished = false;
+    if (advancingCutoff === undefined || advancingCutoff === 0) advancingCutoff = 8;
+    rawList = [
+      {
+        name: 'Tymon Kolasiński',
+        wcaId: '2016KOLA02',
+        countryIso2: 'pl',
+        rawAttempts: [425, 480, 490, 488, 515],
+        average: 486,
+        best: 425,
+        solvesCount: 5
+      },
+      {
+        name: 'Max Park',
+        wcaId: '2012PARK03',
+        countryIso2: 'us',
+        rawAttempts: [435, 510, 502, 505, 550],
+        average: 506,
+        best: 435,
+        solvesCount: 5
+      },
+      {
+        name: 'Yiheng Wang (王艺衡)',
+        wcaId: '2019WANG68',
+        countryIso2: 'cn',
+        rawAttempts: [418, 505, 512, 515, 0],
+        average: 511,
+        best: 418,
+        solvesCount: 4,
+        inProgress: true,
+        podiumTargets: [
+          { label: 'Oro', color: 'gold', maxSolveFormatted: '4.32' },
+          { label: 'Plata', color: 'silver', maxSolveFormatted: '4.85' },
+          { label: 'Bronce', color: 'bronze', maxSolveFormatted: '5.40' }
+        ]
+      },
+      {
+        name: 'Luke Garrett',
+        wcaId: '2017GARR05',
+        countryIso2: 'us',
+        rawAttempts: [485, 530, 545, 560, 0],
+        average: 545,
+        best: 485,
+        solvesCount: 4,
+        inProgress: true,
+        podiumTargets: [
+          { label: 'Bronce', color: 'bronze', maxSolveFormatted: '4.95' }
+        ]
+      },
+      {
+        name: 'Sean Patrick Sanchez',
+        wcaId: '2018SANC03',
+        countryIso2: 'ph',
+        rawAttempts: [495, 550, 565, 0, 0],
+        average: 570,
+        best: 495,
+        solvesCount: 3,
+        inProgress: true
+      },
+      {
+        name: 'Andrés Felipe Cuervo',
+        wcaId: '2014CUER01',
+        countryIso2: 'co',
+        rawAttempts: [780, 810, 825, 830, 0],
+        average: 822,
+        best: 780,
+        solvesCount: 4,
+        inProgress: true
+      },
+      {
+        name: 'Camilo Andrés Guzmán',
+        wcaId: '2017PENA05',
+        countryIso2: 'co',
+        rawAttempts: [815, 830, 840, 0, 0],
+        average: 835,
+        best: 815,
+        solvesCount: 3,
+        inProgress: true
+      },
+      {
+        name: 'Juan Camilo Neira',
+        wcaId: '2016NEIR01',
+        countryIso2: 'co',
+        rawAttempts: [850, 875, 0, 0, 0],
+        average: 875,
+        best: 850,
+        solvesCount: 2,
+        inProgress: true
+      },
+      {
+        name: 'Santiago Hernández',
+        wcaId: '2018HERN02',
+        countryIso2: 'co',
+        rawAttempts: [890, 0, 0, 0, 0],
+        average: null,
+        best: 890,
+        solvesCount: 1,
+        inProgress: true
+      },
+      {
+        name: 'David Alejandro Moreno',
+        wcaId: '2019MORE04',
+        countryIso2: 'co',
+        rawAttempts: [920, 0, 0, 0, 0],
+        average: null,
+        best: 920,
+        solvesCount: 1,
+        inProgress: true
+      }
+    ];
+  }
+
+  const finalCutoff = overrides.cutoff !== undefined ? overrides.cutoff : advancingCutoff;
+
+  const rankingList = rawList.map((r, idx) => {
+    const rawAttempts = r.rawAttempts || [0, 0, 0, 0, 0];
+    const completedSolves = r.solvesCount !== undefined ? r.solvesCount : rawAttempts.filter(x => x > 0).length;
+    const isAdv = finalCutoff > 0 ? (idx + 1 <= finalCutoff) : false;
+    const isProg = !!r.inProgress || (completedSolves > 0 && completedSolves < 5);
+    const avgFmt = r.average ? formatWcaTime(r.average, eventId) : '—';
+    const bestFmt = r.best ? formatWcaTime(r.best, eventId) : '—';
+
+    let worstIdx = -1;
+    let bestIdx = -1;
+    if (completedSolves === 5) {
+      let worstVal = -Infinity;
+      for (let i = 0; i < 5; i++) {
+        if (rawAttempts[i] > worstVal) {
+          worstVal = rawAttempts[i];
+          worstIdx = i;
+        }
+      }
+      let bestVal = Infinity;
+      for (let i = 0; i < 5; i++) {
+        if (i !== worstIdx && rawAttempts[i] < bestVal) {
+          bestVal = rawAttempts[i];
+          bestIdx = i;
+        }
+      }
+    }
+
+    const attemptsDetail = rawAttempts.map((v, aIdx) => {
+      const isTrimmed = (aIdx === worstIdx || aIdx === bestIdx);
+      const txt = v > 0 ? formatWcaTime(v, eventId) : '—';
+      return {
+        displayText: isTrimmed ? `(${txt})` : txt,
+        formatted: txt,
+        isTrimmed
+      };
+    });
+
+    return {
+      ranking: idx + 1,
+      isAdvancing: isAdv,
+      name: r.name,
+      wcaId: r.wcaId || null,
+      countryIso2: (r.countryIso2 || 'co').toLowerCase(),
+      solvesCompleted: completedSolves,
+      totalSolves: 5,
+      solvesText: `${completedSolves}/5`,
+      inProgress: isProg,
+      isFinalSolve: completedSolves === 4,
+      isProjected: isProg,
+      projectedAverageFormatted: isProg ? avgFmt : null,
+      average: r.average,
+      averageFormatted: avgFmt,
+      best: r.best,
+      bestFormatted: bestFmt,
+      displayTime: isProg ? avgFmt : (avgFmt !== '—' ? avgFmt : bestFmt),
+      singleRecordTag: r.singleRecordTag || null,
+      averageRecordTag: r.averageRecordTag || null,
+      recordTag: r.averageRecordTag || r.singleRecordTag || null,
+      attempts: rawAttempts.map(v => v > 0 ? formatWcaTime(v, eventId) : '—'),
+      attemptsDetail,
+      podiumTargets: r.podiumTargets || null
+    };
+  });
+
+  return {
+    isMock: true,
+    mockPreset: preset,
+    roundId: 'mock_ranking_round',
+    roundNumber,
+    totalRounds,
+    roundName,
+    eventId,
+    eventName,
+    competitionName,
+    isOpen,
+    isFinished,
+    advancingCutoff: finalCutoff,
+    totalCompetitors: rankingList.length,
+    ranking: rankingList
+  };
+}
+
+// ── Rutas API de Mock para Tabla de Clasificación ──
+app.post('/api/live/ranking/mock', (req, res) => {
+  try {
+    const { preset, top, cutoff, viewMode, visible } = req.body || {};
+    stopLiveRankingPolling();
+    isLiveRankingMockActive = true;
+    if (preset) currentLiveRankingMockPreset = preset;
+    if (top !== undefined) liveRankingTop = parseInt(top, 10) || 16;
+    if (cutoff !== undefined) liveRankingCutoff = parseInt(cutoff, 10) || 0;
+    if (viewMode) liveRankingViewMode = viewMode;
+
+    liveRankingData = generateMockRankingData(currentLiveRankingMockPreset, {
+      cutoff: liveRankingCutoff,
+      top: liveRankingTop
+    });
+
+    if (visible !== undefined) liveRankingVisible = !!visible;
+
+    broadcastToPanels({
+      type: 'sync_live_ranking',
+      visible: liveRankingVisible,
+      data: liveRankingData,
+      isMock: true,
+      mockPreset: currentLiveRankingMockPreset,
+      roundId: 'mock_ranking_round',
+      compId: 'mock_comp',
+      top: liveRankingTop,
+      cutoff: liveRankingCutoff,
+      viewMode: liveRankingViewMode,
+      dynamicPaging: liveRankingDynamicPaging,
+      autoBalance: liveRankingAutoBalance,
+      pageSize: liveRankingTop,
+      pageDuration: liveRankingPageDuration,
+      pollInterval: 0
+    });
+
+    if (liveRankingVisible) {
+      broadcastToOverlays({
+        type: 'live_ranking_show',
+        data: liveRankingData,
+        dynamicPaging: liveRankingDynamicPaging,
+        autoBalance: liveRankingAutoBalance,
+        pageSize: liveRankingTop,
+        pageDuration: liveRankingPageDuration,
+        cutoff: liveRankingCutoff,
+        viewMode: liveRankingViewMode
+      });
+    }
+
+    res.json({ ok: true, isMock: true, preset: currentLiveRankingMockPreset, data: liveRankingData });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/live/ranking/mock/cutoff', (req, res) => {
+  try {
+    const { cutoff } = req.body || {};
+    liveRankingCutoff = parseInt(cutoff, 10) || 0;
+    isLiveRankingMockActive = true;
+    stopLiveRankingPolling();
+
+    liveRankingData = generateMockRankingData(currentLiveRankingMockPreset, {
+      cutoff: liveRankingCutoff,
+      top: liveRankingTop
+    });
+
+    broadcastToPanels({
+      type: 'sync_live_ranking',
+      visible: liveRankingVisible,
+      data: liveRankingData,
+      isMock: true,
+      mockPreset: currentLiveRankingMockPreset,
+      top: liveRankingTop,
+      cutoff: liveRankingCutoff,
+      viewMode: liveRankingViewMode,
+      dynamicPaging: liveRankingDynamicPaging,
+      autoBalance: liveRankingAutoBalance,
+      pageSize: liveRankingTop,
+      pageDuration: liveRankingPageDuration,
+      pollInterval: 0
+    });
+
+    if (liveRankingVisible) {
+      broadcastToOverlays({
+        type: 'live_ranking_update',
+        visible: true,
+        data: liveRankingData,
+        dynamicPaging: liveRankingDynamicPaging,
+        autoBalance: liveRankingAutoBalance,
+        pageSize: liveRankingTop,
+        pageDuration: liveRankingPageDuration,
+        cutoff: liveRankingCutoff,
+        viewMode: liveRankingViewMode
+      });
+    }
+
+    res.json({ ok: true, isMock: true, cutoff: liveRankingCutoff, data: liveRankingData });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/live/ranking/mock/reset', async (req, res) => {
+  try {
+    isLiveRankingMockActive = false;
+    if (liveRankingRoundId) {
+      const fetchTop = liveRankingDynamicPaging ? 0 : liveRankingTop;
+      const ranking = await fetchLiveRoundRanking(liveRankingRoundId, fetchTop, liveRankingCutoff);
+      liveRankingData = ranking;
+      if (liveRankingPollInterval > 0) {
+        startLiveRankingPolling(liveRankingPollInterval);
+      }
+    } else {
+      liveRankingData = null;
+      liveRankingVisible = false;
+      broadcastToOverlays({ type: 'live_ranking_hide' });
+    }
+
+    broadcastToPanels({
+      type: 'sync_live_ranking',
+      visible: liveRankingVisible,
+      data: liveRankingData,
+      isMock: false,
+      roundId: liveRankingRoundId,
+      compId: liveRankingCompId,
+      top: liveRankingTop,
+      cutoff: liveRankingCutoff,
+      viewMode: liveRankingViewMode,
+      dynamicPaging: liveRankingDynamicPaging,
+      autoBalance: liveRankingAutoBalance,
+      pageDuration: liveRankingPageDuration,
+      pollInterval: liveRankingPollInterval
+    });
+
+    if (liveRankingVisible && liveRankingData) {
+      broadcastToOverlays({
+        type: 'live_ranking_show',
+        data: liveRankingData,
+        dynamicPaging: liveRankingDynamicPaging,
+        autoBalance: liveRankingAutoBalance,
+        pageSize: liveRankingTop,
+        pageDuration: liveRankingPageDuration,
+        cutoff: liveRankingCutoff,
+        viewMode: liveRankingViewMode
+      });
+    }
+
+    res.json({ ok: true, isMock: false, data: liveRankingData });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -3317,6 +3845,8 @@ function handleSocketConnection(ws, req) {
       liveRankingPageSize,
       liveRankingPageDuration,
       liveRankingViewMode,
+      isLiveRankingMockActive,
+      liveRankingMockPreset: currentLiveRankingMockPreset,
       versusBannerVisible,
       versusRoundId,
       versusCompId,
@@ -3324,6 +3854,9 @@ function handleSocketConnection(ws, req) {
       versusComp1Target,
       versusComp2Target,
       versusData,
+      isVersusMockActive,
+      versusMockPreset: currentVersusMockPreset,
+      versusMockStep: currentVersusMockStep,
       fsTheme,
       overlayCount: overlayClients.size,
       obsStatus,
@@ -3533,9 +4066,11 @@ function handleSocketConnection(ws, req) {
           type: 'sync_live_ranking',
           visible: false,
           data: liveRankingData,
+          isMock: isLiveRankingMockActive,
+          mockPreset: currentLiveRankingMockPreset,
           roundId: liveRankingRoundId,
           compId: liveRankingCompId,
-          pollInterval: liveRankingPollInterval,
+          pollInterval: isLiveRankingMockActive ? 0 : liveRankingPollInterval,
           top: liveRankingTop,
           cutoff: liveRankingCutoff
         });
@@ -3703,7 +4238,7 @@ function handleSocketConnection(ws, req) {
         liveRankingVisible = true;
         saveLiveState();
 
-        if (msg.pollInterval !== undefined) {
+        if (!isLiveRankingMockActive && msg.pollInterval !== undefined) {
           startLiveRankingPolling(msg.pollInterval);
         }
         broadcastToOverlays({
@@ -3713,15 +4248,18 @@ function handleSocketConnection(ws, req) {
           autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
           pageDuration: liveRankingPageDuration,
+          cutoff: liveRankingCutoff,
           viewMode: liveRankingViewMode
         });
         broadcastToPanels({
           type: 'sync_live_ranking',
           visible: true,
           data: liveRankingData,
+          isMock: isLiveRankingMockActive,
+          mockPreset: currentLiveRankingMockPreset,
           roundId: liveRankingRoundId,
           compId: liveRankingCompId,
-          pollInterval: liveRankingPollInterval,
+          pollInterval: isLiveRankingMockActive ? 0 : liveRankingPollInterval,
           top: liveRankingTop,
           cutoff: liveRankingCutoff,
           dynamicPaging: liveRankingDynamicPaging,
@@ -3777,9 +4315,11 @@ function handleSocketConnection(ws, req) {
           type: 'sync_live_ranking',
           visible: false,
           data: liveRankingData,
+          isMock: isLiveRankingMockActive,
+          mockPreset: currentLiveRankingMockPreset,
           roundId: liveRankingRoundId,
           compId: liveRankingCompId,
-          pollInterval: liveRankingPollInterval,
+          pollInterval: isLiveRankingMockActive ? 0 : liveRankingPollInterval,
           top: liveRankingTop,
           cutoff: liveRankingCutoff
         });
