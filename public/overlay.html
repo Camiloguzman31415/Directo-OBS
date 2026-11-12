@@ -1398,8 +1398,24 @@
 
   body.is-fullscreen-page #sim-cameras-stage,
   body.is-scene-fullscreen-active #sim-cameras-stage,
-  body.is-scene-transicion-active #sim-cameras-stage {
+  body.is-scene-transicion-active #sim-cameras-stage,
+  body.is-preview-widget #sim-cameras-stage,
+  body.is-preview-widget #banner,
+  body.is-preview-widget #event-badge,
+  body.is-preview-widget #competitor-showcase-card,
+  body.is-preview-widget #tournament-big-logo-overlay,
+  body.is-preview-widget #head-to-head-overlay,
+  body.is-preview-widget #versus-banner,
+  body.is-preview-widget #fullscreen-ranking-overlay {
     display: none !important;
+  }
+
+  html.is-preview-widget,
+  body.is-preview-widget {
+    background-color: #090d16 !important;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 2px, transparent 2px) !important;
+    background-size: 32px 32px !important;
+    color-scheme: dark !important;
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -4641,6 +4657,11 @@
 
   const isTransitionPage = !isEnvivoMaster && (path.includes('/transicion') || path.includes('/transiciones'));
   const isFullscreenPage = !isEnvivoMaster && path.includes('/fullscreen');
+  const isPreviewWidget = !isEnvivoMaster && urlParams.get('previewWidget') === '1';
+  if (isPreviewWidget) {
+    document.documentElement.classList.add('is-preview-widget');
+    document.body.classList.add('is-preview-widget');
+  }
   const isDedicatedScene = !isEnvivoMaster && !!dedicatedScene;
   const isDedicatedFullscreen = isDedicatedScene ||
     isTransitionPage ||
@@ -4656,10 +4677,10 @@
   let liveRankingConfig = {
     dynamicPaging: true,
     autoBalance: true,
-    pageSize: 16,
+    pageSize: isDedicatedFullscreen ? 16 : 8,
     pageDuration: 10,
     cutoff: 0,
-    viewMode: isDedicatedFullscreen ? 'fullscreen' : 'fullscreen'
+    viewMode: isDedicatedFullscreen ? 'fullscreen' : 'widget'
   };
   let currentRawRankingData = null;
 
@@ -5221,18 +5242,28 @@
     if (!payload) return;
     const data = payload.data || payload;
 
-    // Actualizar configuración si viene en el payload
-    if (payload.dynamicPaging !== undefined) liveRankingConfig.dynamicPaging = !!payload.dynamicPaging;
-    if (payload.autoBalance !== undefined) liveRankingConfig.autoBalance = !!payload.autoBalance;
-    if (payload.pageSize) liveRankingConfig.pageSize = parseInt(payload.pageSize, 10) || 16;
-    if (payload.pageDuration) liveRankingConfig.pageDuration = parseInt(payload.pageDuration, 10) || 10;
-    if (payload.cutoff !== undefined) {
-      const c = parseInt(payload.cutoff, 10);
+    // Determinar si esta ventana actúa como Fullscreen o como Mini Widget
+    const isFullscreenActive = !isPreviewWidget && (
+      isDedicatedFullscreen ||
+      document.body.classList.contains('is-scene-fullscreen-active') ||
+      (lastSimCamerasState && lastSimCamerasState.activeScene === 'fullscreen')
+    );
+
+    // Aplicar configuración respectiva (fsConfig para Fullscreen, widgetConfig para Mini Widget)
+    const specificCfg = isFullscreenActive ? payload.fsConfig : payload.widgetConfig;
+    const cfg = specificCfg || payload;
+
+    if (cfg.dynamicPaging !== undefined) liveRankingConfig.dynamicPaging = !!cfg.dynamicPaging;
+    if (cfg.autoBalance !== undefined) liveRankingConfig.autoBalance = !!cfg.autoBalance;
+    if (cfg.top || cfg.pageSize) liveRankingConfig.pageSize = parseInt(cfg.top || cfg.pageSize, 10) || (isFullscreenActive ? 16 : 8);
+    if (cfg.pageDuration) liveRankingConfig.pageDuration = parseInt(cfg.pageDuration, 10) || 10;
+    if (cfg.cutoff !== undefined) {
+      const c = parseInt(cfg.cutoff, 10);
       liveRankingConfig.cutoff = isNaN(c) || c < 0 ? 0 : c;
     } else if (data && data.advancingCutoff !== undefined) {
       liveRankingConfig.cutoff = Math.max(0, parseInt(data.advancingCutoff, 10) || 0);
     }
-    if (payload.viewMode) liveRankingConfig.viewMode = payload.viewMode;
+    liveRankingConfig.viewMode = isFullscreenActive ? 'fullscreen' : 'widget';
 
     // Si cambió de ronda, reiniciar a página 0
     if (currentRawRankingData && currentRawRankingData.roundId !== data.roundId) {
@@ -5269,18 +5300,12 @@
       fsRoundName.textContent = formatCustomRoundName(data.roundName || data.roundNumber || 1, data.totalRounds || 3, true);
     }
 
-    // Determinar modo activo:
-    const isFullscreenActive = isDedicatedFullscreen ||
-      document.body.classList.contains('is-scene-fullscreen-active') ||
-      (lastSimCamerasState && lastSimCamerasState.activeScene === 'fullscreen') ||
-      liveRankingConfig.viewMode === 'fullscreen';
-
     if (isFullscreenActive) {
       if (lrOverlay) lrOverlay.classList.remove('visible');
       if (fsOverlay) fsOverlay.classList.add('visible');
     } else {
       if (fsOverlay) fsOverlay.classList.remove('visible');
-      if (liveRankingConfig.viewMode === 'widget') {
+      if (isPreviewWidget || payload.visible !== false) {
         if (lrOverlay) lrOverlay.classList.add('visible');
       } else {
         if (lrOverlay) lrOverlay.classList.remove('visible');
@@ -5295,10 +5320,11 @@
   }
 
   function hideLiveRanking() {
+    if (isPreviewWidget) return; // En el preview del panel, mantener visible el mini widget
     stopRankingPaging();
     if (lrOverlay) lrOverlay.classList.remove('visible');
     const isVideoSceneActive = ['starting', 'lunch', 'reconnecting', 'ending'].includes(activeFsThemeState.scene);
-    if (fsOverlay && !isDedicatedScene && !isVideoSceneActive) {
+    if (fsOverlay && !isDedicatedScene && !isVideoSceneActive && !isDedicatedFullscreen) {
       fsOverlay.classList.remove('visible');
     }
     if (typeof updateTopBannersAntiCollision === 'function') {
@@ -6355,18 +6381,23 @@
         }
         if (st.data) {
           currentRawRankingData = st.data;
-          const isFsScene = isDedicatedFullscreen || (lastSimCamerasState && lastSimCamerasState.activeScene === 'fullscreen');
-          const isWidgetScene = st.visible && st.viewMode === 'widget';
+          const isFsScene = !isPreviewWidget && (isDedicatedFullscreen || (lastSimCamerasState && lastSimCamerasState.activeScene === 'fullscreen'));
+          const isWidgetScene = isPreviewWidget || !!st.visible;
           if (isFsScene || isWidgetScene) {
             renderLiveRanking({
               data: st.data,
+              visible: isPreviewWidget ? true : !!st.visible,
               dynamicPaging: st.dynamicPaging,
               autoBalance: st.autoBalance,
               pageSize: st.pageSize,
               pageDuration: st.pageDuration,
-              viewMode: isFsScene ? 'fullscreen' : (st.viewMode || 'widget')
+              fsConfig: st.fsConfig,
+              widgetConfig: st.widgetConfig,
+              viewMode: isFsScene ? 'fullscreen' : 'widget'
             });
           }
+        } else if (isPreviewWidget && lrOverlay) {
+          lrOverlay.classList.add('visible');
         }
       }
     })

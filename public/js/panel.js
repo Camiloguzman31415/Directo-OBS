@@ -63,6 +63,21 @@ let liveRankingPollInterval = 15;
 let liveRankingDynamicPaging = true;
 let liveRankingAutoBalance = true;
 let liveRankingPageDuration = 10;
+let liveRankingConfigTarget = 'fullscreen'; // 'fullscreen' | 'widget'
+let liveRankingFsConfig = {
+  top: 16,
+  cutoff: 0,
+  dynamicPaging: true,
+  autoBalance: true,
+  pageDuration: 10
+};
+let liveRankingWidgetConfig = {
+  top: 8,
+  cutoff: 0,
+  dynamicPaging: true,
+  autoBalance: true,
+  pageDuration: 10
+};
 
 // ── Estado del Banner de Finales Versus (WCA Live) ──
 let versusBannerVisible = false;
@@ -312,6 +327,13 @@ function handleServerMessage(msg) {
         loadLiveCompetitionRounds(targetRoundId, true);
       }
 
+      if (msg.liveRankingFsConfig && typeof msg.liveRankingFsConfig === 'object') {
+        liveRankingFsConfig = Object.assign({}, liveRankingFsConfig, msg.liveRankingFsConfig);
+      }
+      if (msg.liveRankingWidgetConfig && typeof msg.liveRankingWidgetConfig === 'object') {
+        liveRankingWidgetConfig = Object.assign({}, liveRankingWidgetConfig, msg.liveRankingWidgetConfig);
+      }
+
       if (msg.liveRankingData) {
         liveRankingData = msg.liveRankingData;
         renderLiveRankingPreview(liveRankingData);
@@ -319,6 +341,7 @@ function handleServerMessage(msg) {
         fetchLiveRoundRanking(targetRoundId, false);
       }
       updateLiveRankingUI();
+      initRankingMiniMonitors();
 
       // Hidratar estado de Banner Versus
       if (msg.versusBannerVisible !== undefined) versusBannerVisible = !!msg.versusBannerVisible;
@@ -490,6 +513,12 @@ function handleServerMessage(msg) {
 
     case 'sync_live_ranking':
       liveRankingVisible = !!msg.visible;
+      if (msg.fsConfig && typeof msg.fsConfig === 'object') {
+        liveRankingFsConfig = Object.assign({}, liveRankingFsConfig, msg.fsConfig);
+      }
+      if (msg.widgetConfig && typeof msg.widgetConfig === 'object') {
+        liveRankingWidgetConfig = Object.assign({}, liveRankingWidgetConfig, msg.widgetConfig);
+      }
       if (msg.data) {
         liveRankingData = msg.data;
         renderLiveRankingPreview(liveRankingData);
@@ -3789,6 +3818,9 @@ function updateOverlayCount(count) {
 }
 
 function switchMainMenu(menuKey) {
+  if (menuKey === 'clasificacion' && typeof initRankingMiniMonitors === 'function') {
+    setTimeout(initRankingMiniMonitors, 50);
+  }
   if (window.AdminUI && typeof window.AdminUI.activateAdminView === 'function') {
     window.AdminUI.activateAdminView(menuKey);
     return;
@@ -4086,24 +4118,59 @@ function onLiveRoundChanged() {
   fetchLiveRoundRanking(liveRankingSelectedRoundId, true);
 }
 
-function onLiveParamsChanged() {
-  const topInput = document.getElementById('live-top-input');
-  const topSel = document.getElementById('live-top-select');
-  const cutInput = document.getElementById('live-cutoff-input') || document.getElementById('live-cutoff-select');
-  const modeSel = document.getElementById('live-paging-mode-select');
-  const balSel = document.getElementById('live-balance-select');
-  const durSel = document.getElementById('live-page-duration-select');
+function copyRankingConfig(sourceTarget) {
+  const isFromWidget = sourceTarget === 'widget';
+  const src = isFromWidget ? liveRankingWidgetConfig : liveRankingFsConfig;
+  const dest = isFromWidget ? liveRankingFsConfig : liveRankingWidgetConfig;
+  Object.assign(dest, src);
+  updateLiveRankingUI();
+  sendWS({
+    type: 'live_ranking_params',
+    top: liveRankingFsConfig.top,
+    pageSize: liveRankingFsConfig.top,
+    cutoff: liveRankingFsConfig.cutoff,
+    dynamicPaging: liveRankingFsConfig.dynamicPaging,
+    autoBalance: liveRankingFsConfig.autoBalance,
+    pageDuration: liveRankingFsConfig.pageDuration,
+    fsConfig: liveRankingFsConfig,
+    widgetConfig: liveRankingWidgetConfig
+  });
+  updatePagingSummary();
+  const otherLabel = isFromWidget ? 'Pantalla Completa' : 'Mini Widget';
+  showToast(`Ajustes copiados a ${otherLabel}`, 'success');
+}
 
-  if (topInput) liveRankingTop = Math.max(1, Math.min(60, parseInt(topInput.value, 10) || 16));
-  else if (topSel) liveRankingTop = parseInt(topSel.value, 10) || 16;
+function readRankingInputsIntoConfig(prefix, cfg) {
+  const topInput = document.getElementById(`live-${prefix}-top-input`);
+  const cutInput = document.getElementById(`live-${prefix}-cutoff-input`);
+  const modeSel = document.getElementById(`live-${prefix}-paging-mode-select`);
+  const balSel = document.getElementById(`live-${prefix}-balance-select`);
+  const durSel = document.getElementById(`live-${prefix}-page-duration-select`);
 
+  if (topInput) cfg.top = Math.max(1, Math.min(60, parseInt(topInput.value, 10) || 16));
   if (cutInput) {
     const val = parseInt(cutInput.value, 10);
-    liveRankingCutoff = isNaN(val) || val < 0 ? 0 : val;
+    cfg.cutoff = isNaN(val) || val < 0 ? 0 : val;
   }
-  if (modeSel) liveRankingDynamicPaging = modeSel.value === 'dynamic';
-  if (balSel) liveRankingAutoBalance = balSel.value === 'balanced';
-  if (durSel) liveRankingPageDuration = parseInt(durSel.value, 10) || 10;
+  if (modeSel) cfg.dynamicPaging = modeSel.value === 'dynamic';
+  if (balSel) cfg.autoBalance = balSel.value === 'balanced';
+  if (durSel) cfg.pageDuration = parseInt(durSel.value, 10) || 10;
+}
+
+function onLiveParamsChanged(target) {
+  if (!target || target === 'fullscreen') {
+    readRankingInputsIntoConfig('fs', liveRankingFsConfig);
+  }
+  if (!target || target === 'widget') {
+    readRankingInputsIntoConfig('widget', liveRankingWidgetConfig);
+  }
+
+  // Mantener sincronizados los valores globales legacy con la vista de Fullscreen
+  liveRankingTop = liveRankingFsConfig.top;
+  liveRankingCutoff = liveRankingFsConfig.cutoff;
+  liveRankingDynamicPaging = liveRankingFsConfig.dynamicPaging;
+  liveRankingAutoBalance = liveRankingFsConfig.autoBalance;
+  liveRankingPageDuration = liveRankingFsConfig.pageDuration;
 
   localStorage.setItem('directoobs_live_top', liveRankingTop);
   localStorage.setItem('directoobs_live_cutoff', liveRankingCutoff);
@@ -4118,27 +4185,15 @@ function onLiveParamsChanged() {
     cutoff: liveRankingCutoff,
     dynamicPaging: liveRankingDynamicPaging,
     autoBalance: liveRankingAutoBalance,
-    pageDuration: liveRankingPageDuration
+    pageDuration: liveRankingPageDuration,
+    fsConfig: liveRankingFsConfig,
+    widgetConfig: liveRankingWidgetConfig
   });
 
   updatePagingSummary();
 
-  if (liveRankingSelectedRoundId) {
+  if (liveRankingSelectedRoundId && !liveRankingData) {
     fetchLiveRoundRanking(liveRankingSelectedRoundId, false);
-  } else if (liveRankingVisible) {
-    sendWS({
-      type: 'live_ranking_show',
-      roundId: liveRankingSelectedRoundId,
-      compId: liveRankingCompId,
-      top: liveRankingTop,
-      pageSize: liveRankingTop,
-      pageDuration: liveRankingPageDuration,
-      dynamicPaging: liveRankingDynamicPaging,
-      autoBalance: liveRankingAutoBalance,
-      cutoff: liveRankingCutoff,
-      pollInterval: liveRankingPollInterval,
-      data: liveRankingData
-    });
   }
 }
 
@@ -4166,31 +4221,16 @@ function refreshCurrentLiveRanking() {
   fetchLiveRoundRanking(liveRankingSelectedRoundId, true);
 }
 
-let liveRankingViewMode = 'fullscreen'; // 'fullscreen' | 'widget'
+let liveRankingViewMode = 'widget'; // En /overlay proyecta siempre el Mini Widget
 
 function setRankingViewMode(mode) {
-  liveRankingViewMode = mode;
+  liveRankingViewMode = mode || 'widget';
   updateViewModeButtons();
-  sendWS({
-    type: 'live_ranking_set_view',
-    viewMode: mode
-  });
   updateLiveRankingUI();
-  showToast(`Modo cambiado a: ${mode === 'fullscreen' ? 'Pantalla Completa' : 'Mini Widget'}`, 'info');
 }
 
 function updateViewModeButtons() {
-  const btnFs = document.getElementById('btn-mode-fs');
-  const btnW = document.getElementById('btn-mode-widget');
-  if (btnFs && btnW) {
-    if (liveRankingViewMode === 'fullscreen') {
-      btnFs.classList.add('active');
-      btnW.classList.remove('active');
-    } else {
-      btnW.classList.add('active');
-      btnFs.classList.remove('active');
-    }
-  }
+  // Cada ventana tiene su propia caja independiente visible en simultáneo
 }
 
 function sendShowLiveRanking() {
@@ -4199,47 +4239,39 @@ function sendShowLiveRanking() {
     return;
   }
 
+  const payload = {
+    type: 'live_ranking_show',
+    roundId: liveRankingSelectedRoundId,
+    compId: liveRankingCompId,
+    top: liveRankingWidgetConfig.top,
+    pageSize: liveRankingWidgetConfig.top,
+    pageDuration: liveRankingWidgetConfig.pageDuration,
+    dynamicPaging: liveRankingWidgetConfig.dynamicPaging,
+    autoBalance: liveRankingWidgetConfig.autoBalance,
+    cutoff: liveRankingWidgetConfig.cutoff,
+    pollInterval: liveRankingPollInterval,
+    viewMode: 'widget',
+    fsConfig: liveRankingFsConfig,
+    widgetConfig: liveRankingWidgetConfig,
+    data: liveRankingData
+  };
+
   // Si no tenemos datos aún, intentar cargar y luego mostrar
   if (!liveRankingData) {
     fetchLiveRoundRanking(liveRankingSelectedRoundId).then(() => {
-      sendWS({
-        type: 'live_ranking_show',
-        roundId: liveRankingSelectedRoundId,
-        compId: liveRankingCompId,
-        top: liveRankingTop,
-        pageSize: liveRankingTop,
-        pageDuration: liveRankingPageDuration,
-        dynamicPaging: liveRankingDynamicPaging,
-        autoBalance: liveRankingAutoBalance,
-        cutoff: liveRankingCutoff,
-        pollInterval: liveRankingPollInterval,
-        viewMode: liveRankingViewMode,
-        data: liveRankingData
-      });
+      payload.data = liveRankingData;
+      sendWS(payload);
       liveRankingVisible = true;
       updateLiveRankingUI();
-      showToast('Ranking en Vivo AL AIRE en OBS', 'success');
+      showToast('Mini Widget AL AIRE en OBS', 'success');
     });
     return;
   }
 
-  sendWS({
-    type: 'live_ranking_show',
-    roundId: liveRankingSelectedRoundId,
-    compId: liveRankingCompId,
-    top: liveRankingTop,
-    pageSize: liveRankingTop,
-    pageDuration: liveRankingPageDuration,
-    dynamicPaging: liveRankingDynamicPaging,
-    autoBalance: liveRankingAutoBalance,
-    cutoff: liveRankingCutoff,
-    pollInterval: liveRankingPollInterval,
-    viewMode: liveRankingViewMode,
-    data: liveRankingData
-  });
+  sendWS(payload);
   liveRankingVisible = true;
   updateLiveRankingUI();
-  showToast('Ranking en Vivo AL AIRE en OBS', 'success');
+  showToast('Mini Widget AL AIRE en OBS', 'success');
 }
 
 function sendHideLiveRanking() {
@@ -4289,6 +4321,30 @@ async function triggerFinalsDemo() {
   }
 }
 
+function formatPagingSummaryLine(label, cfg, total) {
+  const maxPerPage = Math.max(1, cfg.top || 16);
+  if (!cfg.dynamicPaging) {
+    return `<strong>${label}:</strong> Top ${Math.min(total, maxPerPage)}/${total} (Fijo)`;
+  }
+  if (total <= maxPerPage) {
+    return `<strong>${label}:</strong> 1 pág (${total} filas)`;
+  }
+  const numPages = Math.ceil(total / maxPerPage);
+  const pageCounts = [];
+  if (!cfg.autoBalance) {
+    for (let i = 0; i < numPages; i++) {
+      pageCounts.push(Math.min(maxPerPage, total - i * maxPerPage));
+    }
+    return `<strong>${label}:</strong> ${numPages} págs (${pageCounts.join('+')}) • ${cfg.pageDuration}s`;
+  }
+  const baseCount = Math.floor(total / numPages);
+  const remainder = total % numPages;
+  for (let i = 0; i < numPages; i++) {
+    pageCounts.push(baseCount + (i < remainder ? 1 : 0));
+  }
+  return `<strong>${label}:</strong> ${numPages} págs bal. (${pageCounts.join('+')}) • ${cfg.pageDuration}s`;
+}
+
 function updatePagingSummary() {
   const summaryBox = document.getElementById('live-paging-summary');
   const summaryText = document.getElementById('live-paging-summary-text');
@@ -4300,41 +4356,10 @@ function updatePagingSummary() {
     return;
   }
 
-  const maxPerPage = Math.max(1, liveRankingTop || 16);
   summaryBox.style.display = 'flex';
-
-  if (!liveRankingDynamicPaging) {
-    summaryText.innerHTML = `Mostrando <strong>Top ${Math.min(total, maxPerPage)}</strong> de ${total} competidores (Modo Fijo)`;
-    return;
-  }
-
-  if (total <= maxPerPage) {
-    summaryText.innerHTML = `<strong>${total} competidores</strong> • 1 sola página completa (${total} filas, sin rotación)`;
-    return;
-  }
-
-  const numPages = Math.ceil(total / maxPerPage);
-
-  if (!liveRankingAutoBalance) {
-    const pageCounts = [];
-    for (let i = 0; i < numPages; i++) {
-      const start = i * maxPerPage;
-      const count = Math.min(maxPerPage, total - start);
-      pageCounts.push(count);
-    }
-    summaryText.innerHTML = `<strong>${total} competidores</strong> • <strong>${numPages} páginas</strong> (${pageCounts.join(' + ')} filas) • ${liveRankingPageDuration}s por página (Sin balanceo)`;
-    return;
-  }
-
-  // Auto-balanceo equitativo
-  const baseCount = Math.floor(total / numPages);
-  const remainder = total % numPages;
-  const pageCounts = [];
-  for (let i = 0; i < numPages; i++) {
-    pageCounts.push(baseCount + (i < remainder ? 1 : 0));
-  }
-
-  summaryText.innerHTML = `<strong>${total} competidores</strong> • <strong>${numPages} páginas balanceadas</strong> (${pageCounts.join(' + ')} filas) • ${liveRankingPageDuration}s por página`;
+  const fsLine = formatPagingSummaryLine('Fullscreen', liveRankingFsConfig, total);
+  const widgetLine = formatPagingSummaryLine('Mini Widget', liveRankingWidgetConfig, total);
+  summaryText.innerHTML = `${fsLine} &nbsp;|&nbsp; ${widgetLine}`;
 }
 
 function renderLiveRankingPreview(rankingObj) {
@@ -4409,12 +4434,29 @@ function updateLiveRankingUI() {
   if (btnShow) {
     if (liveRankingVisible) {
       btnShow.classList.add('active');
-      btnShow.innerHTML = `${checkIc}<span>Al aire en OBS</span>`;
+      btnShow.innerHTML = `${checkIc}<span>Mini Widget al aire en OBS</span>`;
     } else {
       btnShow.classList.remove('active');
-      btnShow.innerHTML = `${playIc}<span>Mostrar en OBS</span>`;
+      btnShow.innerHTML = `${playIc}<span>Mostrar Mini Widget en OBS</span>`;
     }
   }
+
+  const widgetDot = document.getElementById('mini-widget-dot');
+  const widgetPill = document.getElementById('preview-widget-live-pill');
+  if (widgetDot && widgetPill) {
+    if (liveRankingVisible) {
+      widgetDot.style.background = '#10b981';
+      widgetPill.textContent = 'AL AIRE';
+      widgetPill.style.background = 'rgba(16, 185, 129, 0.2)';
+      widgetPill.style.color = '#34d399';
+    } else {
+      widgetDot.style.background = '#64748b';
+      widgetPill.textContent = 'PREVIEW';
+      widgetPill.style.background = 'rgba(100, 116, 139, 0.25)';
+      widgetPill.style.color = '#94a3b8';
+    }
+  }
+
   window.AdminUI?.syncAdminLiveNowUI();
 
   const compInput = document.getElementById('live-comp-id-input');
@@ -4422,26 +4464,28 @@ function updateLiveRankingUI() {
     compInput.value = liveRankingCompId;
   }
 
-  const topInput = document.getElementById('live-top-input');
-  if (topInput && liveRankingTop) topInput.value = String(liveRankingTop);
+  const writeConfigToInputs = (prefix, cfg) => {
+    const topInput = document.getElementById(`live-${prefix}-top-input`);
+    if (topInput && cfg.top) topInput.value = String(cfg.top);
 
-  const topSel = document.getElementById('live-top-select');
-  if (topSel && liveRankingTop) topSel.value = String(liveRankingTop);
+    const cutInput = document.getElementById(`live-${prefix}-cutoff-input`);
+    if (cutInput && cfg.cutoff !== undefined) cutInput.value = String(cfg.cutoff);
 
-  const cutInput = document.getElementById('live-cutoff-input') || document.getElementById('live-cutoff-select');
-  if (cutInput && liveRankingCutoff !== undefined) cutInput.value = String(liveRankingCutoff);
+    const modeSel = document.getElementById(`live-${prefix}-paging-mode-select`);
+    if (modeSel) modeSel.value = cfg.dynamicPaging ? 'dynamic' : 'static';
+
+    const balSel = document.getElementById(`live-${prefix}-balance-select`);
+    if (balSel) balSel.value = cfg.autoBalance ? 'balanced' : 'fill';
+
+    const durSel = document.getElementById(`live-${prefix}-page-duration-select`);
+    if (durSel && cfg.pageDuration) durSel.value = String(cfg.pageDuration);
+  };
+
+  writeConfigToInputs('fs', liveRankingFsConfig);
+  writeConfigToInputs('widget', liveRankingWidgetConfig);
 
   const pollSel = document.getElementById('live-polling-select');
   if (pollSel && liveRankingPollInterval !== undefined) pollSel.value = String(liveRankingPollInterval);
-
-  const modeSel = document.getElementById('live-paging-mode-select');
-  if (modeSel) modeSel.value = liveRankingDynamicPaging ? 'dynamic' : 'static';
-
-  const balSel = document.getElementById('live-balance-select');
-  if (balSel) balSel.value = liveRankingAutoBalance ? 'balanced' : 'fill';
-
-  const durSel = document.getElementById('live-page-duration-select');
-  if (durSel && liveRankingPageDuration) durSel.value = String(liveRankingPageDuration);
 
   const roundSel = document.getElementById('live-round-select');
   if (roundSel && liveRankingSelectedRoundId && roundSel.value !== liveRankingSelectedRoundId) {
@@ -4451,6 +4495,45 @@ function updateLiveRankingUI() {
   }
 
   updatePagingSummary();
+}
+
+let rankingMiniMonitorsInitialized = false;
+function scaleRankingMiniMonitors() {
+  const pairs = [
+    ['mini-monitor-fs', 'iframe-preview-fs'],
+    ['mini-monitor-widget', 'iframe-preview-widget']
+  ];
+  pairs.forEach(([wrapId, iframeId]) => {
+    const wrap = document.getElementById(wrapId);
+    const frame = document.getElementById(iframeId);
+    if (!wrap || !frame) return;
+    if (wrap.clientWidth > 0) {
+      const scale = wrap.clientWidth / 1920;
+      frame.style.transform = `scale(${scale})`;
+    }
+  });
+}
+
+function initRankingMiniMonitors() {
+  const frames = [
+    document.getElementById('iframe-preview-fs'),
+    document.getElementById('iframe-preview-widget')
+  ];
+  frames.forEach(frame => {
+    if (frame && !frame.getAttribute('src') && frame.dataset.src) {
+      frame.setAttribute('src', frame.dataset.src);
+    }
+  });
+
+  if (!rankingMiniMonitorsInitialized && typeof ResizeObserver !== 'undefined') {
+    const obs = new ResizeObserver(() => scaleRankingMiniMonitors());
+    const w1 = document.getElementById('mini-monitor-fs');
+    const w2 = document.getElementById('mini-monitor-widget');
+    if (w1) obs.observe(w1);
+    if (w2) obs.observe(w2);
+    rankingMiniMonitorsInitialized = true;
+  }
+  requestAnimationFrame(scaleRankingMiniMonitors);
 }
 
 // ━━━ TEMA Y PERSONALIZACIÓN DE FONDO FULLSCREEN ━━━

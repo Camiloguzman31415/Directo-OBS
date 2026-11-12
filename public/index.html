@@ -659,35 +659,29 @@
 
               <div class="admin-card-body">
                 <div class="admin-cards-grid">
-                  <!-- Columna Operativa -->
-                  <div style="display:flex;flex-direction:column;gap:14px;min-width:0;">
-                    <div class="admin-field">
-                      <label class="admin-label" for="live-round-select">Ronda activa para proyectar</label>
-                      <select class="select-filter" id="live-round-select" onchange="onLiveRoundChanged()" disabled>
-                        <option value="">Vincula primero una competencia en Torneo y Datos...</option>
-                      </select>
-                    </div>
-
-                    <div class="admin-field">
-                      <span class="admin-label"><span>Formato de proyección en <code>/overlay</code></span></span>
-                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                        <button type="button" class="btn-mode-toggle active" id="btn-mode-fs" onclick="setRankingViewMode('fullscreen')">
-                          <span data-icon="maximize-2" data-icon-size="15"></span>
-                          <span>Pantalla completa</span>
-                        </button>
-                        <button type="button" class="btn-mode-toggle" id="btn-mode-widget" onclick="setRankingViewMode('widget')">
-                          <span data-icon="picture-in-picture-2" data-icon-size="15"></span>
-                          <span>Mini widget (esquina)</span>
-                        </button>
+                  <!-- Columna Izquierda: Ronda y Auto-refresco -->
+                  <div style="display:flex;flex-direction:column;gap:12px;min-width:0;">
+                    <div class="admin-field-row">
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-round-select">Ronda activa para proyectar</label>
+                        <select class="select-filter" id="live-round-select" onchange="onLiveRoundChanged()" disabled>
+                          <option value="">Vincula primero una competencia en Torneo y Datos...</option>
+                        </select>
+                      </div>
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-polling-select">Auto-refresco WCA Live</label>
+                        <select class="select-filter" id="live-polling-select" onchange="onLivePollingChanged()">
+                          <option value="0">Manual (desactivado)</option>
+                          <option value="10">Cada 10 segundos</option>
+                          <option value="15" selected>Cada 15s (recomendado)</option>
+                          <option value="30">Cada 30 segundos</option>
+                        </select>
                       </div>
                     </div>
 
-                    <div class="admin-field">
-                      <span class="admin-label"><span>Escena dedicada <code>/fullscreen</code></span></span>
-                      <button type="button" class="btn-mode-toggle active" id="btn-fs-scene-ranking" onclick="setFsScene('ranking')" style="width:100%;">
-                        <span data-icon="table-2" data-icon-size="15"></span>
-                        <span>Activar tabla de clasificación en /fullscreen</span>
-                      </button>
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(15,23,42,0.45);border:1px solid rgba(255,255,255,0.06);border-radius:8px;font-size:11.5px;color:var(--admin-text-muted);">
+                      <span>Cada ventana tiene su propia caja de ajustes independientes abajo.</span>
+                      <span><code>/fullscreen</code> siempre está activa</span>
                     </div>
 
                     <!-- Resumen de distribución de páginas -->
@@ -697,93 +691,10 @@
                         <span id="live-paging-summary-text">Calculando distribución de páginas...</span>
                       </span>
                     </div>
-
-                    <!-- Ajustes avanzados de paginación, corte y polling -->
-                    <div class="admin-collapsible">
-                      <button type="button" class="admin-collapsible-trigger" aria-expanded="false" aria-controls="adv-ranking-settings">
-                        <span class="admin-collapsible-trigger-left">
-                          <span data-icon="sliders-horizontal" data-icon-size="15"></span>
-                          <span>Ajustes avanzados (filas, corte, paginación y auto-refresco)</span>
-                        </span>
-                        <span class="admin-collapsible-chevron" data-icon="chevron-down" data-icon-size="15"></span>
-                      </button>
-                      <div class="admin-collapsible-panel" id="adv-ranking-settings" hidden>
-                        <div class="admin-field-row">
-                          <div class="admin-field">
-                            <label class="admin-label" for="live-top-input">Filas máx. por página</label>
-                            <input type="number" class="form-input tabular-nums" id="live-top-input" min="4" max="32" value="16" list="live-top-presets" onchange="onLiveParamsChanged()" oninput="onLiveParamsChanged()">
-                            <datalist id="live-top-presets">
-                              <option value="8"></option>
-                              <option value="10"></option>
-                              <option value="12"></option>
-                              <option value="14"></option>
-                              <option value="15"></option>
-                              <option value="16"></option>
-                              <option value="18"></option>
-                              <option value="20"></option>
-                              <option value="24"></option>
-                            </datalist>
-                          </div>
-                          <div class="admin-field">
-                            <label class="admin-label" for="live-cutoff-input">Pasan de ronda (corte)</label>
-                            <input type="number" class="form-input tabular-nums" id="live-cutoff-input" min="0" max="200" value="0" list="live-cutoff-presets" placeholder="0 = Sin corte" onchange="onLiveParamsChanged()" oninput="onLiveParamsChanged()">
-                            <datalist id="live-cutoff-presets">
-                              <option value="0" label="0 - Sin corte"></option>
-                              <option value="4" label="Top 4"></option>
-                              <option value="8" label="Top 8"></option>
-                              <option value="12" label="Top 12"></option>
-                              <option value="16" label="Top 16"></option>
-                              <option value="20" label="Top 20"></option>
-                              <option value="24" label="Top 24"></option>
-                            </datalist>
-                          </div>
-                        </div>
-
-                        <div class="admin-field-row">
-                          <div class="admin-field">
-                            <label class="admin-label" for="live-paging-mode-select">Modo de rotación</label>
-                            <select class="select-filter" id="live-paging-mode-select" onchange="onLiveParamsChanged()">
-                              <option value="dynamic" selected>Rotación dinámica de páginas</option>
-                              <option value="static">Fijo (solo primera página)</option>
-                            </select>
-                          </div>
-                          <div class="admin-field">
-                            <label class="admin-label" for="live-balance-select">Distribución de páginas</label>
-                            <select class="select-filter" id="live-balance-select" onchange="onLiveParamsChanged()">
-                              <option value="balanced" selected>Auto-balancear equitativo</option>
-                              <option value="fill">Llenar al tope (sin balanceo)</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div class="admin-field-row">
-                          <div class="admin-field">
-                            <label class="admin-label" for="live-page-duration-select">Tiempo por página</label>
-                            <select class="select-filter" id="live-page-duration-select" onchange="onLiveParamsChanged()">
-                              <option value="5">Cada 5 segundos</option>
-                              <option value="6">Cada 6 segundos</option>
-                              <option value="8">Cada 8 segundos</option>
-                              <option value="10" selected>Cada 10 segundos</option>
-                              <option value="15">Cada 15 segundos</option>
-                              <option value="20">Cada 20 segundos</option>
-                            </select>
-                          </div>
-                          <div class="admin-field">
-                            <label class="admin-label" for="live-polling-select">Auto-refresco WCA Live</label>
-                            <select class="select-filter" id="live-polling-select" onchange="onLivePollingChanged()">
-                              <option value="0">Manual (desactivado)</option>
-                              <option value="10">Cada 10 segundos</option>
-                              <option value="15" selected>Cada 15s (recomendado)</option>
-                              <option value="30">Cada 30 segundos</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
 
-                  <!-- Columna Vista Previa de Posiciones -->
-                  <div class="admin-preview-stage">
+                  <!-- Columna Derecha: Vista Previa de Posiciones -->
+                  <div class="admin-preview-stage" style="display:flex;flex-direction:column;gap:10px;">
                     <div class="admin-preview-bar">
                       <span>Vista previa de posiciones</span>
                       <button type="button" class="admin-btn admin-btn--ghost" onclick="refreshCurrentLiveRanking()">
@@ -792,7 +703,7 @@
                       </button>
                     </div>
 
-                    <div class="live-preview-table-wrap">
+                    <div class="live-preview-table-wrap" style="max-height:175px;flex:1;">
                       <table class="live-preview-table">
                         <thead>
                           <tr>
@@ -805,7 +716,7 @@
                         </thead>
                         <tbody id="live-preview-table-body">
                           <tr>
-                            <td colspan="5" style="text-align:center;padding:28px 12px;color:var(--admin-text-muted);">
+                            <td colspan="5" style="text-align:center;padding:24px 12px;color:var(--admin-text-muted);">
                               Selecciona una ronda en WCA Live para previsualizar posiciones
                             </td>
                           </tr>
@@ -814,16 +725,182 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Datalists compartidos para presets -->
+                <datalist id="live-top-presets">
+                  <option value="6"></option>
+                  <option value="8"></option>
+                  <option value="10"></option>
+                  <option value="12"></option>
+                  <option value="14"></option>
+                  <option value="16"></option>
+                  <option value="18"></option>
+                  <option value="20"></option>
+                  <option value="24"></option>
+                </datalist>
+                <datalist id="live-cutoff-presets">
+                  <option value="0" label="0 - Sin corte"></option>
+                  <option value="4" label="Top 4"></option>
+                  <option value="8" label="Top 8"></option>
+                  <option value="12" label="Top 12"></option>
+                  <option value="16" label="Top 16"></option>
+                  <option value="20" label="Top 20"></option>
+                  <option value="24" label="Top 24"></option>
+                </datalist>
+
+                <!-- Dos cajas de ajustes independientes (una por cada modo) -->
+                <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                  <!-- Caja 1: Pantalla Completa -->
+                  <div id="ranking-fs-settings-box" style="padding:12px 14px;background:rgba(15,23,42,0.55);border:1px solid rgba(56,189,248,0.28);border-radius:8px;display:flex;flex-direction:column;gap:10px;min-width:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                      <span style="font-size:12px;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:0.5px;display:inline-flex;align-items:center;gap:6px;">
+                        <span data-icon="maximize-2" data-icon-size="14"></span>
+                        <span>Pantalla Completa (/fullscreen)</span>
+                      </span>
+                      <button type="button" class="admin-btn admin-btn--ghost admin-btn--xs" onclick="copyRankingConfig('fullscreen')" title="Copiar estos ajustes a Mini Widget">
+                        <span data-icon="copy" data-icon-size="12"></span>
+                        <span>Copiar a Mini Widget</span>
+                      </button>
+                    </div>
+
+                    <div class="admin-field-row">
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-fs-top-input">Filas máx. por página</label>
+                        <input type="number" class="form-input tabular-nums" id="live-fs-top-input" min="1" max="60" value="16" list="live-top-presets" onchange="onLiveParamsChanged('fullscreen')" oninput="onLiveParamsChanged('fullscreen')">
+                      </div>
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-fs-cutoff-input">Pasan de ronda (corte)</label>
+                        <input type="number" class="form-input tabular-nums" id="live-fs-cutoff-input" min="0" max="200" value="0" list="live-cutoff-presets" placeholder="0 = Sin corte" onchange="onLiveParamsChanged('fullscreen')" oninput="onLiveParamsChanged('fullscreen')">
+                      </div>
+                    </div>
+
+                    <div class="admin-field-row">
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-fs-paging-mode-select">Modo de rotación</label>
+                        <select class="select-filter" id="live-fs-paging-mode-select" onchange="onLiveParamsChanged('fullscreen')">
+                          <option value="dynamic" selected>Rotación dinámica de páginas</option>
+                          <option value="static">Fijo (solo primera página)</option>
+                        </select>
+                      </div>
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-fs-balance-select">Distribución de páginas</label>
+                        <select class="select-filter" id="live-fs-balance-select" onchange="onLiveParamsChanged('fullscreen')">
+                          <option value="balanced" selected>Auto-balancear equitativo</option>
+                          <option value="fill">Llenar al tope (sin balanceo)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="admin-field">
+                      <label class="admin-label" for="live-fs-page-duration-select">Tiempo por página</label>
+                      <select class="select-filter" id="live-fs-page-duration-select" onchange="onLiveParamsChanged('fullscreen')">
+                        <option value="5">Cada 5 segundos</option>
+                        <option value="6">Cada 6 segundos</option>
+                        <option value="8">Cada 8 segundos</option>
+                        <option value="10" selected>Cada 10 segundos</option>
+                        <option value="15">Cada 15 segundos</option>
+                        <option value="20">Cada 20 segundos</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Caja 2: Mini Widget -->
+                  <div id="ranking-widget-settings-box" style="padding:12px 14px;background:rgba(15,23,42,0.55);border:1px solid rgba(52,211,153,0.28);border-radius:8px;display:flex;flex-direction:column;gap:10px;min-width:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                      <span style="font-size:12px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:0.5px;display:inline-flex;align-items:center;gap:6px;">
+                        <span data-icon="picture-in-picture-2" data-icon-size="14"></span>
+                        <span>Mini Widget (/overlay)</span>
+                      </span>
+                      <button type="button" class="admin-btn admin-btn--ghost admin-btn--xs" onclick="copyRankingConfig('widget')" title="Copiar estos ajustes a Pantalla Completa">
+                        <span data-icon="copy" data-icon-size="12"></span>
+                        <span>Copiar a Pantalla Completa</span>
+                      </button>
+                    </div>
+
+                    <div class="admin-field-row">
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-widget-top-input">Filas máx. por página</label>
+                        <input type="number" class="form-input tabular-nums" id="live-widget-top-input" min="1" max="60" value="8" list="live-top-presets" onchange="onLiveParamsChanged('widget')" oninput="onLiveParamsChanged('widget')">
+                      </div>
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-widget-cutoff-input">Pasan de ronda (corte)</label>
+                        <input type="number" class="form-input tabular-nums" id="live-widget-cutoff-input" min="0" max="200" value="0" list="live-cutoff-presets" placeholder="0 = Sin corte" onchange="onLiveParamsChanged('widget')" oninput="onLiveParamsChanged('widget')">
+                      </div>
+                    </div>
+
+                    <div class="admin-field-row">
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-widget-paging-mode-select">Modo de rotación</label>
+                        <select class="select-filter" id="live-widget-paging-mode-select" onchange="onLiveParamsChanged('widget')">
+                          <option value="dynamic" selected>Rotación dinámica de páginas</option>
+                          <option value="static">Fijo (solo primera página)</option>
+                        </select>
+                      </div>
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-widget-balance-select">Distribución de páginas</label>
+                        <select class="select-filter" id="live-widget-balance-select" onchange="onLiveParamsChanged('widget')">
+                          <option value="balanced" selected>Auto-balancear equitativo</option>
+                          <option value="fill">Llenar al tope (sin balanceo)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="admin-field">
+                      <label class="admin-label" for="live-widget-page-duration-select">Tiempo por página</label>
+                      <select class="select-filter" id="live-widget-page-duration-select" onchange="onLiveParamsChanged('widget')">
+                        <option value="5">Cada 5 segundos</option>
+                        <option value="6">Cada 6 segundos</option>
+                        <option value="8">Cada 8 segundos</option>
+                        <option value="10" selected>Cada 10 segundos</option>
+                        <option value="15">Cada 15 segundos</option>
+                        <option value="20">Cada 20 segundos</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Mini visualización en directo de ambas ventanas (abajo a todo lo ancho) -->
+                <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                  <!-- Monitor 1: Pantalla Completa -->
+                  <div style="display:flex;flex-direction:column;gap:6px;min-width:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                      <span style="font-size:12px;font-weight:700;color:#e2e8f0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        <span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0;"></span>
+                        Pantalla Completa (/fullscreen)
+                      </span>
+                      <a href="/fullscreen" target="_blank" rel="noopener" class="admin-btn admin-btn--ghost admin-btn--xs" title="Abrir /fullscreen en pestaña nueva" style="padding:2px 6px;font-size:10px;">
+                        <span data-icon="external-link" data-icon-size="11"></span>
+                      </a>
+                    </div>
+                    <div class="ranking-mini-monitor" id="mini-monitor-fs" style="position:relative;width:100%;aspect-ratio:16/9;background:#070b14;border:1px solid rgba(56,189,248,0.35);border-radius:8px;overflow:hidden;">
+                      <iframe id="iframe-preview-fs" data-src="/fullscreen?preview=1" title="Mini vista Pantalla Completa" style="position:absolute;top:0;left:0;width:1920px;height:1080px;border:0;transform-origin:0 0;pointer-events:none;"></iframe>
+                    </div>
+                  </div>
+
+                  <!-- Monitor 2: Mini Widget -->
+                  <div style="display:flex;flex-direction:column;gap:6px;min-width:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                      <span style="font-size:12px;font-weight:700;color:#e2e8f0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        <span id="mini-widget-dot" style="width:7px;height:7px;border-radius:50%;background:#64748b;display:inline-block;flex-shrink:0;"></span>
+                        Mini Widget (/overlay)
+                      </span>
+                      <span id="preview-widget-live-pill" style="font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(100,116,139,0.25);color:#94a3b8;text-transform:uppercase;">Preview</span>
+                    </div>
+                    <div class="ranking-mini-monitor" id="mini-monitor-widget" style="position:relative;width:100%;aspect-ratio:16/9;background-color:#090d16;background-image:radial-gradient(rgba(255,255,255,0.09) 1px, transparent 1px);background-size:14px 14px;border:1px solid rgba(255,255,255,0.14);border-radius:8px;overflow:hidden;">
+                      <iframe id="iframe-preview-widget" data-src="/overlay?previewWidget=1" title="Mini vista Mini Widget" style="position:absolute;top:0;left:0;width:1920px;height:1080px;border:0;transform-origin:0 0;pointer-events:none;background:transparent;"></iframe>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="admin-action-bar">
                 <button type="button" class="admin-btn admin-btn--primary" id="btn-show-live-ranking" onclick="sendShowLiveRanking()">
                   <span data-icon="play" data-icon-size="15"></span>
-                  <span>Mostrar en OBS</span>
+                  <span>Mostrar Mini Widget en OBS</span>
                 </button>
                 <button type="button" class="admin-btn admin-btn--secondary" id="btn-hide-live-ranking" onclick="sendHideLiveRanking()">
                   <span data-icon="eye-off" data-icon-size="15"></span>
-                  <span>Ocultar</span>
+                  <span>Ocultar Mini Widget</span>
                 </button>
               </div>
             </section>

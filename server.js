@@ -113,7 +113,21 @@ let liveRankingPageDuration = 10;
 let liveRankingPollTimer = null;
 let liveRankingPollInterval = 0; // segundos (0 = inactivo)
 let liveRankingRounds = [];
-let liveRankingViewMode = 'fullscreen'; // 'fullscreen' | 'widget'
+let liveRankingViewMode = 'widget'; // En /overlay siempre proyecta como widget; /fullscreen siempre está activo
+let liveRankingFsConfig = {
+  top: 16,
+  cutoff: 0,
+  dynamicPaging: true,
+  autoBalance: true,
+  pageDuration: 10
+};
+let liveRankingWidgetConfig = {
+  top: 8,
+  cutoff: 0,
+  dynamicPaging: true,
+  autoBalance: true,
+  pageDuration: 10
+};
 
 // ── Tema y Personalización de Fondo para Fullscreen ──
 let fsTheme = {
@@ -238,6 +252,8 @@ function saveLiveState(immediate = false) {
         pollInterval: liveRankingPollInterval,
         visible: liveRankingVisible,
         viewMode: liveRankingViewMode,
+        fsConfig: liveRankingFsConfig,
+        widgetConfig: liveRankingWidgetConfig,
         fsTheme: fsTheme,
         tournamentLogo: cleanLogo,
         tickerSize: tickerSize,
@@ -287,6 +303,12 @@ function loadLiveState() {
       if (state.pollInterval !== undefined) liveRankingPollInterval = state.pollInterval;
       if (state.visible !== undefined) liveRankingVisible = state.visible;
       if (state.viewMode) liveRankingViewMode = state.viewMode;
+      if (state.fsConfig && typeof state.fsConfig === 'object') {
+        liveRankingFsConfig = Object.assign({}, liveRankingFsConfig, state.fsConfig);
+      }
+      if (state.widgetConfig && typeof state.widgetConfig === 'object') {
+        liveRankingWidgetConfig = Object.assign({}, liveRankingWidgetConfig, state.widgetConfig);
+      }
       if (state.tournamentLogo !== undefined) tournamentLogo = state.tournamentLogo;
       if (state.tickerSize && ['small', 'medium', 'large'].includes(state.tickerSize)) {
         tickerSize = state.tickerSize;
@@ -1021,6 +1043,19 @@ app.get('/api/live/rounds/:roundId', async (req, res) => {
     liveRankingRoundId = roundId;
     liveRankingData = ranking;
     saveLiveState();
+    broadcastToOverlays({
+      type: 'live_ranking_update',
+      visible: liveRankingVisible,
+      data: liveRankingData,
+      dynamicPaging: liveRankingDynamicPaging,
+      autoBalance: liveRankingAutoBalance,
+      pageSize: liveRankingPageSize,
+      pageDuration: liveRankingPageDuration,
+      cutoff: liveRankingCutoff,
+      viewMode: liveRankingViewMode,
+      fsConfig: liveRankingFsConfig,
+      widgetConfig: liveRankingWidgetConfig
+    });
     res.json({ ok: true, ranking });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -1045,6 +1080,8 @@ app.get('/api/live/status', (req, res) => {
     pageSize: liveRankingPageSize,
     pageDuration: liveRankingPageDuration,
     viewMode: liveRankingViewMode,
+    fsConfig: liveRankingFsConfig,
+    widgetConfig: liveRankingWidgetConfig,
     data: liveRankingData,
     fsTheme: fsTheme
   });
@@ -3131,6 +3168,8 @@ function handleSocketConnection(ws, req) {
       liveRankingPageSize,
       liveRankingPageDuration,
       liveRankingViewMode,
+      liveRankingFsConfig,
+      liveRankingWidgetConfig,
       versusBannerVisible,
       versusRoundId,
       versusCompId,
@@ -3508,7 +3547,13 @@ function handleSocketConnection(ws, req) {
         if (msg.autoBalance !== undefined) liveRankingAutoBalance = !!msg.autoBalance;
         if (msg.pageSize !== undefined) liveRankingPageSize = parseInt(msg.pageSize, 10) || 16;
         if (msg.pageDuration !== undefined) liveRankingPageDuration = parseInt(msg.pageDuration, 10) || 10;
-        if (msg.viewMode) liveRankingViewMode = msg.viewMode;
+        if (msg.fsConfig && typeof msg.fsConfig === 'object') {
+          liveRankingFsConfig = Object.assign({}, liveRankingFsConfig, msg.fsConfig);
+        }
+        if (msg.widgetConfig && typeof msg.widgetConfig === 'object') {
+          liveRankingWidgetConfig = Object.assign({}, liveRankingWidgetConfig, msg.widgetConfig);
+        }
+        liveRankingViewMode = msg.viewMode || 'widget';
 
         if (liveRankingData && !liveRankingData.competitionName && tournamentData?.name) {
           liveRankingData.competitionName = tournamentData.name;
@@ -3522,12 +3567,16 @@ function handleSocketConnection(ws, req) {
         }
         broadcastToOverlays({
           type: 'live_ranking_show',
+          visible: true,
           data: liveRankingData,
           dynamicPaging: liveRankingDynamicPaging,
           autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
           pageDuration: liveRankingPageDuration,
-          viewMode: liveRankingViewMode
+          cutoff: liveRankingCutoff,
+          viewMode: liveRankingViewMode,
+          fsConfig: liveRankingFsConfig,
+          widgetConfig: liveRankingWidgetConfig
         });
         broadcastToPanels({
           type: 'sync_live_ranking',
@@ -3542,7 +3591,9 @@ function handleSocketConnection(ws, req) {
           autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
           pageDuration: liveRankingPageDuration,
-          viewMode: liveRankingViewMode
+          viewMode: liveRankingViewMode,
+          fsConfig: liveRankingFsConfig,
+          widgetConfig: liveRankingWidgetConfig
         });
         break;
 
@@ -3630,11 +3681,17 @@ function handleSocketConnection(ws, req) {
         if (msg.autoBalance !== undefined) liveRankingAutoBalance = !!msg.autoBalance;
         if (msg.pageDuration !== undefined) liveRankingPageDuration = parseInt(msg.pageDuration, 10) || 10;
         if (msg.pageSize !== undefined) liveRankingPageSize = parseInt(msg.pageSize, 10) || 16;
+        if (msg.fsConfig && typeof msg.fsConfig === 'object') {
+          liveRankingFsConfig = Object.assign({}, liveRankingFsConfig, msg.fsConfig);
+        }
+        if (msg.widgetConfig && typeof msg.widgetConfig === 'object') {
+          liveRankingWidgetConfig = Object.assign({}, liveRankingWidgetConfig, msg.widgetConfig);
+        }
         saveLiveState();
-        if (liveRankingVisible) {
+        if (liveRankingData) {
           broadcastToOverlays({
             type: 'live_ranking_update',
-            visible: true,
+            visible: liveRankingVisible,
             data: liveRankingData,
             roundId: liveRankingRoundId,
             compId: liveRankingCompId,
@@ -3644,9 +3701,28 @@ function handleSocketConnection(ws, req) {
             autoBalance: liveRankingAutoBalance,
             pageSize: liveRankingPageSize,
             pageDuration: liveRankingPageDuration,
-            viewMode: liveRankingViewMode
+            viewMode: liveRankingViewMode,
+            fsConfig: liveRankingFsConfig,
+            widgetConfig: liveRankingWidgetConfig
           });
         }
+        broadcastToPanels({
+          type: 'sync_live_ranking',
+          visible: liveRankingVisible,
+          data: liveRankingData,
+          roundId: liveRankingRoundId,
+          compId: liveRankingCompId,
+          pollInterval: liveRankingPollInterval,
+          top: liveRankingTop,
+          cutoff: liveRankingCutoff,
+          dynamicPaging: liveRankingDynamicPaging,
+          autoBalance: liveRankingAutoBalance,
+          pageSize: liveRankingPageSize,
+          pageDuration: liveRankingPageDuration,
+          viewMode: liveRankingViewMode,
+          fsConfig: liveRankingFsConfig,
+          widgetConfig: liveRankingWidgetConfig
+        });
         break;
 
       case 'live_ranking_poll_config':
