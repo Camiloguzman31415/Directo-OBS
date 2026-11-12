@@ -382,9 +382,6 @@ if (liveRankingRoundId) {
 
 // ── Polling y Gestión en Tiempo Real de Banner de Finales Versus (WCA Live) ──
 let isVersusPollingInFlight = false;
-let isVersusMockActive = false;
-let currentVersusMockPreset = 'epic';
-let currentVersusMockStep = 5;
 
 async function refreshVersusData() {
   if (!versusRoundId || isVersusPollingInFlight) return;
@@ -1118,189 +1115,6 @@ app.post('/api/versus/toggle', async (req, res) => {
     comp2Target: versusComp2Target
   });
   res.json({ ok: true, visible: versusBannerVisible, data: versusData });
-});
-
-
-function generateMockVersusData(preset = 'epic', step = 5, overrides = {}) {
-  const stepNum = Math.max(1, Math.min(5, parseInt(step, 10) || 5));
-  let p1Name = 'Tymon Kolasinski';
-  let p1Country = 'pl';
-  let p1WcaId = '2016KOLA02';
-  let p1Raw = [422, 510, 489, 532, 465];
-
-  let p2Name = 'Max Park';
-  let p2Country = 'us';
-  let p2WcaId = '2012PARK03';
-  let p2Raw = [398, 475, 460, 482, 455];
-
-  let eventId = '333';
-  let eventName = '3x3';
-  let roundName = 'FINAL';
-  let competitionName = 'WCA World Championship 2026';
-
-  if (preset === 'local') {
-    const comps = (tournamentData && Array.isArray(tournamentData.competitors)) ? tournamentData.competitors : [];
-    p1Name = comps[0]?.name || 'Camilo Guzmán';
-    p1Country = (comps[0]?.countryIso2 || 'co').toLowerCase();
-    p1WcaId = comps[0]?.wcaId || '2014GUZM03';
-    p1Raw = [745, 810, 789, 830, 762];
-
-    p2Name = comps[1]?.name || 'David Peña';
-    p2Country = (comps[1]?.countryIso2 || 'co').toLowerCase();
-    p2WcaId = comps[1]?.wcaId || '2017PENA05';
-    p2Raw = [780, 765, 812, 790, 775];
-
-    competitionName = tournamentData?.name || 'Colombian Nationals Paipa 2026';
-  } else if (preset === 'tension') {
-    p1Name = 'Yiheng Wang';
-    p1Country = 'cn';
-    p1WcaId = '2019WANG68';
-    p1Raw = [385, 420, 395, 450, 410];
-
-    p2Name = 'Luke Garrett';
-    p2Country = 'us';
-    p2WcaId = '2017GARR05';
-    p2Raw = [390, 412, 405, 435, 415];
-  }
-
-  if (overrides.comp1Name) p1Name = overrides.comp1Name;
-  if (overrides.comp2Name) p2Name = overrides.comp2Name;
-  if (overrides.comp1Country) p1Country = overrides.comp1Country.toLowerCase();
-  if (overrides.comp2Country) p2Country = overrides.comp2Country.toLowerCase();
-  if (overrides.eventId) eventId = overrides.eventId;
-  if (overrides.eventName) eventName = overrides.eventName;
-  if (overrides.roundName) roundName = overrides.roundName;
-  if (overrides.competitionName) competitionName = overrides.competitionName;
-
-  const p1Slice = p1Raw.map((v, i) => (i < stepNum ? v : 0));
-  const p2Slice = p2Raw.map((v, i) => (i < stepNum ? v : 0));
-
-  const stats1 = calculateAo5Stats(p1Slice, eventId);
-  const stats2 = calculateAo5Stats(p2Slice, eventId);
-
-  return {
-    isMock: true,
-    mockPreset: preset,
-    mockStep: stepNum,
-    roundId: 'mock_finals',
-    roundName,
-    eventId,
-    eventName,
-    competitionName,
-    competitor1: {
-      name: p1Name,
-      wcaId: p1WcaId,
-      countryIso2: p1Country,
-      best: stats1.best || (stepNum > 0 ? Math.min(...p1Slice.filter(x => x > 0)) : null),
-      bestFormatted: stats1.bestFormatted || '—',
-      ...stats1
-    },
-    competitor2: {
-      name: p2Name,
-      wcaId: p2WcaId,
-      countryIso2: p2Country,
-      best: stats2.best || (stepNum > 0 ? Math.min(...p2Slice.filter(x => x > 0)) : null),
-      bestFormatted: stats2.bestFormatted || '—',
-      ...stats2
-    }
-  };
-}
-
-app.post('/api/versus/mock', (req, res) => {
-  try {
-    const { preset, step, comp1Name, comp2Name, visible } = req.body || {};
-    stopVersusPolling();
-    isVersusMockActive = true;
-    if (preset) currentVersusMockPreset = preset;
-    if (step !== undefined) currentVersusMockStep = parseInt(step, 10) || 5;
-
-    versusData = generateMockVersusData(currentVersusMockPreset, currentVersusMockStep, {
-      comp1Name: comp1Name || versusComp1Target,
-      comp2Name: comp2Name || versusComp2Target
-    });
-
-    if (visible !== undefined) versusBannerVisible = !!visible;
-
-    broadcastToOverlays({
-      type: 'versus_banner_data',
-      visible: versusBannerVisible,
-      data: versusData
-    });
-
-    broadcastToPanels({
-      type: 'sync_versus_banner',
-      visible: versusBannerVisible,
-      data: versusData,
-      isMock: true,
-      mockPreset: currentVersusMockPreset,
-      mockStep: currentVersusMockStep,
-      roundId: versusRoundId,
-      compId: versusCompId,
-      pollInterval: versusPollInterval
-    });
-
-    res.json({ ok: true, isMock: true, data: versusData, visible: versusBannerVisible, step: currentVersusMockStep });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-app.post('/api/versus/mock/step', (req, res) => {
-  try {
-    let nextStep = (currentVersusMockStep % 5) + 1;
-    if (req.body && req.body.step !== undefined) {
-      nextStep = Math.max(1, Math.min(5, parseInt(req.body.step, 10) || 1));
-    }
-    currentVersusMockStep = nextStep;
-    isVersusMockActive = true;
-    stopVersusPolling();
-
-    versusData = generateMockVersusData(currentVersusMockPreset, currentVersusMockStep, {
-      comp1Name: versusComp1Target,
-      comp2Name: versusComp2Target
-    });
-
-    broadcastToOverlays({
-      type: 'versus_banner_data',
-      visible: versusBannerVisible,
-      data: versusData
-    });
-
-    broadcastToPanels({
-      type: 'sync_versus_banner',
-      visible: versusBannerVisible,
-      data: versusData,
-      isMock: true,
-      mockPreset: currentVersusMockPreset,
-      mockStep: currentVersusMockStep
-    });
-
-    res.json({ ok: true, isMock: true, step: currentVersusMockStep, data: versusData });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-app.post('/api/versus/mock/reset', async (req, res) => {
-  try {
-    isVersusMockActive = false;
-    currentVersusMockStep = 5;
-    if (versusRoundId) {
-      await refreshVersusData();
-    } else {
-      versusData = null;
-      broadcastToOverlays({ type: 'hide_versus_banner' });
-      broadcastToPanels({
-        type: 'sync_versus_banner',
-        visible: false,
-        data: null,
-        isMock: false
-      });
-    }
-    res.json({ ok: true, isMock: false });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
-  }
 });
 
 app.post('/api/versus/refresh', async (req, res) => {
@@ -3853,48 +3667,6 @@ function handleSocketConnection(ws, req) {
         });
         break;
 
-            case 'mock_versus_banner':
-        isVersusMockActive = true;
-        stopVersusPolling();
-        if (msg.preset) currentVersusMockPreset = msg.preset;
-        if (msg.step !== undefined) currentVersusMockStep = parseInt(msg.step, 10) || 5;
-        versusData = generateMockVersusData(currentVersusMockPreset, currentVersusMockStep, {
-          comp1Name: msg.comp1Name || versusComp1Target,
-          comp2Name: msg.comp2Name || versusComp2Target
-        });
-        if (msg.visible !== undefined) versusBannerVisible = !!msg.visible;
-        broadcastToOverlays({
-          type: 'versus_banner_data',
-          visible: versusBannerVisible,
-          data: versusData
-        });
-        broadcastToPanels({
-          type: 'sync_versus_banner',
-          visible: versusBannerVisible,
-          data: versusData,
-          isMock: true,
-          mockPreset: currentVersusMockPreset,
-          mockStep: currentVersusMockStep
-        });
-        break;
-
-      case 'reset_versus_mock':
-        isVersusMockActive = false;
-        currentVersusMockStep = 5;
-        if (versusRoundId) {
-          refreshVersusData();
-        } else {
-          versusData = null;
-          broadcastToOverlays({ type: 'hide_versus_banner' });
-          broadcastToPanels({
-            type: 'sync_versus_banner',
-            visible: false,
-            data: null,
-            isMock: false
-          });
-        }
-        break;
-
       case 'show_versus_banner':
         versusBannerVisible = true;
         if (msg.roundId) versusRoundId = msg.roundId;
@@ -3903,12 +3675,7 @@ function handleSocketConnection(ws, req) {
         if (msg.comp2Target !== undefined) versusComp2Target = msg.comp2Target;
         if (msg.pollInterval !== undefined) versusPollInterval = Math.max(1, parseInt(msg.pollInterval, 10) || 2);
         saveLiveState();
-        if (isVersusMockActive && versusData) {
-          broadcastToOverlays({ type: 'versus_banner_data', visible: true, data: versusData });
-          broadcastToPanels({ type: 'sync_versus_banner', visible: true, data: versusData, isMock: true, mockPreset: currentVersusMockPreset, mockStep: currentVersusMockStep });
-        } else {
-          startVersusPolling(versusPollInterval);
-        }
+        startVersusPolling(versusPollInterval);
         break;
 
       case 'hide_versus_banner':

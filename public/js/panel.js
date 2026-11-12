@@ -72,9 +72,6 @@ let versusComp1Target = null;
 let versusComp2Target = null;
 let versusPollInterval = 2;
 let versusData = null;
-let isVersusMockActive = false;
-let versusMockPreset = 'epic';
-let versusMockStep = 5;
 
 let obsStatus = {
   connected: false,
@@ -567,14 +564,10 @@ function handleServerMessage(msg) {
       if (msg.pollInterval !== undefined) versusPollInterval = msg.pollInterval;
       if (msg.comp1Target !== undefined) versusComp1Target = msg.comp1Target;
       if (msg.comp2Target !== undefined) versusComp2Target = msg.comp2Target;
-      if (msg.isMock !== undefined) isVersusMockActive = !!msg.isMock;
-      if (msg.mockPreset) versusMockPreset = msg.mockPreset;
-      if (msg.mockStep !== undefined) versusMockStep = msg.mockStep;
       if (msg.data) {
         versusData = msg.data;
         renderVersusPanelPreview(versusData);
       }
-      updateVersusMockUI();
       updateVersusUI();
       break;
   }
@@ -5822,8 +5815,8 @@ function manualRefreshVersus() {
 }
 
 function sendShowVersusBanner() {
-  if (!versusRoundId && !isVersusMockActive && !versusData) {
-    showToast('Selecciona primero una ronda de WCA Live o usa "Mockear Duelo"', 'warning');
+  if (!versusRoundId) {
+    showToast('Selecciona primero una ronda de WCA Live para la final', 'warning');
     return;
   }
   versusBannerVisible = true;
@@ -5927,102 +5920,3 @@ function renderVersusPanelRow(slot, comp) {
 
 
 
-
-
-function toggleVersusMockSection() {
-  const box = document.getElementById('versus-mock-box');
-  if (!box) return;
-  box.style.display = (box.style.display === 'none') ? 'flex' : 'none';
-}
-
-async function triggerVersusMock(preset = 'epic', step = 5) {
-  try {
-    versusMockPreset = preset;
-    versusMockStep = step;
-    isVersusMockActive = true;
-    showToast(`Cargando mock: ${preset.toUpperCase()} (Paso ${step}/5)...`, 'info');
-
-    const res = await fetch('/api/versus/mock', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preset, step, visible: versusBannerVisible })
-    });
-    const d = await res.json();
-    if (d.ok && d.data) {
-      versusData = d.data;
-      renderVersusPanelPreview(versusData);
-      updateVersusMockUI();
-      updateVersusUI();
-      showToast('¡Mock de Versus cargado con éxito!', 'success');
-    }
-  } catch (err) {
-    showToast('Error cargando mock: ' + err.message, 'error');
-  }
-}
-
-async function setVersusMockStep(step) {
-  try {
-    versusMockStep = step;
-    const res = await fetch('/api/versus/mock/step', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ step })
-    });
-    const d = await res.json();
-    if (d.ok && d.data) {
-      versusData = d.data;
-      renderVersusPanelPreview(versusData);
-      updateVersusMockUI();
-      showToast(`Paso ${step}/5 simulado (Solves 1 a ${step})`, 'info');
-    }
-  } catch (err) {
-    showToast('Error cambiando paso de mock: ' + err.message, 'error');
-  }
-}
-
-async function nextVersusMockStep() {
-  try {
-    const nextStep = (versusMockStep % 5) + 1;
-    await setVersusMockStep(nextStep);
-  } catch (err) {
-    showToast('Error avanzando solve: ' + err.message, 'error');
-  }
-}
-
-async function resetVersusMock() {
-  try {
-    isVersusMockActive = false;
-    versusMockStep = 5;
-    const res = await fetch('/api/versus/mock/reset', { method: 'POST' });
-    const d = await res.json();
-    if (d.ok) {
-      updateVersusMockUI();
-      updateVersusUI();
-      showToast('Mock desactivado. Vinculación WCA Live restaurada.', 'info');
-    }
-  } catch (err) {
-    showToast('Error restableciendo mock: ' + err.message, 'error');
-  }
-}
-
-function updateVersusMockUI() {
-  const badge = document.getElementById('versus-mock-badge');
-  if (badge) {
-    badge.style.display = isVersusMockActive ? 'inline-flex' : 'none';
-    if (isVersusMockActive) {
-      badge.textContent = `MOCK ACTIVO · PASO ${versusMockStep}/5`;
-    }
-  }
-
-  const stepBtns = document.querySelectorAll('#versus-mock-step-btns button');
-  stepBtns.forEach(btn => {
-    const s = parseInt(btn.getAttribute('data-step'), 10);
-    if (s === versusMockStep && isVersusMockActive) {
-      btn.classList.add('is-active', 'admin-btn--primary');
-      btn.classList.remove('admin-btn--ghost');
-    } else {
-      btn.classList.remove('is-active', 'admin-btn--primary');
-      btn.classList.add('admin-btn--ghost');
-    }
-  });
-}
