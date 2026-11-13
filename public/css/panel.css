@@ -1087,10 +1087,6 @@
     flex-shrink: 0;
   }
 
-  #admin-root section[aria-labelledby="title-obs-sources"] {
-    display: none !important;
-  }
-
   #admin-root #view-scenes .admin-cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

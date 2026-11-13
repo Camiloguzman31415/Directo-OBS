@@ -419,7 +419,11 @@ function handleServerMessage(msg) {
       break;
 
     case 'obs_items_updated':
-      renderSceneSources(msg.sceneItems, msg.sceneName);
+      obsStatus.currentSceneItems = Array.isArray(msg.sceneItems) ? msg.sceneItems : [];
+      renderSceneSources(obsStatus.currentSceneItems, msg.sceneName);
+      if (simCamerasState) {
+        renderPreEscenaDirectorCard(simCamerasState);
+      }
       break;
 
     case 'obs_stream_changed':
@@ -665,11 +669,11 @@ function updateSimCamerasUI(state) {
     if (camEmptyHint) camEmptyHint.style.display = 'none';
     if (srcEmptyHint) srcEmptyHint.style.display = 'none';
     renderSceneSources(state.cameras, 'Simulador Directo (videos/camaras)');
-    renderSimDirectorLiveMonitor(state);
-    renderPreEscenaDirectorCard(state);
-    renderSimMultiviewCard(state);
-    window.AdminUI?.syncAdminLiveNowUI();
   }
+  renderSimDirectorLiveMonitor(state);
+  renderPreEscenaDirectorCard(state);
+  renderSimMultiviewCard(state);
+  window.AdminUI?.syncAdminLiveNowUI();
 }
 
 async function commuteSimScenes() {
@@ -791,6 +795,38 @@ async function updateBusConfig(targetBus, updates = {}, toastMessage = '') {
     const data = await res.json();
     if (data.ok && data.state) {
       updateSimCamerasUI(data.state);
+      // Si no hay simulador y OBS está conectado, aplicar distribución de 1 o 2 cámaras reales en la escena activa de OBS
+      if (!hasActiveSimCameras() && obsStatus?.connected && !isPrev) {
+        const bus = data.state;
+        const count = Number(bus.camCount) || 1;
+        const slots = Array.isArray(bus.slotIds) ? bus.slotIds : [];
+        if (count === 1 && slots[0]) {
+          fetch('/api/obs/apply-layout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              target: 'program',
+              camAId: slots[0],
+              layout: 'solo_a',
+              bannerMode: bus.bannerMode || 'none'
+            })
+          }).catch(() => {});
+        } else if (count === 2 && slots[0] && slots[1]) {
+          const allowed2 = ['split_lr', 'split_rl', 'split_tb', 'split_bt', 'pip_a', 'pip_b'];
+          const obsLay = allowed2.includes(bus.layout) ? bus.layout : 'split_lr';
+          fetch('/api/obs/apply-layout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              target: 'program',
+              camAId: slots[0],
+              camBId: slots[1],
+              layout: obsLay,
+              bannerMode: bus.bannerMode || 'none'
+            })
+          }).catch(() => {});
+        }
+      }
       if (toastMessage) {
         const destLabel = isPrev ? '2 · PreEscena' : '1 · Escena Principal';
         showToast(`[${destLabel}] ${toastMessage}`, 'success');
@@ -824,7 +860,7 @@ function renderSimDirectorLiveMonitor(state) {
   if (obsVideoBox) obsVideoBox.style.display = 'none';
 
   let monitorWrap = document.getElementById('sim-director-live-monitor');
-  if (!state || !Array.isArray(state.cameras) || state.cameras.length === 0) {
+  if (!state) {
     if (monitorWrap) monitorWrap.style.display = 'none';
     return;
   }
@@ -1074,6 +1110,92 @@ function renderSimDirectorLiveMonitor(state) {
 
   updateMonitorViewport('sim-mon-prog', state, '#sim-monitor-layout-badge', '#sim-monitor-pip-badge');
   updateMonitorViewport('sim-mon-prev', state.preview || state, '#sim-prev-layout-badge', '#sim-prev-pip-badge');
+  syncObsMultiviewLivePreview(monitorWrap);
+}
+
+let __obsMvPreviewTimer = null;
+let __obsMvPreviewInFlight = false;
+
+async function refreshObsMultiviewScreenshots() {
+  const monitorWrap = document.getElementById('sim-director-live-monitor');
+  if (!monitorWrap) return;
+  const progImg = monitorWrap.querySelector('#obs-live-prog-img');
+  const prevImg = monitorWrap.querySelector('#obs-live-prev-img');
+  const prevHint = monitorWrap.querySelector('#obs-live-prev-hint');
+
+  if (!obsStatus?.connected || hasActiveSimCameras()) {
+    if (progImg) progImg.style.display = 'none';
+    if (prevImg) prevImg.style.display = 'none';
+    if (prevHint) prevHint.style.display = 'none';
+    return;
+  }
+
+  if (monitorWrap.offsetParent === null || __obsMvPreviewInFlight) return;
+  __obsMvPreviewInFlight = true;
+  try {
+    const progSel = document.querySelector('#camera-layout-director-box select[data-slot-select="0"]');
+    const prevSel = document.querySelector('#preescena-layout-director-box select[data-slot-select="0"]');
+    const progSourceName = progSel?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const prevSourceName = prevSel?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const qs = new URLSearchParams({ quality: 'sd' });
+    const activeScene = simCamerasState?.activeScene || 'principal';
+    const isPrincipalCovered = (activeScene === 'fullscreen' || activeScene === 'transicion');
+    if (progSourceName && isPrincipalCovered) qs.set('programSource', progSourceName);
+    if (prevSourceName) qs.set('previewSource', prevSourceName);
+
+    const res = await fetch(`/api/obs/studio-screenshots?${qs.toString()}`);
+    const data = await res.json();
+    if (data?.ok) {
+      if (progImg && data.programImage) {
+        progImg.src = data.programImage;
+        progImg.style.display = 'block';
+      }
+      if (prevImg && data.previewImage) {
+        prevImg.src = data.previewImage;
+        prevImg.style.display = 'block';
+        prevImg.style.opacity = (data.studioMode || prevSourceName) ? '1' : '0.78';
+      }
+      if (prevHint) {
+        prevHint.style.display = (data.studioMode || prevSourceName) ? 'none' : 'inline-flex';
+      }
+    }
+  } catch (_) {
+    // Silenciar errores transitorios de polling
+  } finally {
+    __obsMvPreviewInFlight = false;
+  }
+}
+
+function syncObsMultiviewLivePreview(monitorWrap) {
+  if (!monitorWrap) return;
+  const progStage = monitorWrap.querySelector('#sim-monitor-stage');
+  const prevStage = monitorWrap.querySelector('#sim-prev-stage');
+
+  if (progStage && !progStage.querySelector('#obs-live-prog-img')) {
+    const img = document.createElement('img');
+    img.id = 'obs-live-prog-img';
+    img.alt = 'Vista en vivo de Escena Principal en OBS';
+    img.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; z-index:2; pointer-events:none;';
+    progStage.appendChild(img);
+  }
+  if (prevStage && !prevStage.querySelector('#obs-live-prev-img')) {
+    const img = document.createElement('img');
+    img.id = 'obs-live-prev-img';
+    img.alt = 'Vista previa de OBS';
+    img.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; z-index:2; pointer-events:none;';
+    prevStage.appendChild(img);
+
+    const hint = document.createElement('span');
+    hint.id = 'obs-live-prev-hint';
+    hint.textContent = 'Activa Estudio arriba para previa independiente';
+    hint.style.cssText = 'position:absolute; left:6px; top:6px; z-index:3; display:none; padding:2px 6px; border-radius:4px; background:rgba(15,23,42,0.86); border:1px solid rgba(251,191,36,0.45); color:#fde68a; font-size:9px; font-weight:700; pointer-events:none;';
+    prevStage.appendChild(hint);
+  }
+
+  refreshObsMultiviewScreenshots();
+  if (!__obsMvPreviewTimer) {
+    __obsMvPreviewTimer = setInterval(refreshObsMultiviewScreenshots, 750);
+  }
 }
 
 function renderIndependentBusControls(containerEl, targetBus, busState, cameras, accentColor) {
@@ -1250,8 +1372,9 @@ function renderIndependentBusControls(containerEl, targetBus, busState, cameras,
       opt.textContent = c.sourceName;
       sel.appendChild(opt);
     });
-    const val = slotIds[idx] || cameras[idx % Math.max(1, cameras.length)]?.sceneItemId;
-    if (val) sel.value = String(val);
+    const hasVal = cameras.some(c => String(c.sceneItemId) === String(slotIds[idx]));
+    const val = hasVal ? slotIds[idx] : cameras[idx % Math.max(1, cameras.length)]?.sceneItemId;
+    if (val !== undefined && val !== null) sel.value = String(val);
   });
 
   // Renderizar botones de formato de distribución según camCount
@@ -1291,7 +1414,9 @@ function renderIndependentBusControls(containerEl, targetBus, busState, cameras,
       opt.textContent = c.sourceName;
       pipCamSel.appendChild(opt);
     });
-    if (pipCamId) pipCamSel.value = String(pipCamId);
+    const hasPip = cameras.some(c => String(c.sceneItemId) === String(pipCamId));
+    const resolvedPip = hasPip ? pipCamId : cameras[0]?.sceneItemId;
+    if (resolvedPip !== undefined && resolvedPip !== null) pipCamSel.value = String(resolvedPip);
   }
   const pipCornerSel = root.querySelector('.bus-pip-corner-select');
   if (pipCornerSel) pipCornerSel.value = pipCorner;
@@ -1315,10 +1440,18 @@ function renderPreEscenaDirectorCard(state) {
     mainBadge.style.color = '#38bdf8';
   }
 
+  const obsVisualCameras = (obsStatus?.currentSceneItems || []).filter(item => {
+    const k = (item.inputKind || '').toLowerCase();
+    return !k.includes('wasapi') && !k.includes('audio');
+  });
+  const availableCameras = (Array.isArray(state?.cameras) && state.cameras.length > 0)
+    ? state.cameras
+    : obsVisualCameras;
+
   const mainDirectorBox = document.getElementById('camera-layout-director-box');
   if (mainDirectorBox) {
     mainDirectorBox.style.display = 'flex';
-    renderIndependentBusControls(mainDirectorBox, 'program', state, state.cameras || [], '#38bdf8');
+    renderIndependentBusControls(mainDirectorBox, 'program', state, availableCameras, '#38bdf8');
   }
 
   let prevCard = document.getElementById('sim-preescena-director-card');
@@ -1353,7 +1486,7 @@ function renderPreEscenaDirectorCard(state) {
 
   const prevDirectorBox = prevCard.querySelector('#preescena-layout-director-box');
   if (prevDirectorBox) {
-    renderIndependentBusControls(prevDirectorBox, 'preview', state.preview || state, state.cameras || [], '#fbbf24');
+    renderIndependentBusControls(prevDirectorBox, 'preview', state.preview || state, availableCameras, '#fbbf24');
   }
 }
 
@@ -1539,8 +1672,9 @@ function updateOBSUI(status) {
     if (srcEmptyHint) srcEmptyHint.style.display = 'none';
 
     renderScenes(status.scenes, status.currentProgramScene);
-    if (hasActiveSimCameras()) {
+    if (simCamerasState) {
       renderSimDirectorLiveMonitor(simCamerasState);
+      renderPreEscenaDirectorCard(simCamerasState);
       renderSimMultiviewCard(simCamerasState);
     }
     if (status.currentSceneItems || hasActiveSimCameras()) {
@@ -1861,7 +1995,7 @@ function renderSceneSources(items, sceneName) {
   box.style.display = 'flex';
   const name = sceneName || obsStatus.currentProgramScene || (simActive ? 'Simulador Directo (videos/camaras)' : 'Escena');
   label.textContent = `Capas en: ${name}`;
-  caption.textContent = `${items ? items.length : 0} cámaras en bucle`;
+  caption.textContent = `${items ? items.length : 0} ${simActive ? 'cámaras en bucle' : 'fuentes'}`;
   container.innerHTML = '';
 
   populateCameraLayoutSelectors(items, sceneName);

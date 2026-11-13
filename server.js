@@ -1761,38 +1761,8 @@ function calculateCameraLayout({ layout, bannerMode }) {
 const SIM_CAMERAS_DIR = path.join(__dirname, 'public', 'videos', 'camaras');
 
 function scanSimulatedCameras(existingCameras = []) {
-  try {
-    if (!fs.existsSync(SIM_CAMERAS_DIR)) return [];
-    const prevMap = new Map((existingCameras || []).map(c => [c.fileName, c]));
-    const files = fs.readdirSync(SIM_CAMERAS_DIR)
-      .filter(f => /\.(mp4|webm|mov|mkv)$/i.test(f))
-      .sort((a, b) => a.localeCompare(b, 'es'));
-
-    return files.map((fileName, idx) => {
-      const prev = prevMap.get(fileName);
-      const cleanTitle = fileName
-        .replace(/\.(mp4|webm|mov|mkv)$/i, '')
-        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-      const sceneItemId = 101 + idx;
-      return {
-        sceneItemId,
-        camIndex: idx + 1,
-        sourceName: `Cam ${idx + 1} · ${cleanTitle}`,
-        shortName: `Cam ${idx + 1}`,
-        title: cleanTitle,
-        fileName,
-        url: `/videos/camaras/${encodeURIComponent(fileName)}`,
-        inputKind: 'ffmpeg_source',
-        isSimulated: true,
-        sceneItemEnabled: prev ? prev.sceneItemEnabled : true
-      };
-    });
-  } catch (err) {
-    console.warn('[SimCameras] Error leyendo public/videos/camaras:', err.message);
-    return [];
-  }
+  // Simulador de cámaras desactivado para operar directamente con cámaras/fuentes reales en OBS Studio
+  return [];
 }
 
 const DEFAULT_LAYOUT_BY_COUNT = {
@@ -2702,8 +2672,8 @@ app.post('/api/obs/transition', async (req, res) => {
 app.get('/api/obs/studio-screenshots', async (req, res) => {
   if (!obsConnected) return res.status(400).json({ error: 'OBS no está conectado' });
 
-  const programScene = obsStatus.currentProgramScene;
-  const previewScene = obsStatus.currentPreviewScene || programScene;
+  const programScene = req.query.programSource || obsStatus.currentProgramScene;
+  const previewScene = req.query.previewSource || obsStatus.currentPreviewScene || obsStatus.currentProgramScene;
   const quality = req.query.quality || 'hd';
 
   let width = 960;
@@ -2729,7 +2699,19 @@ app.get('/api/obs/studio-screenshots', async (req, res) => {
         imageWidth: width,
         imageHeight: height,
         imageCompressionQuality: compressionQuality
-      }).catch(() => null));
+      }).catch(() => {
+        const fallback = obsStatus.currentPreviewScene || obsStatus.currentProgramScene;
+        if (fallback && fallback !== previewScene) {
+          return obs.call('GetSourceScreenshot', {
+            sourceName: fallback,
+            imageFormat: 'jpg',
+            imageWidth: width,
+            imageHeight: height,
+            imageCompressionQuality: compressionQuality
+          }).catch(() => null);
+        }
+        return null;
+      }));
     } else {
       promises.push(Promise.resolve(null));
     }
@@ -2741,7 +2723,19 @@ app.get('/api/obs/studio-screenshots', async (req, res) => {
         imageWidth: width,
         imageHeight: height,
         imageCompressionQuality: compressionQuality
-      }).catch(() => null));
+      }).catch(() => {
+        const fallback = obsStatus.currentProgramScene;
+        if (fallback && fallback !== programScene) {
+          return obs.call('GetSourceScreenshot', {
+            sourceName: fallback,
+            imageFormat: 'jpg',
+            imageWidth: width,
+            imageHeight: height,
+            imageCompressionQuality: compressionQuality
+          }).catch(() => null);
+        }
+        return null;
+      }));
     } else {
       promises.push(Promise.resolve(null));
     }
@@ -2872,15 +2866,31 @@ obs.on('SceneItemEnableStateChanged', data => {
   });
 });
 
+async function refreshActiveOBSSceneItems(sceneName) {
+  const target = sceneName || obsStatus.currentProgramScene;
+  if (!target || target !== obsStatus.currentProgramScene) return;
+  obsStatus.currentSceneItems = await getSceneItemsForScene(target);
+  broadcastToPanels({
+    type: 'obs_items_updated',
+    sceneName: target,
+    sceneItems: obsStatus.currentSceneItems
+  });
+}
+
 obs.on('SceneItemListReindexed', async data => {
-  if (data.sceneName === obsStatus.currentProgramScene) {
-    obsStatus.currentSceneItems = await getSceneItemsForScene(data.sceneName);
-    broadcastToPanels({
-      type: 'obs_items_updated',
-      sceneName: data.sceneName,
-      sceneItems: obsStatus.currentSceneItems
-    });
-  }
+  await refreshActiveOBSSceneItems(data.sceneName);
+});
+
+obs.on('InputNameChanged', async () => {
+  await refreshActiveOBSSceneItems();
+});
+
+obs.on('SceneItemCreated', async data => {
+  await refreshActiveOBSSceneItems(data?.sceneName);
+});
+
+obs.on('SceneItemRemoved', async data => {
+  await refreshActiveOBSSceneItems(data?.sceneName);
 });
 
 obs.on('SceneListChanged', () => {
