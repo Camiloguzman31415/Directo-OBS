@@ -676,6 +676,52 @@ function updateSimCamerasUI(state) {
   window.AdminUI?.syncAdminLiveNowUI();
 }
 
+function syncBusToOBS(bus) {
+  if (!bus || hasActiveSimCameras() || !obsStatus?.connected) return;
+  const obsVisual = (obsStatus.currentSceneItems || []).filter(item => {
+    const k = (item.inputKind || '').toLowerCase();
+    return !k.includes('wasapi') && !k.includes('audio');
+  });
+  if (obsVisual.length === 0) return;
+
+  const resolveSlot = (rawId, idx) => {
+    const match = obsVisual.find(c => String(c.sceneItemId) === String(rawId));
+    return match ? match.sceneItemId : obsVisual[idx % obsVisual.length]?.sceneItemId;
+  };
+
+  const count = Number(bus.camCount) || 1;
+  const slots = Array.isArray(bus.slotIds) ? bus.slotIds : [];
+  const camAId = resolveSlot(slots[0], 0);
+  const camBId = resolveSlot(slots[1], 1);
+
+  if (count === 1 && camAId) {
+    fetch('/api/obs/apply-layout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        target: 'program',
+        camAId,
+        layout: 'full_a',
+        bannerMode: bus.bannerMode || 'none'
+      })
+    }).catch(() => {});
+  } else if (count === 2 && camAId && camBId) {
+    const allowed2 = ['split_lr', 'split_rl', 'split_tb', 'split_bt', 'pip_a', 'pip_b'];
+    const obsLay = allowed2.includes(bus.layout) ? bus.layout : 'split_lr';
+    fetch('/api/obs/apply-layout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        target: 'program',
+        camAId,
+        camBId,
+        layout: obsLay,
+        bannerMode: bus.bannerMode || 'none'
+      })
+    }).catch(() => {});
+  }
+}
+
 async function commuteSimScenes() {
   try {
     const r = await fetch('/api/sim-cameras', {
@@ -686,6 +732,7 @@ async function commuteSimScenes() {
     const d = await r.json();
     if (d.ok && d.state) {
       updateSimCamerasUI(d.state);
+      syncBusToOBS(d.state);
       showToast('¡PreEscena conmutada a Escena Principal! (Principal ⇄ PreEscena)', 'success');
     }
   } catch (err) {
@@ -795,38 +842,7 @@ async function updateBusConfig(targetBus, updates = {}, toastMessage = '') {
     const data = await res.json();
     if (data.ok && data.state) {
       updateSimCamerasUI(data.state);
-      // Si no hay simulador y OBS está conectado, aplicar distribución de 1 o 2 cámaras reales en la escena activa de OBS
-      if (!hasActiveSimCameras() && obsStatus?.connected && !isPrev) {
-        const bus = data.state;
-        const count = Number(bus.camCount) || 1;
-        const slots = Array.isArray(bus.slotIds) ? bus.slotIds : [];
-        if (count === 1 && slots[0]) {
-          fetch('/api/obs/apply-layout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              target: 'program',
-              camAId: slots[0],
-              layout: 'solo_a',
-              bannerMode: bus.bannerMode || 'none'
-            })
-          }).catch(() => {});
-        } else if (count === 2 && slots[0] && slots[1]) {
-          const allowed2 = ['split_lr', 'split_rl', 'split_tb', 'split_bt', 'pip_a', 'pip_b'];
-          const obsLay = allowed2.includes(bus.layout) ? bus.layout : 'split_lr';
-          fetch('/api/obs/apply-layout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              target: 'program',
-              camAId: slots[0],
-              camBId: slots[1],
-              layout: obsLay,
-              bannerMode: bus.bannerMode || 'none'
-            })
-          }).catch(() => {});
-        }
-      }
+      if (!isPrev) syncBusToOBS(data.state);
       if (toastMessage) {
         const destLabel = isPrev ? '2 · PreEscena' : '1 · Escena Principal';
         showToast(`[${destLabel}] ${toastMessage}`, 'success');
