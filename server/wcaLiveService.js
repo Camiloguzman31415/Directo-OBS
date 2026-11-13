@@ -1,3 +1,83 @@
+const WCA_LIVE_URL = 'https://live.worldcubeassociation.org/api';
+const WCA_BASE_API = 'https://www.worldcubeassociation.org/api/v0';
+
+const wcifPublicCache = new Map();
+const WCIF_ATTEMPTS_BY_FORMAT = { a: 5, m: 3, '3': 3, '2': 2, '1': 1 };
+
+async function fetchWcifPublicCached(wcaCompId) {
+  if (!wcaCompId) return null;
+  const key = String(wcaCompId).trim();
+  const cached = wcifPublicCache.get(key);
+  if (cached && (Date.now() - cached.ts) < 2500) {
+    return cached.data;
+  }
+  const resp = await fetch(`${WCA_BASE_API}/competitions/${encodeURIComponent(key)}/wcif/public`, {
+    headers: { 'Accept': 'application/json', 'User-Agent': 'DirectoOBS/2.0' },
+    signal: AbortSignal.timeout(8000)
+  });
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  wcifPublicCache.set(key, { ts: Date.now(), data });
+  return data;
+}
+
+async function fetchWcifRoundFallback(wcaCompId, wcifRoundId) {
+  try {
+    const wcif = await fetchWcifPublicCached(wcaCompId);
+    if (!wcif) return null;
+
+    const personsMap = new Map();
+    for (const p of wcif.persons || []) {
+      if (p.registrantId !== undefined && p.registrantId !== null) {
+        personsMap.set(p.registrantId, p);
+      }
+    }
+
+    for (const ev of wcif.events || []) {
+      const rounds = ev.rounds || [];
+      const idx = rounds.findIndex(r => r.id === wcifRoundId);
+      if (idx === -1) continue;
+      const r = rounds[idx];
+      const totalRounds = rounds.length || 1;
+      const roundNumber = idx + 1;
+      const totalAttempts = WCIF_ATTEMPTS_BY_FORMAT[r.format] || 5;
+      const mappedResults = (r.results || []).map(res => {
+        const p = personsMap.get(res.personId) || {};
+        return {
+          ranking: res.ranking,
+          best: res.best,
+          average: res.average,
+          singleRecordTag: null,
+          averageRecordTag: null,
+          attempts: res.attempts || [],
+          person: {
+            id: String(res.personId || ''),
+            wcaId: p.wcaId || null,
+            name: p.name || `Competidor ${res.personId}`,
+            registrantId: p.registrantId ?? res.personId,
+            country: { iso2: p.countryIso2 || '' }
+          }
+        };
+      });
+      const allRanked = mappedResults.length > 0 && mappedResults.every(x => x.ranking !== null && x.ranking !== undefined);
+      return {
+        compName: wcif.name || wcaCompId,
+        eventId: ev.id,
+        eventName: ev.id,
+        roundNumber,
+        totalRounds,
+        roundName: formatCustomRoundName(roundNumber, totalRounds),
+        totalAttempts,
+        finished: allRanked,
+        results: mappedResults
+      };
+    }
+  } catch (err) {
+    console.warn('[wcaLive] Fallback WCIF error:', err.message);
+  }
+  return null;
+}
+
 function formatCustomRoundName(rNumOrName, total, fullText = false) {
   let rNum = null;
   let tot = parseInt(total, 10);
@@ -283,12 +363,10 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
       id
       number
       name
-      competitionEvent {
-        rounds { id number }
-      }
       open
       finished
       competitionEvent {
+        rounds { id number }
         event { id name }
         competition { id name wcaId }
       }
@@ -320,11 +398,23 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
   const eventId = round.competitionEvent?.event?.id || '333';
   const eventName = round.competitionEvent?.event?.name || '3x3';
   const compName = round.competitionEvent?.competition?.name || '';
-  const totalAttempts = round.format?.numberOfAttempts || 5;
+  const compWcaId = round.competitionEvent?.competition?.wcaId || '';
+  const totalRounds = round.competitionEvent?.rounds?.length || (round.number >= 3 ? round.number : 3);
+  const roundName = formatCustomRoundName(round.number || round.name, totalRounds);
+  let totalAttempts = round.format?.numberOfAttempts || 5;
   const advancingCutoff = cutoffLevel !== undefined && cutoffLevel !== null ? Math.max(0, parseInt(cutoffLevel, 10) || 0) : 0;
 
-  // Formatear resultados
-  const rawResults = round.results || [];
+  // Formatear resultados (con fallback automático a WCIF de worldcubeassociation.org si WCA Live GraphQL está vacío)
+  let rawResults = round.results || [];
+  let isRoundFinished = !!round.finished;
+  if (rawResults.length === 0 && compWcaId && round.number) {
+    const wcifFallback = await fetchWcifRoundFallback(compWcaId, `${eventId}-r${round.number}`);
+    if (wcifFallback && wcifFallback.results.length > 0) {
+      rawResults = wcifFallback.results;
+      totalAttempts = wcifFallback.totalAttempts || totalAttempts;
+      isRoundFinished = wcifFallback.finished;
+    }
+  }
 
   // Mapear cada competidor al formato estándar de broadcast
   const rankingList = rawResults.map((r, idx) => {
@@ -387,7 +477,7 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
   });
 
   // Si la ronda está en curso, ordenar según el estándar oficial de WCA Live Forecast View
-  if (!round.finished) {
+  if (!isRoundFinished) {
     function toMonotonic(val) {
       if (typeof val === 'number' && val > 0) return val;
       return Infinity;
@@ -434,7 +524,7 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
     eventName,
     competitionName: compName,
     isOpen: !!round.open,
-    isFinished: !!round.finished,
+    isFinished: isRoundFinished,
     advancingCutoff,
     totalCompetitors: rankingList.length,
     ranking: rankingList.slice(0, topLimit > 0 ? topLimit : undefined)
@@ -705,9 +795,16 @@ async function fetchLiveVersusData(roundId, comp1IdOrName, comp2IdOrName) {
   const eventId = round.competitionEvent?.event?.id || '333';
   const eventName = round.competitionEvent?.event?.name || '3x3';
   const compName = round.competitionEvent?.competition?.name || '';
+  const compWcaId = round.competitionEvent?.competition?.wcaId || '';
   const totalRounds = round.competitionEvent?.rounds?.length || (round.number >= 3 ? round.number : 3);
   const roundName = formatCustomRoundName(round.number || round.name, totalRounds);
-  const rawResults = round.results || [];
+  let rawResults = round.results || [];
+  if (rawResults.length === 0 && compWcaId && round.number) {
+    const wcifFallback = await fetchWcifRoundFallback(compWcaId, `${eventId}-r${round.number}`);
+    if (wcifFallback && wcifFallback.results.length > 0) {
+      rawResults = wcifFallback.results;
+    }
+  }
 
   function findResult(target) {
     if (!target) return null;

@@ -754,6 +754,51 @@
   }
 
   /* ══════════════════════════════════════════════════════════════════
+     MINI BANNER DE TEXTO SIMPLE (CENTRADO ARRIBA DEL TICKER)
+     ══════════════════════════════════════════════════════════════════ */
+  #lower-third-banner {
+    position: fixed;
+    left: 50%;
+    bottom: var(--lt-bottom-offset, 112px);
+    z-index: 920;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: min(960px, calc(100vw - 64px));
+    padding: 9px 22px;
+    background: linear-gradient(180deg, rgba(20, 23, 30, 0.95) 0%, rgba(11, 13, 18, 0.97) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 16px) scale(0.98);
+    transition: opacity 0.3s ease, transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity, bottom;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #lower-third-banner.visible {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+    pointer-events: auto;
+  }
+
+  .lt-text {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.15px;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
      LIVE RANKING TABLE OVERLAY (WCA EUROPEAN CHAMPIONSHIP STYLE)
      ══════════════════════════════════════════════════════════════════ */
   #live-ranking-overlay {
@@ -1374,24 +1419,30 @@
   /* Si la escena activa es pantalla completa o transición, ocultar banners de competidor, ticker y cámaras */
   body.is-fullscreen-page #banner,
   body.is-fullscreen-page #event-badge,
+  body.is-fullscreen-page #lower-third-banner,
   body.is-fullscreen-page #live-ranking-overlay,
   body.is-fullscreen-page #competitor-showcase-card,
   body.is-fullscreen-page #tournament-big-logo-overlay,
   body.is-fullscreen-page #head-to-head-overlay,
+  body.is-fullscreen-page #category-winner-overlay,
   body.is-fullscreen-page #versus-banner,
   body.is-scene-fullscreen-active #banner,
   body.is-scene-fullscreen-active #event-badge,
+  body.is-scene-fullscreen-active #lower-third-banner,
   body.is-scene-fullscreen-active #live-ranking-overlay,
   body.is-scene-fullscreen-active #competitor-showcase-card,
   body.is-scene-fullscreen-active #tournament-big-logo-overlay,
   body.is-scene-fullscreen-active #head-to-head-overlay,
+  body.is-scene-fullscreen-active #category-winner-overlay,
   body.is-scene-fullscreen-active #versus-banner,
   body.is-scene-transicion-active #banner,
   body.is-scene-transicion-active #event-badge,
+  body.is-scene-transicion-active #lower-third-banner,
   body.is-scene-transicion-active #live-ranking-overlay,
   body.is-scene-transicion-active #competitor-showcase-card,
   body.is-scene-transicion-active #tournament-big-logo-overlay,
   body.is-scene-transicion-active #head-to-head-overlay,
+  body.is-scene-transicion-active #category-winner-overlay,
   body.is-scene-transicion-active #versus-banner {
     display: none !important;
   }
@@ -1402,9 +1453,11 @@
   body.is-preview-widget #sim-cameras-stage,
   body.is-preview-widget #banner,
   body.is-preview-widget #event-badge,
+  body.is-preview-widget #lower-third-banner,
   body.is-preview-widget #competitor-showcase-card,
   body.is-preview-widget #tournament-big-logo-overlay,
   body.is-preview-widget #head-to-head-overlay,
+  body.is-preview-widget #category-winner-overlay,
   body.is-preview-widget #versus-banner,
   body.is-preview-widget #fullscreen-ranking-overlay {
     display: none !important;
@@ -1722,7 +1775,7 @@
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   #head-to-head-overlay {
     position: fixed;
-    top: 37%;
+    top: 47%;
     left: 50%;
     transform: translate(-50%, -50%) scale(calc(var(--h2h-scale, 1) * 0.92));
     transform-origin: center center;
@@ -2154,6 +2207,114 @@
   /* Pie de Tarjeta Central (Broadcast Footer - Oculto a petición del usuario) */
   .h2h-center-footer {
     display: none !important;
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     GANADOR DE CATEGORÍA BANNER OVERLAY (MISMO ESTILO HEAD TO HEAD)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  #category-winner-overlay {
+    position: fixed;
+    top: 49%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(calc(var(--cw-scale, 1) * 0.92));
+    transform-origin: center center;
+    z-index: 905;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0.5s ease;
+    will-change: transform, opacity;
+  }
+
+  #category-winner-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(var(--cw-scale, 1));
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cw-card {
+    width: 490px;
+    height: 600px;
+    background: #000000;
+    border: 6px solid #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.94), 0 4px 16px rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: visible;
+  }
+
+  .cw-event-icon-box {
+    position: absolute;
+    top: -104px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 82px;
+    height: 82px;
+    background: #121418;
+    border: 4.5px solid #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+  }
+
+  .cw-event-icon-box img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+  }
+
+  .cw-header-bar {
+    background: linear-gradient(180deg, #2b303c 0%, #161920 100%);
+    padding: 32px 18px 12px 18px;
+    text-align: center;
+    border-bottom: 3px solid rgba(250, 204, 21, 0.85);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .cw-header-kicker {
+    font-family: 'Barlow Condensed', 'Arial Black', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 3.5px;
+    color: #facc15;
+    text-transform: uppercase;
+    line-height: 1.1;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+  }
+
+  .cw-header-category {
+    font-family: 'Barlow Condensed', 'Arial Black', sans-serif;
+    font-weight: 900;
+    font-size: 38px;
+    letter-spacing: 2.2px;
+    color: #ffffff;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+  }
+
+  .cw-card .h2h-name-bar span {
+    font-size: 27px;
   }
 
   /* Fondo Broadcast Degradado y Patrón Geométrico de Cubos */
@@ -3674,7 +3835,7 @@
     text-shadow: none !important;
   }
 
-  /* Animación de entrada de la cortina (350ms): entra desde la izquierda cubriendo la pantalla */
+  /* Animación de entrada de la cortina (105ms): entra desde la izquierda cubriendo la pantalla sin pausar la oveja */
   @keyframes stingerCurtainSlideIn {
     0% {
       transform: translate3d(-100%, 0, 0);
@@ -3685,7 +3846,7 @@
   }
 
   .stinger-curtain-slide-in {
-    animation: stingerCurtainSlideIn 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: stingerCurtainSlideIn 105ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
   }
 
   #master-stinger-layer {
@@ -3803,6 +3964,11 @@
     <div class="vb-stat-col vb-bpa-col" id="vb-bpa-2"><span class="vb-bpa-val vb-val-empty">—</span></div>
     <div class="vb-stat-col vb-avg-col" id="vb-avg-2"><span class="vb-avg-val vb-val-empty">—</span></div>
   </div>
+</div>
+
+<!-- Mini Banner de Texto Simple (Centrado sobre el Ticker) -->
+<div id="lower-third-banner" aria-live="polite">
+  <span class="lt-text" id="lt-text"></span>
 </div>
 
 <!-- Standalone Event Ticker Banner (Broadcast Lower-Third News Ticker) -->
@@ -4004,6 +4170,39 @@
           <span class="h2h-pr-number" id="h2h-p2-avg">—</span>
           <span class="h2h-pr-tag">PR AVERAGE</span>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ganador de Categoría Banner Overlay (Estilo Head to Head) -->
+<div id="category-winner-overlay">
+  <div class="cw-card">
+    <div class="cw-event-icon-box">
+      <img id="cw-event-icon" src="icons/333.svg" alt="Categoría" onerror="this.style.display='none'">
+    </div>
+    <div class="cw-header-bar">
+      <span class="cw-header-kicker">GANADOR CATEGORÍA</span>
+      <span class="cw-header-category" id="cw-category-name">3X3</span>
+    </div>
+    <div class="h2h-media-box">
+      <img id="cw-flag" class="h2h-bg-flag" alt="Bandera Ganador">
+      <div class="h2h-flag-gradient"></div>
+      <img id="cw-avatar" class="h2h-avatar-img" alt="Foto Ganador" style="display:none;">
+      <div id="cw-noavatar" class="h2h-noavatar-placeholder">👤</div>
+    </div>
+    <div class="h2h-name-bar">
+      <span id="cw-name">COMPETIDOR</span>
+    </div>
+    <div class="h2h-prs-bar">
+      <div class="h2h-pr-col">
+        <span class="h2h-pr-number" id="cw-single">—</span>
+        <span class="h2h-pr-tag">PR SINGLE</span>
+      </div>
+      <div class="h2h-pr-divider">/</div>
+      <div class="h2h-pr-col">
+        <span class="h2h-pr-number" id="cw-avg">—</span>
+        <span class="h2h-pr-tag">PR AVERAGE</span>
       </div>
     </div>
   </div>
@@ -4245,6 +4444,44 @@
     }
     const bottomOffset = cleanSize === 'large' ? '90px' : cleanSize === 'medium' ? '74px' : '60px';
     document.documentElement.style.setProperty('--ticker-bottom-offset', bottomOffset);
+    updateLowerThirdPosition();
+  }
+
+  const lowerThirdBanner = document.getElementById('lower-third-banner');
+  const ltTextEl = document.getElementById('lt-text');
+
+  function updateLowerThirdPosition() {
+    if (!lowerThirdBanner) return;
+    const isTickerVisible = !!(eventBadge && eventBadge.classList.contains('visible'));
+    if (isTickerVisible) {
+      const tickerOffset = parseInt(document.documentElement.style.getPropertyValue('--ticker-bottom-offset'), 10) || 60;
+      document.documentElement.style.setProperty('--lt-bottom-offset', (tickerOffset + 52) + 'px');
+    } else {
+      document.documentElement.style.setProperty('--lt-bottom-offset', '44px');
+    }
+  }
+
+  function showLowerThird(data) {
+    if (!lowerThirdBanner) return;
+    const d = data || {};
+    const text = (typeof d.text === 'string' ? d.text : (d.title || '')).trim();
+    if (!text) {
+      hideLowerThird();
+      return;
+    }
+
+    if (ltTextEl) {
+      ltTextEl.textContent = text;
+    }
+
+    updateLowerThirdPosition();
+    lowerThirdBanner.classList.add('visible');
+  }
+
+  function hideLowerThird() {
+    if (lowerThirdBanner) {
+      lowerThirdBanner.classList.remove('visible');
+    }
   }
 
   function applyTournamentLogo(url) {
@@ -4722,11 +4959,14 @@
       fsMeasureEl.style.visibility = 'hidden';
       fsMeasureEl.style.whiteSpace = 'nowrap';
       fsMeasureEl.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-      fsMeasureEl.style.fontSize = '16.5px';
       fsMeasureEl.style.fontWeight = '700';
       fsMeasureEl.style.letterSpacing = '0.15px';
       document.body.appendChild(fsMeasureEl);
     }
+    const activeFontSize = document.documentElement.style.getPropertyValue('--fs-font-name-size')
+      || getComputedStyle(document.documentElement).getPropertyValue('--fs-font-name-size').trim()
+      || '16.5px';
+    fsMeasureEl.style.fontSize = activeFontSize;
     fsMeasureEl.textContent = text;
     return fsMeasureEl.getBoundingClientRect().width;
   }
@@ -4814,11 +5054,17 @@
     }
     try {
       let maxNameW = 0;
+      let maxTimeLen = 3;
+      let hasRecordTag = false;
       for (const item of results) {
         const name = (item && item.name) ? String(item.name).trim() : '';
-        if (!name) continue;
-        const w = getLrNameWidth(name);
-        if (w > maxNameW) maxNameW = w;
+        if (name) {
+          const w = getLrNameWidth(name);
+          if (w > maxNameW) maxNameW = w;
+        }
+        const timeStr = String(item?.displayTime || item?.averageFormatted || item?.bestFormatted || '').trim();
+        if (timeStr.length > maxTimeLen) maxTimeLen = timeStr.length;
+        if (item?.recordTag && item.recordTag !== 'PB') hasRecordTag = true;
       }
 
       // El encabezado 'COMPETIDOR' mide ~68px en Barlow Condensed 11px 800.
@@ -4826,19 +5072,18 @@
       // empiece inmediatamente al terminar el nombre, eliminando todo espacio muerto.
       const nameColWidth = Math.max(70, Math.min(245, Math.ceil(maxNameW + 4)));
 
+      // Ancho dinámico de AVG según longitud del tiempo y presencia de badge de récord (NR/CR/WR)
+      const baseAvgWidth = Math.max(48, Math.min(74, Math.ceil(maxTimeLen * 7.8 + 8)));
+      const avgColWidth = baseAvgWidth + (hasRecordTag ? 28 : 0);
+
       // Dimensiones exactas de las columnas:
-      // padding-left: 10px
-      // pos: 24px + gap 6px
-      // flag: 22px + gap 6px
-      // name: nameColWidth + gap 6px
-      // solves: 36px + gap 6px
-      // avg: 62px
-      // padding-right: 10px
-      // Total suma fija = 10 + 24 + 6 + 22 + 6 + 6 + 36 + 6 + 90 + 10 = 216px
-      const totalWidgetWidth = Math.max(300, 216 + nameColWidth);
+      // padding-left: 10px + pos: 24px + gap 6px + flag: 22px + gap 6px
+      // + nameColWidth + gap 6px + solves: 36px + gap 6px + avgColWidth + padding-right: 10px
+      // Suma fija sin nombre ni avg = 10 + 24 + 6 + 22 + 6 + 6 + 36 + 6 + 10 = 126px
+      const totalWidgetWidth = Math.max(280, 126 + avgColWidth + nameColWidth);
 
       lrOverlay.style.setProperty('--lr-name-w', `${nameColWidth}px`);
-      lrOverlay.style.setProperty('--lr-avg-w', '90px');
+      lrOverlay.style.setProperty('--lr-avg-w', `${avgColWidth}px`);
       lrOverlay.style.setProperty('--lr-widget-width', `${totalWidgetWidth}px`);
     } catch (e) {
       console.warn('[autoFitWidgetWidth error]', e);
@@ -4847,7 +5092,8 @@
 
   function autoFitFullscreenTable(numRows, results) {
     if (!fsRowsContainer) return;
-    const count = Math.max(1, numRows || (results && results.length) || 10);
+    const domCount = fsRowsContainer.children ? fsRowsContainer.children.length : 0;
+    const count = Math.max(1, numRows || (results && results.length) || domCount || 10);
     
     // 1. Altura y tamaños tipográficos dinámicos para llenar armónicamente el espacio vertical
     let rowH = 48;
@@ -5165,8 +5411,8 @@
             `;
           }).join('');
         }
-        adjustFsNameColWidth(pageResults);
         autoFitFullscreenTable(pageResults.length, pageResults);
+        adjustFsNameColWidth(pageResults);
       }
 
       // Actualizar indicadores de página
@@ -5725,6 +5971,152 @@
     }
   }
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ── GESTIÓN DEL BANNER GANADOR DE CATEGORÍA (ESTILO HEAD TO HEAD) ──
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const cwOverlay = document.getElementById('category-winner-overlay');
+  const cwEventIcon = document.getElementById('cw-event-icon');
+  const cwCategoryName = document.getElementById('cw-category-name');
+  const cwFlag = document.getElementById('cw-flag');
+  const cwAvatar = document.getElementById('cw-avatar');
+  const cwNoAvatar = document.getElementById('cw-noavatar');
+  const cwName = document.getElementById('cw-name');
+  const cwSingle = document.getElementById('cw-single');
+  const cwAvg = document.getElementById('cw-avg');
+
+  function applyTradingCardMedia(comp, flagEl, avatarEl, noAvatarEl) {
+    const c = comp || {};
+    if (flagEl) {
+      if (c.country) {
+        flagEl.src = `https://flagcdn.com/w640/${c.country.toLowerCase()}.png`;
+        flagEl.style.display = 'block';
+      } else {
+        flagEl.style.display = 'none';
+      }
+    }
+    if (avatarEl && noAvatarEl) {
+      if (c.avatar_url && !c.avatar_url.includes('missing_avatar')) {
+        avatarEl.onerror = () => {
+          avatarEl.style.display = 'none';
+          noAvatarEl.style.display = 'block';
+        };
+        avatarEl.src = c.avatar_url;
+        avatarEl.style.display = 'block';
+        noAvatarEl.style.display = 'none';
+      } else {
+        avatarEl.src = '';
+        avatarEl.style.display = 'none';
+        noAvatarEl.style.display = 'block';
+      }
+    }
+  }
+
+  function applyTradingCardPrs(comp, eventId, elSingle, elAvg) {
+    const c = comp || {};
+    const pr = c.prs && c.prs[eventId];
+    const s = (pr && pr.single_fmt) ? pr.single_fmt : '—';
+    const a = (pr && pr.average_fmt) ? pr.average_fmt : '—';
+
+    if (!window._h2hWcaRecordsCache) window._h2hWcaRecordsCache = {};
+
+    const getNr = (type) => {
+      if (pr && pr[`${type}_nr`]) return pr[`${type}_nr`];
+      const rec = (c.personal_records && c.personal_records[eventId]) ||
+                  (c.wca_id && window._h2hWcaRecordsCache[c.wca_id.toUpperCase()]?.[eventId]);
+      return rec && rec[type] && rec[type].country_rank ? rec[type].country_rank : null;
+    };
+
+    const setPrEl = (el, timeStr, nrVal) => {
+      if (!el) return;
+      const cleanTime = (timeStr && timeStr !== '-') ? timeStr : '—';
+      el.classList.toggle('long-pr', cleanTime.length >= 6);
+      if (cleanTime !== '—' && nrVal) {
+        el.innerHTML = `<span>${cleanTime}</span><span class="h2h-pr-nr">(NR ${nrVal})</span>`;
+      } else {
+        el.textContent = cleanTime;
+      }
+    };
+
+    const sNr = getNr('single');
+    const aNr = getNr('average');
+    setPrEl(elSingle, s, sNr);
+    setPrEl(elAvg, a, aNr);
+
+    if (!sNr && !aNr && (s !== '—' || a !== '—') && c.wca_id) {
+      const wid = c.wca_id.trim().toUpperCase();
+      if (!window._h2hWcaRecordsCache[wid]) {
+        fetch(`/api/wca/podiums/${encodeURIComponent(wid)}?eventId=${encodeURIComponent(eventId)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(resData => {
+            if (resData && resData.records && Object.keys(resData.records).length > 0) {
+              window._h2hWcaRecordsCache[wid] = resData.records;
+              const evR = resData.records[eventId] || {};
+              setPrEl(elSingle, s, evR.single?.country_rank ?? null);
+              setPrEl(elAvg, a, evR.average?.country_rank ?? null);
+            } else {
+              return fetch(`https://www.worldcubeassociation.org/api/v0/persons/${encodeURIComponent(wid)}`)
+                .then(r => r.ok ? r.json() : null)
+                .then(wcaData => {
+                  const recs = wcaData?.personal_records || wcaData?.persons?.[0]?.personal_records;
+                  if (recs) {
+                    window._h2hWcaRecordsCache[wid] = recs;
+                    const evR = recs[eventId] || {};
+                    setPrEl(elSingle, s, evR.single?.country_rank ?? null);
+                    setPrEl(elAvg, a, evR.average?.country_rank ?? null);
+                  }
+                });
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }
+
+  function renderCategoryWinner(data) {
+    if (!data) return;
+    const comp = data.competitor || {};
+    const eventId = data.eventId || data.event?.event_id || currentEventData?.event_id || '333';
+
+    if (cwEventIcon) {
+      cwEventIcon.src = `icons/${eventId}.svg`;
+      cwEventIcon.style.display = 'block';
+    }
+
+    let evName = (data.categoryName || '').trim();
+    if (!evName) {
+      evName = (typeof EVENT_SHORT_NAMES !== 'undefined' && EVENT_SHORT_NAMES[eventId])
+        ? EVENT_SHORT_NAMES[eventId]
+        : eventId;
+    }
+    evName = evName.replace(/(\d+)x\1x\1(\s*Cube)?/gi, '$1x$1');
+    if (cwCategoryName) cwCategoryName.textContent = evName.toUpperCase();
+
+    if (cwName) cwName.textContent = (comp.name || 'COMPETIDOR').toUpperCase();
+    applyTradingCardMedia(comp, cwFlag, cwAvatar, cwNoAvatar);
+    applyTradingCardPrs(comp, eventId, cwSingle, cwAvg);
+  }
+
+  function setCategoryWinnerSize(size) {
+    const s = parseInt(size, 10);
+    if (!isNaN(s) && s >= 360 && s <= 800 && cwOverlay) {
+      cwOverlay.style.setProperty('--cw-scale', s / 520);
+    }
+  }
+
+  function showCategoryWinner(data, size) {
+    if (size) setCategoryWinnerSize(size);
+    if (data) renderCategoryWinner(data);
+    if (cwOverlay) {
+      cwOverlay.classList.add('visible');
+    }
+  }
+
+  function hideCategoryWinner() {
+    if (cwOverlay) {
+      cwOverlay.classList.remove('visible');
+    }
+  }
+
   // ── GESTIÓN DEL BANNER DE FINALES VERSUS (WCA LIVE) ──
   const versusBanner = document.getElementById('versus-banner');
   const vbEventIcon = document.getElementById('vb-event-icon');
@@ -5914,6 +6306,7 @@
           } else if (msg.type === 'event') {
             setEvent(msg.data);
             eventBadge.classList.add('visible');
+            updateLowerThirdPosition();
           } else if (msg.type === 'live_ranking_show' || msg.type === 'live_ranking_update') {
             renderLiveRanking(msg);
           } else if (msg.type === 'live_ranking_hide') {
@@ -5946,6 +6339,13 @@
             showHeadToHead(msg.data, msg.size);
           } else if (msg.type === 'hide_head_to_head') {
             hideHeadToHead();
+          } else if (msg.type === 'category_winner_size') {
+            setCategoryWinnerSize(msg.size);
+          } else if (msg.type === 'show_category_winner') {
+            if (msg.size) setCategoryWinnerSize(msg.size);
+            showCategoryWinner(msg.data, msg.size);
+          } else if (msg.type === 'hide_category_winner') {
+            hideCategoryWinner();
           } else if (msg.type === 'versus_banner_data') {
             if (msg.visible) {
               showVersusBanner(msg.data);
@@ -5954,10 +6354,15 @@
             }
           } else if (msg.type === 'hide_versus_banner') {
             hideVersusBanner();
+          } else if (msg.type === 'show_lower_third') {
+            showLowerThird(msg.data);
+          } else if (msg.type === 'hide_lower_third') {
+            hideLowerThird();
           } else if (msg.type === 'hide_competitor' || msg.type === 'hide_banner') {
             banner.classList.remove('visible');
           } else if (msg.type === 'hide_event') {
             eventBadge.classList.remove('visible');
+            updateLowerThirdPosition();
           } else if (msg.type === 'sim_cameras_state') {
             applySimulatedCameras(msg.state);
           }
@@ -6605,7 +7010,7 @@
   let transitioningToScene = null;
   let activeStingerTimer = null;
   let activeStingerCutTimer = null;
-  const curtainTransitionAudio = new Audio('/audio/sonido%20cortina.mp3?v=6');
+  const curtainTransitionAudio = new Audio('/audio/sonido%20cortina.mp3?v=10');
   curtainTransitionAudio.preload = 'auto';
   curtainTransitionAudio.volume = 1.0;
   try { curtainTransitionAudio.load(); } catch {}
@@ -6633,6 +7038,7 @@
       box.style.transform = 'translate3d(-100%, 0, 0)';
     }
     if (video) {
+      video.onended = null;
       video.pause();
       // NOTA: No hacemos video.currentTime = 0 aquí para evitar que el frame 0 (rojo)
       // se decodifique en la GPU antes de que Chromium complete el desmonte de la capa.
@@ -6709,42 +7115,17 @@
     } catch {}
 
     // Video de la ovejita y la cortina roja (estrictamente mudo; el audio va por curtainTransitionAudio)
+    // Arranca inmediatamente en t=0 para que la oveja camine de forma 100% continua sin congelarse.
+    // Los primeros 10 frames (0-333ms) del video tienen la cortina 100% opaca, mientras el slide-in dura solo 180ms.
     video.muted = true;
-    const vp = video.play();
-    if (vp && vp.catch) vp.catch(() => {});
+    video.onended = null;
 
-    // Disparar animación de entrada: la cortina roja entra por la izquierda tapando la escena saliente
-    box.classList.add('stinger-curtain-slide-in');
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // EL PUNTO DE TRANSICIÓN (CUT POINT A LOS 350 MS):
-    // La cortina roja cubre 100% de la pantalla (de x=0 a x=1920, frame 10).
-    // Conmutamos la escena en el DOM de forma completamente invisible.
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    activeStingerCutTimer = setTimeout(() => {
-      activeStingerCutTimer = null;
-      if (!isStingerActive) return;
-
-      // El box se queda quieto en el centro
-      box.classList.remove('stinger-curtain-slide-in');
-      box.style.transform = 'translate3d(0, 0, 0)';
-
-      // Aplicar el nuevo estado de la escena entrante
-      applySceneDOM(pendingNextState || nextState);
-      currentActiveScene = toScene;
-
-      // A partir de este momento, el video alcanza el frame 11 donde la oveja
-      // empieza a jalar la cortina hacia la derecha, descubriendo la nueva escena
-      // de izquierda a derecha de forma natural a través de su canal alfa.
-    }, 350);
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // FIN DE LA TRANSICIÓN (A LOS 1420 MS):
-    // La ovejita y la cortina salieron completamente por la derecha.
-    // Ocultar capa del stinger y dejar la nueva escena 100% limpia.
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    activeStingerTimer = setTimeout(() => {
-      activeStingerTimer = null;
+    const finishStinger = () => {
+      if (activeStingerTimer) {
+        clearTimeout(activeStingerTimer);
+        activeStingerTimer = null;
+      }
+      video.onended = null;
       transitioningToScene = null;
       isStingerActive = false;
 
@@ -6761,7 +7142,35 @@
 
       document.body.classList.remove('is-stinger-in-progress');
       pendingNextState = null;
-    }, 1420);
+    };
+
+    video.onended = finishStinger;
+    video.playbackRate = 1.76;
+    const vp = video.play();
+    if (vp && vp.catch) vp.catch(() => {});
+
+    // Disparar animación de entrada: la cortina roja entra por la izquierda tapando la escena saliente (105ms)
+    box.classList.add('stinger-curtain-slide-in');
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // EL PUNTO DE TRANSICIÓN (CUT POINT A LOS 110 MS):
+    // A 1.76x, el video tarda ~189ms en llegar al frame 10 donde empieza a abrirse la cortina.
+    // El box termina su slide-in a los 105ms, así que conmutar en 110ms deja ~79ms de margen cerrado.
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    activeStingerCutTimer = setTimeout(() => {
+      activeStingerCutTimer = null;
+      if (!isStingerActive) return;
+
+      box.classList.remove('stinger-curtain-slide-in');
+      box.style.transform = 'translate3d(0, 0, 0)';
+
+      // Aplicar el nuevo estado de la escena entrante detrás de la cortina 100% cerrada
+      applySceneDOM(pendingNextState || nextState);
+      currentActiveScene = toScene;
+    }, 110);
+
+    // Respaldo de seguridad por si onended no dispara (1470ms / 1.76 = ~835ms + margen)
+    activeStingerTimer = setTimeout(finishStinger, 1000);
   }
 
   let simSceneForcedFs = false;
@@ -6804,6 +7213,8 @@
                   autoBalance: st.autoBalance,
                   pageSize: st.pageSize,
                   pageDuration: st.pageDuration,
+                  fsConfig: st.fsConfig,
+                  widgetConfig: st.widgetConfig,
                   viewMode: 'fullscreen'
                 });
                 setTimeout(() => autoFitFullscreenTable(), 60);

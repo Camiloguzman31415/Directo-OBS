@@ -106,6 +106,9 @@
     } catch (_) {}
 
     setSidebarDrawerOpen(false);
+    if ((key === 'clasificacion' || key === 'pantalla') && typeof initRankingMiniMonitors === 'function') {
+      setTimeout(initRankingMiniMonitors, 50);
+    }
   }
 
   /* ------------------------------------------------------------------------
@@ -220,6 +223,18 @@
       });
     }
 
+    if (typeof lowerThirdVisible !== 'undefined' && lowerThirdVisible) {
+      const ltText = (typeof lowerThirdData !== 'undefined' && lowerThirdData?.text) ? lowerThirdData.text : '';
+      items.push({
+        id: 'lower-third',
+        view: 'mesa',
+        cardId: 'card-lower-third',
+        label: 'Mini Banner',
+        detail: ltText,
+        hideFn: () => typeof sendHideLowerThird === 'function' && sendHideLowerThird()
+      });
+    }
+
     if (typeof liveRankingVisible !== 'undefined' && liveRankingVisible) {
       const modeTxt = (typeof liveRankingViewMode !== 'undefined' && liveRankingViewMode === 'widget') ? 'Mini Widget' : 'Pantalla completa';
       items.push({
@@ -242,6 +257,19 @@
         label: 'Head to Head',
         detail: `${p1} vs ${p2}`,
         hideFn: () => typeof sendHideHeadToHead === 'function' && sendHideHeadToHead()
+      });
+    }
+
+    if (typeof categoryWinnerVisible !== 'undefined' && categoryWinnerVisible) {
+      const cwName = (typeof cwComp !== 'undefined' && cwComp?.name) ? cwComp.name.split(' ')[0] : 'Ganador';
+      const cwEv = (typeof getCWCategoryDisplay === 'function') ? getCWCategoryDisplay() : (typeof cwEventId !== 'undefined' ? cwEventId.toUpperCase() : '');
+      items.push({
+        id: 'category-winner',
+        view: 'finales',
+        cardId: 'panel-category-winner',
+        label: 'Ganador',
+        detail: `${cwEv} · ${cwName}`,
+        hideFn: () => typeof sendHideCategoryWinner === 'function' && sendHideCategoryWinner()
       });
     }
 
@@ -307,8 +335,10 @@
       'card-competitor-mesa': typeof competitorVisible !== 'undefined' && competitorVisible,
       'event-deck-card': typeof eventVisible !== 'undefined' && eventVisible,
       'panel-competitor-showcase': typeof showcaseVisible !== 'undefined' && showcaseVisible,
+      'card-lower-third': typeof lowerThirdVisible !== 'undefined' && lowerThirdVisible,
       'card-live-ranking': typeof liveRankingVisible !== 'undefined' && liveRankingVisible,
       'panel-head-to-head': typeof headToHeadVisible !== 'undefined' && headToHeadVisible,
+      'panel-category-winner': typeof categoryWinnerVisible !== 'undefined' && categoryWinnerVisible,
       'panel-versus-banner': typeof versusBannerVisible !== 'undefined' && versusBannerVisible,
       'panel-tournament-big-logo': typeof bigLogoVisible !== 'undefined' && bigLogoVisible
     };

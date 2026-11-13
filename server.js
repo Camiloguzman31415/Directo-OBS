@@ -81,6 +81,17 @@ let headToHeadData = {           // Datos del enfrentamiento Head to Head
   competitor2: null,
   event: null
 };
+let categoryWinnerVisible = false; // Visibilidad del banner Ganador de Categoría
+let categoryWinnerSize = 520;      // Ancho base en píxeles del banner Ganador de Categoría
+let categoryWinnerData = {         // Datos del Ganador de Categoría
+  competitor: null,
+  eventId: '333',
+  categoryName: ''
+};
+let lowerThirdVisible = false;    // Visibilidad del Mini Banner de Texto (centrado arriba del ticker)
+let lowerThirdData = {            // Contenido del Mini Banner de Texto
+  text: ''
+};
 
 // ── Estado del Banner de Finales Versus (Cara a Cara WCA Live con WPA/BPA/AVG) ──
 let versusBannerVisible = false;
@@ -263,6 +274,11 @@ function saveLiveState(immediate = false) {
         headToHeadVisible: headToHeadVisible,
         headToHeadSize: headToHeadSize,
         headToHeadData: headToHeadData,
+        categoryWinnerVisible: categoryWinnerVisible,
+        categoryWinnerSize: categoryWinnerSize,
+        categoryWinnerData: categoryWinnerData,
+        lowerThirdVisible: lowerThirdVisible,
+        lowerThirdData: lowerThirdData,
         versusBannerVisible: versusBannerVisible,
         versusRoundId: versusRoundId,
         versusCompId: versusCompId,
@@ -326,6 +342,20 @@ function loadLiveState() {
       }
       if (state.headToHeadData !== undefined && typeof state.headToHeadData === 'object') {
         headToHeadData = Object.assign({ competitor1: null, competitor2: null, event: null }, state.headToHeadData);
+      }
+      if (state.categoryWinnerVisible !== undefined) categoryWinnerVisible = !!state.categoryWinnerVisible;
+      if (state.categoryWinnerSize !== undefined) {
+        const s = parseInt(state.categoryWinnerSize, 10);
+        if (!isNaN(s) && s >= 360 && s <= 800) categoryWinnerSize = s;
+      }
+      if (state.categoryWinnerData !== undefined && typeof state.categoryWinnerData === 'object') {
+        categoryWinnerData = Object.assign({ competitor: null, eventId: '333', categoryName: '' }, state.categoryWinnerData);
+      }
+      if (state.lowerThirdVisible !== undefined) lowerThirdVisible = !!state.lowerThirdVisible;
+      if (state.lowerThirdData && typeof state.lowerThirdData === 'object') {
+        lowerThirdData = {
+          text: typeof state.lowerThirdData.text === 'string' ? state.lowerThirdData.text : ''
+        };
       }
       if (state.versusBannerVisible !== undefined) versusBannerVisible = state.versusBannerVisible;
       if (state.versusRoundId) versusRoundId = state.versusRoundId;
@@ -1008,6 +1038,7 @@ app.get('/api/wca/podiums/:wcaId', async (req, res) => {
     }
     if (headToHeadData?.competitor1) enrichCompNr(headToHeadData.competitor1);
     if (headToHeadData?.competitor2) enrichCompNr(headToHeadData.competitor2);
+    if (categoryWinnerData?.competitor) enrichCompNr(categoryWinnerData.competitor);
 
     res.json({ ok: true, wca_id: cleanId, event_id: eventId, gold, silver, bronze, single_nr, average_nr, records: records || {} });
   } catch (err) {
@@ -3114,12 +3145,34 @@ function handleSocketConnection(ws, req) {
       }));
     }
 
+    socket.send(JSON.stringify({
+      type: 'category_winner_size',
+      size: categoryWinnerSize
+    }));
+
+    // Si Ganador de Categoría está activo, enviarlo al overlay
+    if (categoryWinnerVisible && categoryWinnerData) {
+      socket.send(JSON.stringify({
+        type: 'show_category_winner',
+        data: categoryWinnerData,
+        size: categoryWinnerSize
+      }));
+    }
+
     // Si Versus Banner está activo, enviarlo al overlay
     if (versusBannerVisible && versusData) {
       socket.send(JSON.stringify({
         type: 'versus_banner_data',
         visible: true,
         data: versusData
+      }));
+    }
+
+    // Si el Mini Banner de Título / Entrevista está activo, enviarlo al overlay
+    if (lowerThirdVisible && lowerThirdData) {
+      socket.send(JSON.stringify({
+        type: 'show_lower_third',
+        data: lowerThirdData
       }));
     }
 
@@ -3155,6 +3208,11 @@ function handleSocketConnection(ws, req) {
       headToHeadVisible,
       headToHeadSize,
       headToHeadData,
+      categoryWinnerVisible,
+      categoryWinnerSize,
+      categoryWinnerData,
+      lowerThirdVisible,
+      lowerThirdData,
       liveRankingVisible,
       liveRankingRoundId,
       liveRankingCompId,
@@ -3361,7 +3419,9 @@ function handleSocketConnection(ws, req) {
         showcaseVisible = false;
         bigLogoVisible = false;
         headToHeadVisible = false;
+        categoryWinnerVisible = false;
         versusBannerVisible = false;
+        lowerThirdVisible = false;
         saveLiveState();
         stopLiveRankingPolling();
         stopVersusPolling();
@@ -3373,14 +3433,18 @@ function handleSocketConnection(ws, req) {
         broadcastToOverlays({ type: 'hide_competitor_showcase' });
         broadcastToOverlays({ type: 'hide_big_logo' });
         broadcastToOverlays({ type: 'hide_head_to_head' });
+        broadcastToOverlays({ type: 'hide_category_winner' });
         broadcastToOverlays({ type: 'hide_versus_banner' });
+        broadcastToOverlays({ type: 'hide_lower_third' });
         broadcastToPanels({
           type: 'sync_state',
           competitorVisible: false,
           eventVisible: false,
           showcaseVisible: false,
           bigLogoVisible: false,
-          headToHeadVisible: false
+          headToHeadVisible: false,
+          categoryWinnerVisible: false,
+          lowerThirdVisible: false
         });
         broadcastToPanels({
           type: 'sync_live_ranking',
@@ -3428,6 +3492,40 @@ function handleSocketConnection(ws, req) {
         broadcastToPanels({
           type: 'sync_state',
           showcaseVisible: false
+        });
+        break;
+
+      case 'show_lower_third':
+      case 'update_lower_third':
+        if (msg.data && typeof msg.data === 'object') {
+          lowerThirdData = {
+            text: typeof msg.data.text === 'string' ? msg.data.text.trim() : (lowerThirdData.text || '')
+          };
+        }
+        if (msg.type === 'show_lower_third') {
+          lowerThirdVisible = true;
+        }
+        saveLiveState();
+        if (lowerThirdVisible) {
+          broadcastToOverlays({
+            type: 'show_lower_third',
+            data: lowerThirdData
+          });
+        }
+        broadcastToPanels({
+          type: 'sync_state',
+          lowerThirdVisible,
+          lowerThirdData
+        });
+        break;
+
+      case 'hide_lower_third':
+        lowerThirdVisible = false;
+        saveLiveState();
+        broadcastToOverlays({ type: 'hide_lower_third' });
+        broadcastToPanels({
+          type: 'sync_state',
+          lowerThirdVisible: false
         });
         break;
 
@@ -3531,6 +3629,58 @@ function handleSocketConnection(ws, req) {
         broadcastToPanels({
           type: 'sync_state',
           headToHeadVisible: false
+        });
+        break;
+
+      case 'show_category_winner':
+        categoryWinnerVisible = true;
+        if (msg.size !== undefined) {
+          const s = parseInt(msg.size, 10);
+          if (!isNaN(s) && s >= 360 && s <= 800) categoryWinnerSize = s;
+        }
+        if (msg.data && typeof msg.data === 'object') {
+          categoryWinnerData = Object.assign({ competitor: null, eventId: '333', categoryName: '' }, categoryWinnerData, msg.data);
+          if (categoryWinnerData.competitor) enrichCompetitorWithAvatar(categoryWinnerData.competitor);
+        }
+        saveLiveState();
+        broadcastToOverlays({
+          type: 'show_category_winner',
+          data: categoryWinnerData,
+          size: categoryWinnerSize
+        });
+        broadcastToPanels({
+          type: 'sync_state',
+          categoryWinnerVisible: true,
+          categoryWinnerData: categoryWinnerData,
+          categoryWinnerSize: categoryWinnerSize
+        });
+        break;
+
+      case 'set_category_winner_size':
+        if (msg.size !== undefined) {
+          const s = parseInt(msg.size, 10);
+          if (!isNaN(s) && s >= 360 && s <= 800) {
+            categoryWinnerSize = s;
+            saveLiveState();
+            broadcastToOverlays({
+              type: 'category_winner_size',
+              size: categoryWinnerSize
+            });
+            broadcastToPanels({
+              type: 'sync_state',
+              categoryWinnerSize: categoryWinnerSize
+            });
+          }
+        }
+        break;
+
+      case 'hide_category_winner':
+        categoryWinnerVisible = false;
+        saveLiveState();
+        broadcastToOverlays({ type: 'hide_category_winner' });
+        broadcastToPanels({
+          type: 'sync_state',
+          categoryWinnerVisible: false
         });
         break;
 

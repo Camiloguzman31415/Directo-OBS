@@ -34,7 +34,17 @@ let h2hEventId = '333';
 let h2hPodiums1 = { gold: 0, silver: 0, bronze: 0 };
 let h2hPodiums2 = { gold: 0, silver: 0, bronze: 0 };
 
+let categoryWinnerVisible = false;
+let categoryWinnerSize = 520;
+let cwComp = null;
+let cwEventId = '333';
+let cwCategoryName = '';
+
 // ── Estado del Ticker de Noticias Broadcast (Lower-Third) ──
+let lowerThirdVisible = false;
+let lowerThirdData = {
+  text: ''
+};
 let tickerTournamentLogo = localStorage.getItem('directoobs_ticker_logo') || '';
 let tickerSize = localStorage.getItem('directoobs_ticker_size') || 'small';
 let tickerDay = localStorage.getItem('directoobs_ticker_day') || '';
@@ -282,10 +292,25 @@ function handleServerMessage(msg) {
         if (msg.headToHeadData.podiums1) h2hPodiums1 = Object.assign({}, msg.headToHeadData.podiums1);
         if (msg.headToHeadData.podiums2) h2hPodiums2 = Object.assign({}, msg.headToHeadData.podiums2);
       }
+      if (msg.categoryWinnerVisible !== undefined) categoryWinnerVisible = !!msg.categoryWinnerVisible;
+      if (msg.categoryWinnerSize !== undefined) categoryWinnerSize = parseInt(msg.categoryWinnerSize, 10) || 520;
+      if (msg.categoryWinnerData) {
+        if (msg.categoryWinnerData.competitor !== undefined) cwComp = msg.categoryWinnerData.competitor;
+        if (msg.categoryWinnerData.eventId) cwEventId = msg.categoryWinnerData.eventId;
+        if (msg.categoryWinnerData.categoryName !== undefined) cwCategoryName = msg.categoryWinnerData.categoryName || '';
+      }
+      if (msg.lowerThirdVisible !== undefined) lowerThirdVisible = !!msg.lowerThirdVisible;
+      if (msg.lowerThirdData && typeof msg.lowerThirdData === 'object') {
+        lowerThirdData = {
+          text: typeof msg.lowerThirdData.text === 'string' ? msg.lowerThirdData.text : ''
+        };
+      }
       updatePreviewUI();
       updateShowcaseUI();
       updateBigLogoUI();
       updateHeadToHeadUI();
+      updateCategoryWinnerUI();
+      updateLowerThirdUI();
       updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
 
       if (msg.liveRankingVisible !== undefined) liveRankingVisible = !!msg.liveRankingVisible;
@@ -486,10 +511,25 @@ function handleServerMessage(msg) {
         if (msg.headToHeadData.podiums1) h2hPodiums1 = Object.assign({}, msg.headToHeadData.podiums1);
         if (msg.headToHeadData.podiums2) h2hPodiums2 = Object.assign({}, msg.headToHeadData.podiums2);
       }
+      if (msg.categoryWinnerVisible !== undefined) categoryWinnerVisible = !!msg.categoryWinnerVisible;
+      if (msg.categoryWinnerSize !== undefined) categoryWinnerSize = parseInt(msg.categoryWinnerSize, 10) || 520;
+      if (msg.categoryWinnerData) {
+        if (msg.categoryWinnerData.competitor !== undefined) cwComp = msg.categoryWinnerData.competitor;
+        if (msg.categoryWinnerData.eventId) cwEventId = msg.categoryWinnerData.eventId;
+        if (msg.categoryWinnerData.categoryName !== undefined) cwCategoryName = msg.categoryWinnerData.categoryName || '';
+      }
+      if (msg.lowerThirdVisible !== undefined) lowerThirdVisible = !!msg.lowerThirdVisible;
+      if (msg.lowerThirdData && typeof msg.lowerThirdData === 'object') {
+        lowerThirdData = {
+          text: typeof msg.lowerThirdData.text === 'string' ? msg.lowerThirdData.text : ''
+        };
+      }
       updatePreviewUI();
       updateShowcaseUI();
       updateBigLogoUI();
       updateHeadToHeadUI();
+      updateCategoryWinnerUI();
+      updateLowerThirdUI();
       if (msg.competitorVisible !== undefined || msg.eventVisible !== undefined) {
         updateVisibilityStates(msg.competitorVisible, msg.eventVisible);
       }
@@ -3818,7 +3858,7 @@ function updateOverlayCount(count) {
 }
 
 function switchMainMenu(menuKey) {
-  if (menuKey === 'clasificacion' && typeof initRankingMiniMonitors === 'function') {
+  if ((menuKey === 'clasificacion' || menuKey === 'pantalla') && typeof initRankingMiniMonitors === 'function') {
     setTimeout(initRankingMiniMonitors, 50);
   }
   if (window.AdminUI && typeof window.AdminUI.activateAdminView === 'function') {
@@ -4501,7 +4541,8 @@ let rankingMiniMonitorsInitialized = false;
 function scaleRankingMiniMonitors() {
   const pairs = [
     ['mini-monitor-fs', 'iframe-preview-fs'],
-    ['mini-monitor-widget', 'iframe-preview-widget']
+    ['mini-monitor-widget', 'iframe-preview-widget'],
+    ['mini-monitor-transicion', 'iframe-preview-transicion']
   ];
   pairs.forEach(([wrapId, iframeId]) => {
     const wrap = document.getElementById(wrapId);
@@ -4517,7 +4558,8 @@ function scaleRankingMiniMonitors() {
 function initRankingMiniMonitors() {
   const frames = [
     document.getElementById('iframe-preview-fs'),
-    document.getElementById('iframe-preview-widget')
+    document.getElementById('iframe-preview-widget'),
+    document.getElementById('iframe-preview-transicion')
   ];
   frames.forEach(frame => {
     if (frame && !frame.getAttribute('src') && frame.dataset.src) {
@@ -4529,8 +4571,10 @@ function initRankingMiniMonitors() {
     const obs = new ResizeObserver(() => scaleRankingMiniMonitors());
     const w1 = document.getElementById('mini-monitor-fs');
     const w2 = document.getElementById('mini-monitor-widget');
+    const w3 = document.getElementById('mini-monitor-transicion');
     if (w1) obs.observe(w1);
     if (w2) obs.observe(w2);
+    if (w3) obs.observe(w3);
     rankingMiniMonitorsInitialized = true;
   }
   requestAnimationFrame(scaleRankingMiniMonitors);
@@ -4661,6 +4705,18 @@ function updateFsThemeUI() {
     const row = document.getElementById(`fs-${sc}-settings-row`);
     if (row) row.style.display = (curScene === sc && sc !== 'ranking') ? 'flex' : 'none';
   });
+
+  const transScenePill = document.getElementById('mini-transicion-scene-pill');
+  if (transScenePill) {
+    const sceneNames = {
+      ranking: 'Clasificación',
+      starting: 'Iniciando',
+      lunch: 'Almuerzo',
+      reconnecting: 'Reconectando',
+      ending: 'Despedida'
+    };
+    transScenePill.textContent = sceneNames[curScene] || curScene.toUpperCase();
+  }
 
   // Sincronizar textos en inputs si el usuario no los está editando
   const startingCustomTitleInput = document.getElementById('fs-starting-custom-title-input');
@@ -5282,6 +5338,81 @@ function sendHideCompetitorShowcase() {
   showToast('Tarjeta de competidor ocultada de OBS');
 }
 
+// ── GESTIÓN DEL MINI BANNER DE TEXTO SIMPLE (CENTRADO ARRIBA DEL TICKER) ──
+let lowerThirdDebounce = null;
+
+function readLowerThirdInputs() {
+  const textEl = document.getElementById('lt-text-input');
+  lowerThirdData = {
+    text: textEl ? textEl.value.trim() : (lowerThirdData.text || '')
+  };
+  return lowerThirdData;
+}
+
+function onLowerThirdInputChange() {
+  const data = readLowerThirdInputs();
+  updateLowerThirdPreview();
+  if (lowerThirdVisible) {
+    clearTimeout(lowerThirdDebounce);
+    lowerThirdDebounce = setTimeout(() => {
+      sendWS({ type: 'update_lower_third', data });
+    }, 180);
+  }
+}
+
+function updateLowerThirdPreview() {
+  const textEl = document.getElementById('lt-preview-text');
+  if (textEl) {
+    textEl.textContent = lowerThirdData.text || 'Texto del mini banner';
+  }
+}
+
+function updateLowerThirdUI() {
+  const textEl = document.getElementById('lt-text-input');
+  if (textEl && document.activeElement !== textEl) textEl.value = lowerThirdData.text || '';
+
+  const badge = document.getElementById('lower-third-status-badge');
+  if (badge) {
+    badge.textContent = lowerThirdVisible ? 'Al aire' : 'En espera';
+    badge.className = lowerThirdVisible ? 'admin-status-pill admin-status-pill--live' : 'admin-status-pill admin-status-pill--standby';
+  }
+
+  const btnShow = document.getElementById('btn-show-lower-third');
+  if (btnShow) {
+    const ic = window.Icon ? window.Icon(lowerThirdVisible ? 'check' : 'play', { size: 15 }) : '';
+    btnShow.classList.toggle('active', lowerThirdVisible);
+    btnShow.innerHTML = lowerThirdVisible
+      ? `${ic}<span>Al aire (Actualizar)</span>`
+      : `${ic}<span>Mostrar en OBS</span>`;
+  }
+
+  updateLowerThirdPreview();
+  window.AdminUI?.syncAdminLiveNowUI();
+}
+
+function sendShowLowerThird() {
+  const data = readLowerThirdInputs();
+  if (!data.text) {
+    showToast('Escribe un texto para mostrar en el mini banner', 'warning');
+    document.getElementById('lt-text-input')?.focus();
+    return;
+  }
+  lowerThirdVisible = true;
+  sendWS({
+    type: 'show_lower_third',
+    data
+  });
+  updateLowerThirdUI();
+  showToast(`Mini banner mostrado: ${data.text}`, 'success');
+}
+
+function sendHideLowerThird() {
+  lowerThirdVisible = false;
+  sendWS({ type: 'hide_lower_third' });
+  updateLowerThirdUI();
+  showToast('Mini banner ocultado de OBS', 'info');
+}
+
 // ── GESTIÓN DE LOGO CENTRAL DEL TORNEO (MOMENTOS MUERTOS / DESCANSO) ──
 function updateBigLogoUI() {
   const badge = document.getElementById('big-logo-status-badge');
@@ -5717,6 +5848,220 @@ function setH2HSizePreset(val) {
   const slider = document.getElementById('h2h-size-slider');
   if (slider) slider.value = val;
   onH2HSizeInput(val);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ── GESTIÓN DEL BANNER GANADOR DE CATEGORÍA (ESTILO HEAD TO HEAD) ──
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function getCWCategoryDisplay() {
+  const custom = (cwCategoryName || '').trim();
+  if (custom) return custom.toUpperCase();
+  const eid = cwEventId || selectedEventId || '333';
+  const select = document.getElementById('cw-event-select');
+  if (select) {
+    const opt = Array.from(select.options).find(o => o.value === eid);
+    if (opt) {
+      return opt.textContent.replace(/(\d+)x\1x\1(\s*Cube)?/gi, '$1x$1').trim().toUpperCase();
+    }
+  }
+  return eid.toUpperCase();
+}
+
+function updateCategoryWinnerUI() {
+  const badge = document.getElementById('cw-status-badge');
+  const btnShow = document.getElementById('btn-show-cw');
+
+  if (badge) {
+    badge.textContent = categoryWinnerVisible ? 'Al aire' : 'En espera';
+    badge.className = categoryWinnerVisible ? 'live-status-pill online' : 'live-status-pill offline';
+  }
+
+  if (btnShow) {
+    const ic = window.Icon ? window.Icon(categoryWinnerVisible ? 'check' : 'play', { size: 15 }) : '';
+    btnShow.innerHTML = categoryWinnerVisible
+      ? `${ic}<span>Al aire en OBS</span>`
+      : `${ic}<span>Mostrar en OBS</span>`;
+  }
+
+  const evSelect = document.getElementById('cw-event-select');
+  if (evSelect && cwEventId) evSelect.value = cwEventId;
+
+  const catInput = document.getElementById('cw-category-input');
+  if (catInput && document.activeElement !== catInput) catInput.value = cwCategoryName || '';
+
+  const searchInput = document.getElementById('cw-search');
+  if (searchInput && document.activeElement !== searchInput && cwComp?.name) {
+    searchInput.value = cwComp.name;
+  }
+
+  const catLabel = document.getElementById('panel-cw-category');
+  if (catLabel) catLabel.textContent = `GANADOR · ${getCWCategoryDisplay()}`;
+
+  const nameEl = document.getElementById('panel-cw-name');
+  if (nameEl) nameEl.textContent = (cwComp && cwComp.name) ? cwComp.name.toUpperCase() : 'SELECCIONA UN COMPETIDOR';
+
+  const avatarEl = document.getElementById('panel-cw-avatar');
+  const noAvatarEl = document.getElementById('panel-cw-noavatar');
+  if (avatarEl && noAvatarEl) {
+    if (cwComp && cwComp.avatar_url && !cwComp.avatar_url.includes('missing_avatar')) {
+      avatarEl.src = cwComp.avatar_url;
+      avatarEl.style.display = 'block';
+      noAvatarEl.style.display = 'none';
+    } else {
+      avatarEl.src = '';
+      avatarEl.style.display = 'none';
+      noAvatarEl.style.display = 'block';
+    }
+  }
+
+  const prEl = document.getElementById('panel-cw-pr');
+  if (prEl) {
+    const eid = cwEventId || selectedEventId || '333';
+    if (!cwComp) {
+      prEl.textContent = '— / —';
+    } else {
+      const pr = cwComp.prs && cwComp.prs[eid];
+      const rec = cwComp.personal_records && cwComp.personal_records[eid];
+      const s = (pr && pr.single_fmt) ? pr.single_fmt : '—';
+      const a = (pr && pr.average_fmt) ? pr.average_fmt : '—';
+      const sNr = pr?.single_nr ?? rec?.single?.country_rank ?? null;
+      const aNr = pr?.average_nr ?? rec?.average?.country_rank ?? null;
+      const sTxt = (s !== '—' && s !== '-' && sNr) ? `${s} (NR ${sNr})` : s;
+      const aTxt = (a !== '—' && a !== '-' && aNr) ? `${a} (NR ${aNr})` : a;
+      prEl.textContent = `${sTxt} / ${aTxt}`;
+    }
+  }
+
+  const sizeSlider = document.getElementById('cw-size-slider');
+  const sizeVal = document.getElementById('cw-size-val');
+  if (sizeSlider && document.activeElement !== sizeSlider) sizeSlider.value = categoryWinnerSize;
+  if (sizeVal) sizeVal.textContent = `${categoryWinnerSize}px`;
+
+  window.AdminUI?.syncAdminLiveNowUI();
+}
+
+function onCWSearchInput(query) {
+  const dropdown = document.getElementById('cw-results');
+  if (!dropdown) return;
+
+  const q = (query || '').trim().toLowerCase();
+  if (q.length < 2) {
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = '';
+    return;
+  }
+
+  const comps = (tournamentData && tournamentData.competitors) || [];
+  const matches = comps.filter(c => {
+    const n = (c.name || '').toLowerCase();
+    const w = (c.wca_id || '').toLowerCase();
+    return n.includes(q) || w.includes(q);
+  }).slice(0, 8);
+
+  if (matches.length === 0) {
+    dropdown.innerHTML = '<div style="padding:8px 12px;color:var(--text-dim);font-size:12px;">No se encontraron competidores</div>';
+    dropdown.style.display = 'block';
+    return;
+  }
+
+  dropdown.innerHTML = matches.map(c => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" 
+         onmouseover="this.style.background='rgba(255,255,255,0.08)'" 
+         onmouseout="this.style.background='transparent'" 
+         onclick="selectCWCompetitor(decodeURIComponent('${encodeURIComponent(c.wca_id || c.name)}'))">
+      <span style="font-weight:700;font-size:12px;color:#fff;">${escapeHtml(c.name)}</span>
+      <span style="font-size:11px;font-weight:500;color:var(--admin-text-secondary);font-family:var(--admin-font-mono);">${escapeHtml(c.wca_id || 'NUEVO')}</span>
+    </div>
+  `).join('');
+  dropdown.style.display = 'block';
+}
+
+function selectCWCompetitor(idOrName) {
+  const comps = (tournamentData && tournamentData.competitors) || [];
+  const comp = comps.find(c => (c.wca_id || '').toUpperCase() === idOrName.toUpperCase() || c.name === idOrName);
+  if (!comp) return;
+
+  cwComp = comp;
+  const inp = document.getElementById('cw-search');
+  if (inp) inp.value = comp.name;
+  const drop = document.getElementById('cw-results');
+  if (drop) drop.style.display = 'none';
+
+  if (comp.wca_id) {
+    fetchCompetitorAvatarIfNeeded(comp).then(() => {
+      updateCategoryWinnerUI();
+      if (categoryWinnerVisible) sendShowCategoryWinner();
+    });
+  }
+  updateCategoryWinnerUI();
+  if (categoryWinnerVisible) sendShowCategoryWinner();
+}
+
+function onCWEventSelectChange(eid) {
+  cwEventId = eid || '333';
+  updateCategoryWinnerUI();
+  if (categoryWinnerVisible) sendShowCategoryWinner();
+}
+
+let cwCategoryDebounce = null;
+function onCWCategoryInputChange() {
+  const el = document.getElementById('cw-category-input');
+  cwCategoryName = el ? el.value : '';
+  const catLabel = document.getElementById('panel-cw-category');
+  if (catLabel) catLabel.textContent = `GANADOR · ${getCWCategoryDisplay()}`;
+  if (categoryWinnerVisible && cwComp) {
+    clearTimeout(cwCategoryDebounce);
+    cwCategoryDebounce = setTimeout(() => sendShowCategoryWinner(), 180);
+  }
+}
+
+function sendShowCategoryWinner() {
+  if (!cwComp) {
+    showToast('Selecciona un competidor ganador primero', 'warning');
+    document.getElementById('cw-search')?.focus();
+    return;
+  }
+  const catEl = document.getElementById('cw-category-input');
+  if (catEl) cwCategoryName = catEl.value.trim();
+
+  categoryWinnerVisible = true;
+  sendWS({
+    type: 'show_category_winner',
+    data: {
+      competitor: cwComp,
+      eventId: cwEventId || selectedEventId || '333',
+      categoryName: cwCategoryName
+    },
+    size: categoryWinnerSize
+  });
+  updateCategoryWinnerUI();
+  showToast(`Ganador de ${getCWCategoryDisplay()} en pantalla: ${cwComp.name}`, 'success');
+}
+
+function sendHideCategoryWinner() {
+  categoryWinnerVisible = false;
+  sendWS({ type: 'hide_category_winner' });
+  updateCategoryWinnerUI();
+  showToast('Banner de ganador ocultado', 'info');
+}
+
+function onCWSizeInput(val) {
+  const s = parseInt(val, 10);
+  if (isNaN(s)) return;
+  categoryWinnerSize = s;
+  const sizeVal = document.getElementById('cw-size-val');
+  if (sizeVal) sizeVal.textContent = `${categoryWinnerSize}px`;
+  sendWS({
+    type: 'set_category_winner_size',
+    size: categoryWinnerSize
+  });
+}
+
+function setCWSizePreset(val) {
+  const slider = document.getElementById('cw-size-slider');
+  if (slider) slider.value = val;
+  onCWSizeInput(val);
 }
 
 // ══════════════════════════════════════════════════════════════════
