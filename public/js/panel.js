@@ -4695,21 +4695,21 @@ function updateFsThemeUI() {
     if (previewBox) previewBox.style.display = 'none';
   }
 
-  // Escenas activas en Pantalla Completa (/fullscreen)
-  const curScene = currentFsTheme.scene || 'ranking';
-  const scenesList = ['ranking', 'starting', 'lunch', 'reconnecting', 'ending'];
+  // Escenas activas en /transicion (si llega 'ranking' heredado, mostrar 'starting' por defecto)
+  const rawScene = currentFsTheme.scene;
+  const curScene = (!rawScene || rawScene === 'ranking') ? 'starting' : rawScene;
+  const scenesList = ['starting', 'lunch', 'reconnecting', 'ending'];
   
   scenesList.forEach(sc => {
     const btn = document.getElementById(`btn-fs-scene-${sc}`);
     if (btn) btn.classList.toggle('active', curScene === sc);
     const row = document.getElementById(`fs-${sc}-settings-row`);
-    if (row) row.style.display = (curScene === sc && sc !== 'ranking') ? 'flex' : 'none';
+    if (row) row.style.display = (curScene === sc) ? 'flex' : 'none';
   });
 
   const transScenePill = document.getElementById('mini-transicion-scene-pill');
   if (transScenePill) {
     const sceneNames = {
-      ranking: 'Clasificación',
       starting: 'Iniciando',
       lunch: 'Almuerzo',
       reconnecting: 'Reconectando',
@@ -4767,8 +4767,8 @@ function updateFsThemeUI() {
 }
 
 function setFsScene(scene) {
-  const validScenes = ['ranking', 'starting', 'lunch', 'reconnecting', 'ending'];
-  const cleanScene = validScenes.includes(scene) ? scene : 'ranking';
+  const validScenes = ['starting', 'lunch', 'reconnecting', 'ending'];
+  const cleanScene = validScenes.includes(scene) ? scene : 'starting';
   currentFsTheme.scene = cleanScene;
   updateFsThemeUI();
   sendWS({
@@ -4786,7 +4786,6 @@ function setFsScene(scene) {
   });
 
   const toastLabels = {
-    ranking: 'Tabla de clasificación activa en /fullscreen',
     starting: 'Escena "Iniciando en unos minutos" activa en /transicion',
     lunch: 'Escena "Hora de almuerzo" activa en /transicion',
     reconnecting: 'Escena "Reconectando" activa en /transicion',

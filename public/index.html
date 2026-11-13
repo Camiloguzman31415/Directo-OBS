@@ -188,7 +188,8 @@
           <!-- VISTA 1: MESA Y EVENTO (OPERACIÓN CONTINUA DE RONDAS)          -->
           <!-- ═══════════════════════════════════════════════════════════════ -->
           <div class="main-view-panel active" id="view-mesa">
-            <div class="admin-cards-grid">
+            <div class="admin-cards-columns">
+              <div class="admin-cards-col">
 
               <!-- OVERLAY CARD 1: COMPETIDORES EN MESA -->
               <section class="admin-overlay-card" id="card-competitor-mesa" aria-labelledby="title-card-mesa">
@@ -390,6 +391,90 @@
                 </div>
               </section>
 
+              <!-- OVERLAY CARD 3: TARJETA DE COMPETIDOR (SHOWCASE ESQUINA DERECHA) -->
+              <section class="admin-overlay-card" id="panel-competitor-showcase" aria-labelledby="title-card-showcase">
+                <div class="admin-card-header">
+                  <div class="admin-card-header-main">
+                    <div class="admin-card-icon">
+                      <span data-icon="user-check" data-icon-size="18"></span>
+                    </div>
+                    <div class="admin-card-titles">
+                      <div class="admin-card-title-row">
+                        <h2 class="admin-card-title" id="title-card-showcase">Tarjeta de Competidor (Esquina)</h2>
+                      </div>
+                      <p class="admin-card-subtitle">Ficha lateral destacada con fotografía WCA, bandera y PRs</p>
+                    </div>
+                  </div>
+                  <div class="admin-card-header-meta">
+                    <span class="live-status-pill offline" id="showcase-status-badge">En espera</span>
+                    <button type="button" class="admin-card-collapse-btn" data-card-collapse aria-expanded="true" aria-label="Contraer tarjeta">
+                      <span data-icon="chevron-down" data-icon-size="16"></span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="admin-card-body">
+                  <!-- CompetitorPicker Unificado -->
+                  <div class="admin-picker">
+                    <label class="admin-label" for="showcase-search-input">
+                      <span>Competidor a destacar</span>
+                      <span class="admin-hint">Nombre o WCA ID</span>
+                    </label>
+                    <div class="search-input-group">
+                      <span class="search-icon-decor" data-icon="search" data-icon-size="16"></span>
+                      <input type="text" class="form-input" id="showcase-search-input" placeholder="Buscar competidor por nombre o WCA ID..." oninput="onShowcaseSearchInput(this.value)" autocomplete="off">
+                      <div class="search-results-dropdown" id="showcase-search-results" role="listbox" aria-label="Sugerencias de tarjeta de competidor"></div>
+                    </div>
+                  </div>
+
+                  <!-- Vista Previa Consistente -->
+                  <div class="admin-preview-stage">
+                    <div class="admin-preview-bar">
+                      <span>Vista previa esquina derecha</span>
+                      <span style="display:inline-flex;align-items:center;gap:6px;">
+                        <img id="panel-showcase-event-icon" src="icons/333.svg" alt="" style="width:13px;height:13px;filter:brightness(0) invert(0.85);" onerror="this.style.display='none'">
+                        <span id="panel-showcase-event-name" class="admin-mono">3X3</span>
+                      </span>
+                    </div>
+
+                    <div class="showcase-preview-card">
+                      <div class="showcase-preview-hero">
+                        <img id="panel-showcase-bg-flag" src="" alt="" style="display:none;">
+                        <img id="panel-showcase-avatar" src="" alt="Avatar del competidor" style="display:none;">
+                        <div id="panel-showcase-empty">Sin competidor seleccionado</div>
+                      </div>
+                      <div class="showcase-preview-namebar">
+                        <div id="panel-showcase-name">—</div>
+                      </div>
+                      <div class="showcase-preview-stats">
+                        <div>
+                          <div class="admin-hint">PR Single</div>
+                          <div id="panel-showcase-single" class="showcase-pr-pair">—</div>
+                        </div>
+                        <div style="text-align:right;">
+                          <div class="admin-hint">PR Average</div>
+                          <div id="panel-showcase-average" class="showcase-pr-pair">—</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="admin-action-bar">
+                  <button type="button" class="admin-btn admin-btn--primary" id="btn-show-showcase" onclick="sendShowCompetitorShowcase()">
+                    <span data-icon="play" data-icon-size="15"></span>
+                    <span>Mostrar en OBS</span>
+                  </button>
+                  <button type="button" class="admin-btn admin-btn--secondary" id="btn-hide-showcase" onclick="sendHideCompetitorShowcase()">
+                    <span data-icon="eye-off" data-icon-size="15"></span>
+                    <span>Ocultar</span>
+                  </button>
+                </div>
+              </section>
+              </div>
+
+              <div class="admin-cards-col">
+
               <!-- OVERLAY CARD 2: DISCIPLINA / CATEGORÍA Y TICKER INFERIOR -->
               <section class="admin-overlay-card" id="event-deck-card" aria-labelledby="title-card-evento">
                 <div class="admin-card-header">
@@ -544,87 +629,6 @@
                 </div>
               </section>
 
-              <!-- OVERLAY CARD 3: TARJETA DE COMPETIDOR (SHOWCASE ESQUINA DERECHA) -->
-              <section class="admin-overlay-card" id="panel-competitor-showcase" aria-labelledby="title-card-showcase">
-                <div class="admin-card-header">
-                  <div class="admin-card-header-main">
-                    <div class="admin-card-icon">
-                      <span data-icon="user-check" data-icon-size="18"></span>
-                    </div>
-                    <div class="admin-card-titles">
-                      <div class="admin-card-title-row">
-                        <h2 class="admin-card-title" id="title-card-showcase">Tarjeta de Competidor (Esquina)</h2>
-                      </div>
-                      <p class="admin-card-subtitle">Ficha lateral destacada con fotografía WCA, bandera y PRs</p>
-                    </div>
-                  </div>
-                  <div class="admin-card-header-meta">
-                    <span class="live-status-pill offline" id="showcase-status-badge">En espera</span>
-                    <button type="button" class="admin-card-collapse-btn" data-card-collapse aria-expanded="true" aria-label="Contraer tarjeta">
-                      <span data-icon="chevron-down" data-icon-size="16"></span>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="admin-card-body">
-                  <!-- CompetitorPicker Unificado -->
-                  <div class="admin-picker">
-                    <label class="admin-label" for="showcase-search-input">
-                      <span>Competidor a destacar</span>
-                      <span class="admin-hint">Nombre o WCA ID</span>
-                    </label>
-                    <div class="search-input-group">
-                      <span class="search-icon-decor" data-icon="search" data-icon-size="16"></span>
-                      <input type="text" class="form-input" id="showcase-search-input" placeholder="Buscar competidor por nombre o WCA ID..." oninput="onShowcaseSearchInput(this.value)" autocomplete="off">
-                      <div class="search-results-dropdown" id="showcase-search-results" role="listbox" aria-label="Sugerencias de tarjeta de competidor"></div>
-                    </div>
-                  </div>
-
-                  <!-- Vista Previa Consistente -->
-                  <div class="admin-preview-stage">
-                    <div class="admin-preview-bar">
-                      <span>Vista previa esquina derecha</span>
-                      <span style="display:inline-flex;align-items:center;gap:6px;">
-                        <img id="panel-showcase-event-icon" src="icons/333.svg" alt="" style="width:13px;height:13px;filter:brightness(0) invert(0.85);" onerror="this.style.display='none'">
-                        <span id="panel-showcase-event-name" class="admin-mono">3X3</span>
-                      </span>
-                    </div>
-
-                    <div class="showcase-preview-card">
-                      <div class="showcase-preview-hero">
-                        <img id="panel-showcase-bg-flag" src="" alt="" style="display:none;">
-                        <img id="panel-showcase-avatar" src="" alt="Avatar del competidor" style="display:none;">
-                        <div id="panel-showcase-empty">Sin competidor seleccionado</div>
-                      </div>
-                      <div class="showcase-preview-namebar">
-                        <div id="panel-showcase-name">—</div>
-                      </div>
-                      <div class="showcase-preview-stats">
-                        <div>
-                          <div class="admin-hint">PR Single</div>
-                          <div id="panel-showcase-single" class="showcase-pr-pair">—</div>
-                        </div>
-                        <div style="text-align:right;">
-                          <div class="admin-hint">PR Average</div>
-                          <div id="panel-showcase-average" class="showcase-pr-pair">—</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="admin-action-bar">
-                  <button type="button" class="admin-btn admin-btn--primary" id="btn-show-showcase" onclick="sendShowCompetitorShowcase()">
-                    <span data-icon="play" data-icon-size="15"></span>
-                    <span>Mostrar en OBS</span>
-                  </button>
-                  <button type="button" class="admin-btn admin-btn--secondary" id="btn-hide-showcase" onclick="sendHideCompetitorShowcase()">
-                    <span data-icon="eye-off" data-icon-size="15"></span>
-                    <span>Ocultar</span>
-                  </button>
-                </div>
-              </section>
-
               <!-- OVERLAY CARD 4: MINI BANNER DE TEXTO SIMPLE (CENTRADO ARRIBA DEL TICKER) -->
               <section class="admin-overlay-card" id="card-lower-third" aria-labelledby="title-card-lower-third">
                 <div class="admin-card-header">
@@ -682,6 +686,7 @@
                   </button>
                 </div>
               </section>
+              </div>
 
             </div>
           </div>
@@ -1562,11 +1567,7 @@
                 <div class="admin-card-body">
                   <div class="admin-field">
                     <div class="admin-label">
-                      <span>Estado activo en escena web</span>
-                      <button type="button" class="admin-btn admin-btn--ghost" onclick="setFsScene('ranking')" title="Volver al estado normal de Clasificación">
-                        <span data-icon="table-2" data-icon-size="13"></span>
-                        <span>Modo Clasificación</span>
-                      </button>
+                      <span>Estado activo en /transicion</span>
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:8px;">
                       <button type="button" class="btn-mode-toggle" id="btn-fs-scene-starting" onclick="setFsScene('starting')">

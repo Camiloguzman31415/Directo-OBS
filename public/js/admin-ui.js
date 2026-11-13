@@ -33,13 +33,6 @@
     }
   };
 
-  const FS_SCENE_LABELS = {
-    starting: 'Escena: Iniciando transmisión',
-    lunch: 'Escena: Pausa de almuerzo',
-    reconnecting: 'Escena: Reconectando',
-    ending: 'Escena: Despedida / Cierre'
-  };
-
   function normalizeViewKey(menuKey) {
     if (!menuKey || menuKey === 'banners') return 'mesa';
     if (VIEW_META[menuKey]) return menuKey;
@@ -386,15 +379,6 @@
 
     // Renderizar lista de chips "Al aire ahora"
     list.innerHTML = '';
-
-    // Si hay una escena de transicion distinta de 'ranking', mostrar chip informativo
-    const activeScene = (typeof currentFsTheme !== 'undefined' && currentFsTheme?.scene) ? currentFsTheme.scene : 'ranking';
-    if (activeScene && activeScene !== 'ranking' && FS_SCENE_LABELS[activeScene]) {
-      const sceneChip = document.createElement('span');
-      sceneChip.className = 'admin-scene-indicator-chip';
-      sceneChip.innerHTML = `${window.Icon ? window.Icon('tv', { size: 14 }) : ''}<span>${FS_SCENE_LABELS[activeScene]}</span>`;
-      list.appendChild(sceneChip);
-    }
 
     if (total === 0) {
       const empty = document.createElement('span');

@@ -412,17 +412,17 @@
     display: none !important;
   }
 
-  /* ━━━ BARRA INFERIOR DE NOTICIAS TICKER (BROADCAST NEWS TICKER STYLE - IMPECCABLE) ━━━ */
+  /* ━━━ BARRA INFERIOR DE NOTICIAS TICKER (ESTILO BROADCAST SIMPLE Y LIMPIO) ━━━ */
   #event-badge {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     width: 100vw;
-    height: 46px;
-    background: linear-gradient(180deg, #16181d 0%, #0a0b0e 100%);
-    border-top: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    height: 44px;
+    background: #0b0d12;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.75);
     display: flex;
     align-items: center;
     z-index: 900;
@@ -442,25 +442,22 @@
 
   /* 1. Slot Extremo Izquierdo para Logo del Torneo */
   .ticker-logo-slot {
-    width: 76px;
-    height: 46px;
-    background: #090a0d;
-    border-right: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.6);
+    width: 66px;
+    height: 44px;
+    background: #0b0d12;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    padding: 4px 8px;
+    padding: 4px 10px;
     position: relative;
     z-index: 3;
   }
 
   #ticker-tournament-logo {
-    max-height: 36px;
-    max-width: 64px;
+    max-height: 32px;
+    max-width: 52px;
     object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
   }
 
   .ticker-cube-badge {
@@ -468,20 +465,26 @@
     align-items: center;
     justify-content: center;
     color: #e2e8f0;
-    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
   }
 
-  /* 2. Bloque Destacado de Evento y Ronda (Dark Theme Escala de Grises) */
+  /* 2. Bloque Destacado de Evento y Ronda (Bandera de Colombia: Amarillo 50%, Azul 25%, Rojo 25%) */
   .ticker-event-pill {
-    background: linear-gradient(135deg, #282c35 0%, #181b21 100%);
-    height: 46px;
+    background: linear-gradient(
+      180deg,
+      #FCD116 0%,
+      #FCD116 50%,
+      #003893 50%,
+      #003893 75%,
+      #CE1126 75%,
+      #CE1126 100%
+    );
+    color: #ffffff;
+    height: 44px;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0 18px;
+    padding: 0 20px;
     flex-shrink: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     position: relative;
     z-index: 3;
   }
@@ -490,14 +493,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
   }
 
   .ticker-event-icon {
-    width: 20px;
-    height: 20px;
-    filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+    width: 25px;
+    height: 25px;
+    filter: brightness(0) invert(1) drop-shadow(1px 0 0 #0a0c10) drop-shadow(-1px 0 0 #0a0c10) drop-shadow(0 1px 0 #0a0c10) drop-shadow(0 -1px 0 #0a0c10) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.75));
     opacity: 0.98;
   }
 
@@ -509,42 +512,48 @@
   }
 
   .ticker-event-name {
-    font-family: 'Barlow', 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 16px;
+    font-family: var(--font-text, 'Barlow', 'Inter', sans-serif);
+    font-weight: 800;
+    font-size: 19px;
     color: #ffffff;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.3px;
+    paint-order: stroke fill;
+    -webkit-text-stroke: 3.5px #0a0c10;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
   }
 
   .ticker-event-separator {
-    color: rgba(255, 255, 255, 0.65);
-    font-size: 11px;
+    color: #ffffff;
+    font-size: 17px;
     font-weight: 700;
+    paint-order: stroke fill;
+    -webkit-text-stroke: 3px #0a0c10;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
     user-select: none;
   }
 
   .ticker-event-round {
     font-family: var(--font-text, 'Barlow', 'Inter', sans-serif);
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: 700;
     color: #ffffff;
-    letter-spacing: 0.4px;
-    text-transform: uppercase;
+    letter-spacing: 0.25px;
+    paint-order: stroke fill;
+    -webkit-text-stroke: 3.5px #0a0c10;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
   }
 
-  /* 3. Cinta Deslizante de Noticias / Ticker (Marquee Continuo con Máscara Suave) */
+  /* 3. Cinta Deslizante de Noticias / Ticker (Texto plano limpio y aireado) */
   .ticker-marquee-wrapper {
     flex: 1;
-    height: 46px;
+    height: 44px;
     overflow: hidden;
     position: relative;
     display: flex;
     align-items: center;
     background: transparent;
-    mask-image: linear-gradient(90deg, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, black 22px, black calc(100% - 22px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 22px, black calc(100% - 22px), transparent 100%);
   }
 
   .ticker-marquee-track {
@@ -575,182 +584,178 @@
     display: inline-flex;
     align-items: center;
     font-family: var(--font-text, 'Barlow', 'Inter', sans-serif);
-    font-size: 14.5px;
-    font-weight: 500;
-    color: #e2e8f0;
-    letter-spacing: 0.35px;
+    font-size: 16px;
+    font-weight: 400;
+    color: #f1f5f9;
+    letter-spacing: 0.2px;
     white-space: nowrap;
   }
 
   .ticker-tourney-text {
     color: #f8fafc;
-    font-weight: 600;
+    font-weight: 500;
   }
 
-  /* Sección de Noticias / Avisos Especiales seccionados con Badge Profesional (Dark Theme) */
+  /* Noticias integradas en texto plano sin cajas ni bordes */
   .ticker-item.ticker-news-item {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    padding: 3px 12px;
-    border-radius: 4px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    gap: 10px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .ticker-news-tag {
-    font-family: var(--font-display, 'Barlow Condensed', sans-serif);
-    font-size: 11px;
-    font-weight: 800;
-    color: #ffffff;
-    background: #323742;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    letter-spacing: 0.8px;
+    font-family: var(--font-text, 'Barlow', 'Inter', sans-serif);
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: transparent;
+    border: none;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-    padding: 1.5px 6px;
-    border-radius: 2px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .ticker-news-text {
     color: #ffffff;
-    font-weight: 500;
-    font-size: 14px;
+    font-weight: 400;
+    font-size: 16px;
   }
 
   .ticker-separator {
-    color: #9ca3af;
-    font-size: 8.5px;
-    margin: 0 16px;
-    opacity: 0.85;
+    display: inline-block;
+    width: 68px;
+    flex-shrink: 0;
     user-select: none;
-    vertical-align: middle;
   }
 
   /* ── Variantes de Tamaño del Banner de Noticias (Pequeño / Intermedio / Grande) ── */
   /* Tamaño Intermedio (Medium) */
   #event-badge.ticker-size-medium {
-    height: 60px;
+    height: 58px;
   }
   #event-badge.ticker-size-medium .ticker-logo-slot {
-    width: 96px;
-    height: 60px;
-    padding: 5px 10px;
+    width: 84px;
+    height: 58px;
+    padding: 5px 12px;
   }
   #event-badge.ticker-size-medium #ticker-tournament-logo {
-    max-height: 48px;
-    max-width: 80px;
+    max-height: 44px;
+    max-width: 68px;
   }
   #event-badge.ticker-size-medium .ticker-cube-badge svg {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
   #event-badge.ticker-size-medium .ticker-event-pill {
-    height: 60px;
+    height: 58px;
     gap: 12px;
-    padding: 0 22px;
+    padding: 0 24px;
   }
   #event-badge.ticker-size-medium .ticker-event-icon-box {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
   #event-badge.ticker-size-medium .ticker-event-icon {
-    width: 25px;
-    height: 25px;
+    width: 31px;
+    height: 31px;
   }
   #event-badge.ticker-size-medium .ticker-event-name {
-    font-size: 20px;
+    font-size: 24px;
+    -webkit-text-stroke-width: 4.5px;
   }
   #event-badge.ticker-size-medium .ticker-event-separator {
-    font-size: 13px;
+    font-size: 21px;
+    -webkit-text-stroke-width: 3.8px;
   }
   #event-badge.ticker-size-medium .ticker-event-round {
-    font-size: 16.5px;
+    font-size: 22.5px;
+    -webkit-text-stroke-width: 4.5px;
   }
   #event-badge.ticker-size-medium .ticker-marquee-wrapper {
-    height: 60px;
+    height: 58px;
   }
   #event-badge.ticker-size-medium .ticker-item {
-    font-size: 18px;
+    font-size: 19.5px;
   }
   #event-badge.ticker-size-medium .ticker-item.ticker-news-item {
-    gap: 10px;
-    padding: 4px 14px;
-    border-radius: 5px;
+    gap: 12px;
   }
   #event-badge.ticker-size-medium .ticker-news-tag {
-    font-size: 13px;
-    padding: 2px 8px;
-  }
-  #event-badge.ticker-size-medium .ticker-news-text {
     font-size: 17.5px;
   }
+  #event-badge.ticker-size-medium .ticker-news-text {
+    font-size: 19.5px;
+  }
   #event-badge.ticker-size-medium .ticker-separator {
-    font-size: 10.5px;
-    margin: 0 20px;
+    width: 84px;
   }
 
   /* Tamaño Grande (Large) */
   #event-badge.ticker-size-large {
-    height: 76px;
+    height: 74px;
   }
   #event-badge.ticker-size-large .ticker-logo-slot {
-    width: 118px;
-    height: 76px;
-    padding: 6px 12px;
+    width: 106px;
+    height: 74px;
+    padding: 6px 14px;
   }
   #event-badge.ticker-size-large #ticker-tournament-logo {
-    max-height: 62px;
-    max-width: 98px;
+    max-height: 58px;
+    max-width: 86px;
   }
   #event-badge.ticker-size-large .ticker-cube-badge svg {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
   }
   #event-badge.ticker-size-large .ticker-event-pill {
-    height: 76px;
+    height: 74px;
     gap: 14px;
-    padding: 0 28px;
+    padding: 0 30px;
   }
   #event-badge.ticker-size-large .ticker-event-icon-box {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
   }
   #event-badge.ticker-size-large .ticker-event-icon {
-    width: 31px;
-    height: 31px;
+    width: 38px;
+    height: 38px;
   }
   #event-badge.ticker-size-large .ticker-event-name {
-    font-size: 25px;
+    font-size: 30px;
+    -webkit-text-stroke-width: 5.5px;
   }
   #event-badge.ticker-size-large .ticker-event-separator {
-    font-size: 16px;
+    font-size: 26px;
+    -webkit-text-stroke-width: 4.5px;
   }
   #event-badge.ticker-size-large .ticker-event-round {
-    font-size: 20.5px;
+    font-size: 28px;
+    -webkit-text-stroke-width: 5.5px;
   }
   #event-badge.ticker-size-large .ticker-marquee-wrapper {
-    height: 76px;
+    height: 74px;
   }
   #event-badge.ticker-size-large .ticker-item {
-    font-size: 22px;
+    font-size: 24px;
   }
   #event-badge.ticker-size-large .ticker-item.ticker-news-item {
-    gap: 12px;
-    padding: 6px 18px;
-    border-radius: 6px;
+    gap: 14px;
   }
   #event-badge.ticker-size-large .ticker-news-tag {
-    font-size: 15px;
-    padding: 3px 10px;
-  }
-  #event-badge.ticker-size-large .ticker-news-text {
     font-size: 21.5px;
   }
+  #event-badge.ticker-size-large .ticker-news-text {
+    font-size: 24px;
+  }
   #event-badge.ticker-size-large .ticker-separator {
-    font-size: 12.5px;
-    margin: 0 24px;
+    width: 100px;
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -764,11 +769,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    max-width: min(960px, calc(100vw - 64px));
-    padding: 9px 22px;
+    max-width: min(1240px, calc(100vw - 80px));
+    padding: 13px 32px;
     background: linear-gradient(180deg, rgba(20, 23, 30, 0.95) 0%, rgba(11, 13, 18, 0.97) 100%);
     border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 10px;
+    border-radius: 12px;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     pointer-events: none;
     opacity: 0;
@@ -786,7 +791,7 @@
 
   .lt-text {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 20px;
+    font-size: 27px;
     font-weight: 700;
     color: #ffffff;
     letter-spacing: -0.15px;
@@ -1471,6 +1476,20 @@
     color-scheme: dark !important;
   }
 
+  /* Zoom automático centrado para que el Mini Widget se lea nítidamente en el panel */
+  body.is-preview-widget #live-ranking-overlay {
+    left: 50%;
+    top: 50%;
+    transform-origin: center center;
+    transform: translate(calc(-50% - var(--preview-widget-shift-x, 0px)), calc(-50% - var(--preview-widget-shift-y, 0px))) scale(var(--preview-widget-zoom, 2.5));
+    transition: opacity 0.25s ease-out;
+  }
+
+  body.is-preview-widget #live-ranking-overlay.visible {
+    transform: translate(calc(-50% - var(--preview-widget-shift-x, 0px)), calc(-50% - var(--preview-widget-shift-y, 0px))) scale(var(--preview-widget-zoom, 2.5));
+    transition: opacity 0.25s ease-out;
+  }
+
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      COMPETITOR SHOWCASE CARD OVERLAY (ESQUINA SUPERIOR DERECHA)
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -1668,7 +1687,7 @@
     --logo-height: 760px;
     --logo-width: 1050px;
     position: fixed;
-    top: 38%;
+    top: 48%;
     left: 50%;
     display: flex;
     align-items: center;
@@ -3993,7 +4012,7 @@
     <div class="ticker-event-text">
       <span class="ticker-event-name" id="event-badge-title">3x3</span>
       <span class="ticker-event-separator">-</span>
-      <span class="ticker-event-round" id="event-stat-round-num">Round 1</span>
+      <span class="ticker-event-round" id="event-stat-round-num">Ronda 1</span>
     </div>
   </div>
 
@@ -4002,23 +4021,23 @@
     <div class="ticker-marquee-track" id="ticker-marquee-track">
       <div class="ticker-marquee-content" id="ticker-content-1">
         <span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA</span> <span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
-        <span class="ticker-separator">◆</span>
+        <span class="ticker-separator" aria-hidden="true"></span>
+        <span class="ticker-item ticker-news-item"><span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
+        <span class="ticker-separator" aria-hidden="true"></span>
         <span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA</span> <span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
-        <span class="ticker-separator">◆</span>
+        <span class="ticker-separator" aria-hidden="true"></span>
+        <span class="ticker-item ticker-news-item"><span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
+        <span class="ticker-separator" aria-hidden="true"></span>
       </div>
       <div class="ticker-marquee-content" id="ticker-content-2">
         <span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA</span> <span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
-        <span class="ticker-separator">◆</span>
+        <span class="ticker-separator" aria-hidden="true"></span>
+        <span class="ticker-item ticker-news-item"><span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
+        <span class="ticker-separator" aria-hidden="true"></span>
         <span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026, Sábado, 26 de Septiembre, Floridablanca, Santander</span></span>
-        <span class="ticker-separator">◆</span>
-        <span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA</span> <span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
-        <span class="ticker-separator">◆</span>
+        <span class="ticker-separator" aria-hidden="true"></span>
+        <span class="ticker-item ticker-news-item"><span class="ticker-news-text">Sigue los resultados en directo por WCA Live</span></span>
+        <span class="ticker-separator" aria-hidden="true"></span>
       </div>
     </div>
   </div>
@@ -4308,10 +4327,10 @@
 
       <div class="fs-dual-videos-row" id="fs-starting-dual-row">
         <div class="fs-dual-video-wrap" id="fs-starting-wrap-1">
-          <video id="fs-starting-video-1" class="fs-video-player fs-lunch-video" src="/videos/Oveja%20preparandose.mp4" autoplay loop muted playsinline></video>
+          <video id="fs-starting-video-1" class="fs-video-player fs-lunch-video" data-src="/videos/Oveja%20preparandose.mp4" preload="none" loop muted playsinline></video>
         </div>
         <div class="fs-dual-video-wrap" id="fs-starting-wrap-2">
-          <video id="fs-starting-video-2" class="fs-video-player fs-lunch-video" src="/videos/Oveja%20ordenando.mp4" autoplay loop muted playsinline></video>
+          <video id="fs-starting-video-2" class="fs-video-player fs-lunch-video" data-src="/videos/Oveja%20ordenando.mp4" preload="none" loop muted playsinline></video>
         </div>
       </div>
       <div class="fs-video-title fs-lunch-title" id="fs-starting-title">Iniciando en unos minutos</div>
@@ -4322,7 +4341,7 @@
   <div class="fs-video-scene fs-lunch-scene" id="fs-lunch-scene" style="display: none;">
     <div class="fs-video-card fs-lunch-card">
       <div class="fs-video-wrap fs-lunch-video-wrap">
-        <video id="fs-lunch-video" class="fs-video-player fs-lunch-video" src="/videos/Almuerzo%20animaci%C3%B3n.mp4" autoplay loop muted playsinline></video>
+        <video id="fs-lunch-video" class="fs-video-player fs-lunch-video" data-src="/videos/Almuerzo%20animaci%C3%B3n.mp4" preload="none" loop muted playsinline></video>
       </div>
       <div class="fs-video-title fs-lunch-title" id="fs-lunch-title">Hora de almuerzo</div>
     </div>
@@ -4332,7 +4351,7 @@
   <div class="fs-video-scene fs-lunch-scene" id="fs-reconnecting-scene" style="display: none;">
     <div class="fs-video-card fs-lunch-card">
       <div class="fs-video-wrap fs-lunch-video-wrap">
-        <video id="fs-reconnecting-video" class="fs-video-player fs-lunch-video" src="/videos/Oveja%20con%20cables.mp4" autoplay loop muted playsinline></video>
+        <video id="fs-reconnecting-video" class="fs-video-player fs-lunch-video" data-src="/videos/Oveja%20con%20cables.mp4" preload="none" loop muted playsinline></video>
       </div>
       <div class="fs-video-title fs-lunch-title" id="fs-reconnecting-title">Reconectando</div>
     </div>
@@ -4342,7 +4361,7 @@
   <div class="fs-video-scene fs-lunch-scene" id="fs-ending-scene" style="display: none;">
     <div class="fs-video-card fs-lunch-card">
       <div class="fs-video-wrap fs-lunch-video-wrap">
-        <video id="fs-ending-video" class="fs-video-player fs-lunch-video" src="/videos/Oveja%20Despidiendose.mp4" autoplay loop muted playsinline></video>
+        <video id="fs-ending-video" class="fs-video-player fs-lunch-video" data-src="/videos/Oveja%20Despidiendose.mp4" preload="none" loop muted playsinline></video>
       </div>
       <div class="fs-video-title fs-lunch-title" id="fs-ending-title">Gracias por vernos</div>
     </div>
@@ -4610,6 +4629,8 @@
     }
 
     const roundText = eventData.round_name || formatRound(rnum, total);
+    const tickerRoundText = formatCustomRoundName(eventData.round_name || rnum, total, true)
+      .replace(/\bSemi final\b/gi, 'Semifinal');
 
     // Actualizar encabezado del banner de mesa
     if (bannerEventTitle) bannerEventTitle.textContent = shortName.toUpperCase();
@@ -4621,7 +4642,7 @@
 
     // Actualizar Ticker Inferior de Noticias (Estilo Broadcast Limpio)
     if (elEventBadgeTitle) elEventBadgeTitle.textContent = shortName;
-    if (elStatRoundNum) elStatRoundNum.textContent = roundText;
+    if (elStatRoundNum) elStatRoundNum.textContent = tickerRoundText;
     if (elIconBadge) {
       elIconBadge.src = `icons/${eid}.svg`;
       elIconBadge.style.display = 'block';
@@ -4666,20 +4687,20 @@
 
     let segmentHtml = '';
     if (tourneyInfo) {
-      segmentHtml += `<span class="ticker-item"><span class="ticker-tourney-text">${escapeHtml(tourneyInfo)}</span></span><span class="ticker-separator">◆</span>`;
+      segmentHtml += `<span class="ticker-item"><span class="ticker-tourney-text">${escapeHtml(tourneyInfo)}</span></span><span class="ticker-separator" aria-hidden="true"></span>`;
     }
 
     if (rawNews.length > 0) {
       rawNews.forEach(item => {
         const cleanItem = (item || '').trim();
         if (cleanItem) {
-          segmentHtml += `<span class="ticker-item ticker-news-item"><span class="ticker-news-tag">NOTICIA</span> <span class="ticker-news-text">${escapeHtml(cleanItem)}</span></span><span class="ticker-separator">◆</span>`;
+          segmentHtml += `<span class="ticker-item ticker-news-item"><span class="ticker-news-text">${escapeHtml(cleanItem)}</span></span><span class="ticker-separator" aria-hidden="true"></span>`;
         }
       });
     }
 
     if (!segmentHtml) {
-      segmentHtml = `<span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026</span></span><span class="ticker-separator">◆</span>`;
+      segmentHtml = `<span class="ticker-item"><span class="ticker-tourney-text">Regionales Santander 2026</span></span><span class="ticker-separator" aria-hidden="true"></span>`;
     }
 
     // Repetir el bloque 4 veces en cada mitad para garantizar continuidad infinita sin cortes
@@ -5090,6 +5111,36 @@
     }
   }
 
+  // Escala y centra automáticamente el Mini Widget dentro del canvas 1920x1080 en modo preview
+  function fitPreviewWidgetZoom() {
+    if (!isPreviewWidget || !lrOverlay) return;
+    const baseW = Math.max(250, lrOverlay.offsetWidth || 320);
+    const baseH = Math.max(120, lrOverlay.offsetHeight || 260);
+
+    const pagePill = document.getElementById('lr-page-indicator');
+    const hasFooterPill = pagePill && pagePill.style.display !== 'none';
+    const extraBottom = hasFooterPill ? 38 : 0;
+
+    let maxPopoverW = 0;
+    lrOverlay.querySelectorAll('.lr-podium-popover').forEach(p => {
+      if (p.offsetWidth > maxPopoverW) maxPopoverW = p.offsetWidth + 14;
+    });
+
+    const totalW = baseW + maxPopoverW;
+    const totalH = baseH + extraBottom;
+    const availW = 1920 - 140;
+    const availH = 1080 - 90;
+    const zoom = Math.max(0.35, Math.min(availW / totalW, availH / totalH, 3.05));
+
+    lrOverlay.style.setProperty('--preview-widget-zoom', zoom.toFixed(3));
+    lrOverlay.style.setProperty('--preview-widget-shift-x', `${Math.round((maxPopoverW * zoom) / 2)}px`);
+    lrOverlay.style.setProperty('--preview-widget-shift-y', `${Math.round((extraBottom * zoom) / 2)}px`);
+  }
+
+  if (isPreviewWidget && lrOverlay && typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(() => requestAnimationFrame(fitPreviewWidgetZoom)).observe(lrOverlay);
+  }
+
   function autoFitFullscreenTable(numRows, results) {
     if (!fsRowsContainer) return;
     const domCount = fsRowsContainer.children ? fsRowsContainer.children.length : 0;
@@ -5450,6 +5501,10 @@
         fsRowsContainer.classList.remove('page-fade-in');
         void fsRowsContainer.offsetWidth;
         fsRowsContainer.classList.add('page-fade-in');
+      }
+
+      if (isPreviewWidget) {
+        requestAnimationFrame(fitPreviewWidgetZoom);
       }
     };
 
@@ -6668,14 +6723,27 @@
       if (el) el.style.display = (k === targetScene) ? 'flex' : 'none';
     });
 
-    Object.keys(videos).forEach(k => {
-      const vid = videos[k];
+    const setSceneVideoActive = (vid, shouldPlay) => {
       if (!vid) return;
-      if (k === targetScene) {
+      if (shouldPlay) {
+        const baseSrc = vid.dataset.src || vid.getAttribute('src') || '';
+        if (baseSrc) {
+          const isPreviewMode = !isEnvivoMaster && (urlParams.get('preview') === '1' || urlParams.get('previewWidget') === '1');
+          const resolvedSrc = isPreviewMode
+            ? baseSrc.replace(/^\/videos\//, '/videos/preview/')
+            : baseSrc;
+          if (vid.getAttribute('src') !== resolvedSrc) {
+            vid.setAttribute('src', resolvedSrc);
+          }
+        }
         vid.play().catch(() => {});
       } else {
         vid.pause();
       }
+    };
+
+    Object.keys(videos).forEach(k => {
+      setSceneVideoActive(videos[k], k === targetScene);
     });
 
     // Control de videos de la escena 'Iniciando' (Dual: Izquierda y Derecha a la vez)
@@ -6708,19 +6776,11 @@
     }
 
     if (targetScene === 'starting') {
-      if (vid1 && (startingMode === 'both' || startingMode === 'prep')) {
-        vid1.play().catch(() => {});
-      } else if (vid1) {
-        vid1.pause();
-      }
-      if (vid2 && (startingMode === 'both' || startingMode === 'order')) {
-        vid2.play().catch(() => {});
-      } else if (vid2) {
-        vid2.pause();
-      }
+      setSceneVideoActive(vid1, startingMode === 'both' || startingMode === 'prep');
+      setSceneVideoActive(vid2, startingMode === 'both' || startingMode === 'order');
     } else {
-      if (vid1) vid1.pause();
-      if (vid2) vid2.pause();
+      setSceneVideoActive(vid1, false);
+      setSceneVideoActive(vid2, false);
     }
 
         // Mover caja de patrocinadores: a la columna izquierda en 'ranking' y abajo en transiciones
