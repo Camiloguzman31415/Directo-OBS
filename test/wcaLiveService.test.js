@@ -33,6 +33,15 @@ describe('formatWcaTime', () => {
   it('formatea movimientos en FMC (333fm)', () => {
     assert.equal(formatWcaTime(28, '333fm'), '28');
   });
+
+  it('decodifica y formatea resultados de Multi-Blind (333mbf)', () => {
+    assert.equal(formatWcaTime(810360008, '333mbf'), '26/34 60:00');
+    assert.equal(formatWcaTime(850315804, '333mbf'), '18/22 52:38');
+    assert.equal(formatWcaTime(940305402, '333mbf'), '7/9 50:54');
+    assert.equal(formatWcaTime(970012500, '333mbf'), '2/2 2:05');
+    assert.equal(formatWcaTime(979999900, '333mbf'), '2/2');
+    assert.equal(formatWcaTime(-1, '333mbf'), 'DNF');
+  });
 });
 
 describe('calculateAo5Stats', () => {

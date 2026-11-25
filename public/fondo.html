@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Fondo Colombia · DirectoOBS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: #042566;
+    }
+
+    :root {
+      --fs-anim-speed-img: 16s;
+      --fs-anim-speed-cubes: 12s;
+      --fs-pattern-w: 220px;
+      --fs-pattern-h: 381.051px;
+    }
+
+    .fs-bg-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      overflow: hidden;
+      background: radial-gradient(circle at 35% 45%, #0e56be 0%, #0a439b 40%, #042566 78%, #021236 100%);
+    }
+
+    @keyframes fsBgColombiaCycle {
+      0% { background-position: 100% 0%, 0% 0%; }
+      100% { background-position: 0% 0%, 0% 0%; }
+    }
+
+    .fs-anim-bg-colombia-cycle {
+      background-image:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0%, rgba(255, 255, 255, 0.08) 25%, rgba(0, 0, 0, 0.18) 50%, rgba(255, 255, 255, 0.08) 75%, rgba(0, 0, 0, 0.18) 100%),
+        linear-gradient(180deg, #eab308 0%, #eab308 38%, #003893 62%, #003893 67%, #ce1126 83%, #ce1126 100%);
+      background-size: 200% 200%, 100% 100%;
+      animation: fsBgColombiaCycle var(--fs-anim-speed-img) linear infinite;
+    }
+
+    .fs-bg-tint {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 10, 24, 0.35);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    @keyframes fsScrollRight {
+      0% { background-position: 0 0; }
+      100% { background-position: 1920px 0; }
+    }
+
+    .fs-cubes-pattern {
+      position: fixed;
+      inset: -30px;
+      opacity: 0.34;
+      background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='138.564' viewBox='0 0 80 138.564'><path fill='%23ffffff' fill-opacity='0.14' d='M40 0 L80 23.094 L40 46.188 L0 23.094 Z M0 69.282 L40 92.376 L0 115.47 Z M80 69.282 L80 115.47 L40 92.376 Z'/><path fill='%23000000' fill-opacity='0.14' d='M40 46.188 L80 23.094 L80 69.282 L40 92.376 Z M0 115.47 L40 92.376 L40 138.564 L0 138.564 Z M0 0 L40 0 L0 23.094 Z'/><path fill='none' stroke='%23ffffff' stroke-width='1.8' stroke-opacity='0.65' stroke-linejoin='round' d='M40 0 L80 23.094 L80 69.282 L40 92.376 L0 69.282 L0 23.094 Z M0 23.094 L40 46.188 L80 23.094 M40 46.188 L40 92.376 M40 92.376 L40 138.564 M0 115.47 L40 92.376 L80 115.47 M0 0 L0 23.094 M80 0 L80 23.094 M0 115.47 L0 138.564 M80 115.47 L80 138.564'/></svg>");
+      background-size: var(--fs-pattern-w) var(--fs-pattern-h);
+      background-repeat: repeat;
+      z-index: 3;
+      pointer-events: none;
+      animation: fsScrollRight var(--fs-anim-speed-cubes) linear infinite;
+      will-change: background-position;
+    }
+  </style>
+</head>
+<body>
+  <div class="fs-bg-overlay fs-anim-bg-colombia-cycle"></div>
+  <div class="fs-bg-tint"></div>
+  <div class="fs-cubes-pattern"></div>
+</body>
+</html>

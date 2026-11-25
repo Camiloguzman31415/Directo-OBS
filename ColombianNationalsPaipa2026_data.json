@@ -85,6 +85,11 @@
       "event_id": "333mbf",
       "name": "Multi-Blind",
       "rounds": 1
+    },
+    {
+      "event_id": "copa_regiones",
+      "name": "Copa de Regiones",
+      "rounds": 3
     }
   ],
   "competitors": [
@@ -108,8 +113,8 @@
           "event_name": "2x2",
           "single_cs": 581,
           "average_cs": 1314,
-          "single_nr": 1604,
-          "average_nr": 2495,
+          "single_nr": 1607,
+          "average_nr": 2498,
           "single_fmt": "5.81",
           "average_fmt": "13.14"
         },
@@ -117,8 +122,8 @@
           "event_name": "3x3",
           "single_cs": 2420,
           "average_cs": 2895,
-          "single_nr": 2560,
-          "average_nr": 2458,
+          "single_nr": 2563,
+          "average_nr": 2462,
           "single_fmt": "24.20",
           "average_fmt": "28.95"
         },
@@ -127,7 +132,7 @@
           "single_cs": 13119,
           "average_cs": 16041,
           "single_nr": 1199,
-          "average_nr": 977,
+          "average_nr": 980,
           "single_fmt": "2:11.19",
           "average_fmt": "2:40.41"
         },
@@ -135,7 +140,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 12872,
           "average_cs": null,
-          "single_nr": 1202,
+          "single_nr": 1204,
           "average_nr": null,
           "single_fmt": "2:08.72",
           "average_fmt": "—"
@@ -144,8 +149,8 @@
           "event_name": "Clock",
           "single_cs": 2741,
           "average_cs": 2982,
-          "single_nr": 357,
-          "average_nr": 320,
+          "single_nr": 358,
+          "average_nr": 321,
           "single_fmt": "27.41",
           "average_fmt": "29.82"
         },
@@ -153,8 +158,8 @@
           "event_name": "Pyraminx",
           "single_cs": 729,
           "average_cs": 1235,
-          "single_nr": 699,
-          "average_nr": 836,
+          "single_nr": 700,
+          "average_nr": 837,
           "single_fmt": "7.29",
           "average_fmt": "12.35"
         },
@@ -163,7 +168,7 @@
           "single_cs": 1118,
           "average_cs": 1787,
           "single_nr": 673,
-          "average_nr": 702,
+          "average_nr": 704,
           "single_fmt": "11.18",
           "average_fmt": "17.87"
         },
@@ -202,7 +207,7 @@
           "event_name": "2x2",
           "single_cs": 381,
           "average_cs": 518,
-          "single_nr": 813,
+          "single_nr": 814,
           "average_nr": 519,
           "single_fmt": "3.81",
           "average_fmt": "5.18"
@@ -212,7 +217,7 @@
           "single_cs": 1207,
           "average_cs": 1534,
           "single_nr": 598,
-          "average_nr": 676,
+          "average_nr": 677,
           "single_fmt": "12.07",
           "average_fmt": "15.34"
         },
@@ -247,8 +252,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2338,
           "average_cs": 4368,
-          "single_nr": 325,
-          "average_nr": 685,
+          "single_nr": 326,
+          "average_nr": 686,
           "single_fmt": "23.38",
           "average_fmt": "43.68"
         },
@@ -265,8 +270,8 @@
           "event_name": "Megaminx",
           "single_cs": 10131,
           "average_cs": 11653,
-          "single_nr": 258,
-          "average_nr": 267,
+          "single_nr": 260,
+          "average_nr": 268,
           "single_fmt": "1:41.31",
           "average_fmt": "1:56.53"
         },
@@ -274,7 +279,7 @@
           "event_name": "Pyraminx",
           "single_cs": 409,
           "average_cs": 764,
-          "single_nr": 189,
+          "single_nr": 190,
           "average_nr": 243,
           "single_fmt": "4.09",
           "average_fmt": "7.64"
@@ -317,7 +322,7 @@
           "event_name": "2x2",
           "single_cs": 541,
           "average_cs": 737,
-          "single_nr": 1466,
+          "single_nr": 1467,
           "average_nr": 1243,
           "single_fmt": "5.41",
           "average_fmt": "7.37"
@@ -326,8 +331,8 @@
           "event_name": "3x3",
           "single_cs": 1489,
           "average_cs": 1845,
-          "single_nr": 1115,
-          "average_nr": 1126,
+          "single_nr": 1116,
+          "average_nr": 1127,
           "single_fmt": "14.89",
           "average_fmt": "18.45"
         },
@@ -353,8 +358,8 @@
           "event_name": "Pyraminx",
           "single_cs": 860,
           "average_cs": 1535,
-          "single_nr": 928,
-          "average_nr": 1239,
+          "single_nr": 930,
+          "average_nr": 1241,
           "single_fmt": "8.60",
           "average_fmt": "15.35"
         }
@@ -452,7 +457,7 @@
           "average_cs": null,
           "single_nr": 31,
           "average_nr": null,
-          "single_fmt": "MBLD:970059200",
+          "single_fmt": "2/2 9:52",
           "average_fmt": "—"
         },
         "333oh": {
@@ -469,7 +474,7 @@
           "single_cs": 603,
           "average_cs": 663,
           "single_nr": 38,
-          "average_nr": 24,
+          "average_nr": 25,
           "single_fmt": "6.03",
           "average_fmt": "6.63"
         },
@@ -554,7 +559,7 @@
           "single_cs": 946,
           "average_cs": 1102,
           "single_nr": 234,
-          "average_nr": 170,
+          "average_nr": 171,
           "single_fmt": "9.46",
           "average_fmt": "11.02"
         },
@@ -563,7 +568,7 @@
           "single_cs": 4276,
           "average_cs": 5032,
           "single_nr": 210,
-          "average_nr": 217,
+          "average_nr": 218,
           "single_fmt": "42.76",
           "average_fmt": "50.32"
         },
@@ -598,8 +603,8 @@
           "event_name": "Clock",
           "single_cs": 1010,
           "average_cs": 1364,
-          "single_nr": 114,
-          "average_nr": 132,
+          "single_nr": 115,
+          "average_nr": 134,
           "single_fmt": "10.10",
           "average_fmt": "13.64"
         },
@@ -607,8 +612,8 @@
           "event_name": "Megaminx",
           "single_cs": 5741,
           "average_cs": 6854,
-          "single_nr": 63,
-          "average_nr": 68,
+          "single_nr": 64,
+          "average_nr": 69,
           "single_fmt": "57.41",
           "average_fmt": "1:08.54"
         },
@@ -643,7 +648,7 @@
           "event_name": "Fewest Moves",
           "single_cs": 27,
           "average_cs": 3533,
-          "single_nr": 8,
+          "single_nr": 9,
           "average_nr": 21,
           "single_fmt": "27",
           "average_fmt": "3533"
@@ -664,8 +669,8 @@
           "event_name": "3x3",
           "single_cs": 6668,
           "average_cs": 8616,
-          "single_nr": 5481,
-          "average_nr": 5452,
+          "single_nr": 5491,
+          "average_nr": 5462,
           "single_fmt": "1:06.68",
           "average_fmt": "1:26.16"
         }
@@ -697,7 +702,7 @@
           "single_cs": 262,
           "average_cs": 388,
           "single_nr": 318,
-          "average_nr": 191,
+          "average_nr": 192,
           "single_fmt": "2.62",
           "average_fmt": "3.88"
         },
@@ -759,8 +764,8 @@
           "event_name": "Clock",
           "single_cs": 1004,
           "average_cs": 1280,
-          "single_nr": 113,
-          "average_nr": 120,
+          "single_nr": 114,
+          "average_nr": 122,
           "single_fmt": "10.04",
           "average_fmt": "12.80"
         },
@@ -768,8 +773,8 @@
           "event_name": "Megaminx",
           "single_cs": 11170,
           "average_cs": 12730,
-          "single_nr": 300,
-          "average_nr": 305,
+          "single_nr": 302,
+          "average_nr": 306,
           "single_fmt": "1:51.70",
           "average_fmt": "2:07.30"
         },
@@ -787,7 +792,7 @@
           "single_cs": 328,
           "average_cs": 772,
           "single_nr": 84,
-          "average_nr": 192,
+          "average_nr": 193,
           "single_fmt": "3.28",
           "average_fmt": "7.72"
         },
@@ -796,18 +801,18 @@
           "single_cs": 1957,
           "average_cs": 3260,
           "single_nr": 92,
-          "average_nr": 113,
+          "average_nr": 114,
           "single_fmt": "19.57",
           "average_fmt": "32.60"
         },
         "333fm": {
           "event_name": "Fewest Moves",
-          "single_cs": 27,
-          "average_cs": 3133,
-          "single_nr": 8,
-          "average_nr": 6,
-          "single_fmt": "27",
-          "average_fmt": "3133"
+          "single_cs": 26,
+          "average_cs": 3000,
+          "single_nr": 7,
+          "average_nr": 5,
+          "single_fmt": "26",
+          "average_fmt": "3000"
         }
       }
     },
@@ -846,8 +851,8 @@
           "event_name": "3x3",
           "single_cs": 1331,
           "average_cs": 1645,
-          "single_nr": 825,
-          "average_nr": 839,
+          "single_nr": 827,
+          "average_nr": 840,
           "single_fmt": "13.31",
           "average_fmt": "16.45"
         },
@@ -900,8 +905,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 6174,
           "average_cs": 8048,
-          "single_nr": 1056,
-          "average_nr": 950,
+          "single_nr": 1058,
+          "average_nr": 953,
           "single_fmt": "1:01.74",
           "average_fmt": "1:20.48"
         },
@@ -910,7 +915,7 @@
           "single_cs": 1400,
           "average_cs": 2094,
           "single_nr": 204,
-          "average_nr": 241,
+          "average_nr": 242,
           "single_fmt": "14.00",
           "average_fmt": "20.94"
         },
@@ -927,8 +932,8 @@
           "event_name": "Pyraminx",
           "single_cs": 695,
           "average_cs": 872,
-          "single_nr": 620,
-          "average_nr": 340,
+          "single_nr": 621,
+          "average_nr": 341,
           "single_fmt": "6.95",
           "average_fmt": "8.72"
         },
@@ -937,7 +942,7 @@
           "single_cs": 599,
           "average_cs": 808,
           "single_nr": 304,
-          "average_nr": 215,
+          "average_nr": 216,
           "single_fmt": "5.99",
           "average_fmt": "8.08"
         },
@@ -945,8 +950,8 @@
           "event_name": "Square-1",
           "single_cs": 2961,
           "average_cs": 3920,
-          "single_nr": 149,
-          "average_nr": 150,
+          "single_nr": 151,
+          "average_nr": 151,
           "single_fmt": "29.61",
           "average_fmt": "39.20"
         }
@@ -974,7 +979,7 @@
           "single_cs": 345,
           "average_cs": 839,
           "single_nr": 660,
-          "average_nr": 1570,
+          "average_nr": 1571,
           "single_fmt": "3.45",
           "average_fmt": "8.39"
         },
@@ -982,8 +987,8 @@
           "event_name": "3x3",
           "single_cs": 1954,
           "average_cs": 2348,
-          "single_nr": 1836,
-          "average_nr": 1798,
+          "single_nr": 1838,
+          "average_nr": 1800,
           "single_fmt": "19.54",
           "average_fmt": "23.48"
         },
@@ -1009,7 +1014,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 6983,
           "average_cs": null,
-          "single_nr": 1113,
+          "single_nr": 1115,
           "average_nr": null,
           "single_fmt": "1:09.83",
           "average_fmt": "—"
@@ -1036,8 +1041,8 @@
           "event_name": "Pyraminx",
           "single_cs": 772,
           "average_cs": 1648,
-          "single_nr": 772,
-          "average_nr": 1388,
+          "single_nr": 774,
+          "average_nr": 1389,
           "single_fmt": "7.72",
           "average_fmt": "16.48"
         },
@@ -1045,8 +1050,8 @@
           "event_name": "Square-1",
           "single_cs": 3171,
           "average_cs": 4136,
-          "single_nr": 162,
-          "average_nr": 160,
+          "single_nr": 163,
+          "average_nr": 161,
           "single_fmt": "31.71",
           "average_fmt": "41.36"
         }
@@ -1079,8 +1084,8 @@
           "event_name": "3x3",
           "single_cs": 1461,
           "average_cs": 1988,
-          "single_nr": 1068,
-          "average_nr": 1342,
+          "single_nr": 1070,
+          "average_nr": 1343,
           "single_fmt": "14.61",
           "average_fmt": "19.88"
         },
@@ -1088,7 +1093,7 @@
           "event_name": "4x4",
           "single_cs": 10294,
           "average_cs": null,
-          "single_nr": 1067,
+          "single_nr": 1068,
           "average_nr": null,
           "single_fmt": "1:42.94",
           "average_fmt": "—"
@@ -1097,8 +1102,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 4410,
           "average_cs": 5141,
-          "single_nr": 877,
-          "average_nr": 804,
+          "single_nr": 879,
+          "average_nr": 805,
           "single_fmt": "44.10",
           "average_fmt": "51.41"
         },
@@ -1106,8 +1111,8 @@
           "event_name": "Clock",
           "single_cs": 2120,
           "average_cs": 2664,
-          "single_nr": 305,
-          "average_nr": 301,
+          "single_nr": 307,
+          "average_nr": 302,
           "single_fmt": "21.20",
           "average_fmt": "26.64"
         },
@@ -1115,7 +1120,7 @@
           "event_name": "Pyraminx",
           "single_cs": 381,
           "average_cs": 737,
-          "single_nr": 157,
+          "single_nr": 158,
           "average_nr": 217,
           "single_fmt": "3.81",
           "average_fmt": "7.37"
@@ -1139,8 +1144,8 @@
           "event_name": "3x3",
           "single_cs": 3831,
           "average_cs": 4863,
-          "single_nr": 4055,
-          "average_nr": 4145,
+          "single_nr": 4062,
+          "average_nr": 4153,
           "single_fmt": "38.31",
           "average_fmt": "48.63"
         },
@@ -1148,8 +1153,8 @@
           "event_name": "Clock",
           "single_cs": 3596,
           "average_cs": 4996,
-          "single_nr": 401,
-          "average_nr": 377,
+          "single_nr": 402,
+          "average_nr": 378,
           "single_fmt": "35.96",
           "average_fmt": "49.96"
         },
@@ -1157,8 +1162,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1313,
           "average_cs": 1839,
-          "single_nr": 1652,
-          "average_nr": 1577,
+          "single_nr": 1654,
+          "average_nr": 1578,
           "single_fmt": "13.13",
           "average_fmt": "18.39"
         },
@@ -1203,8 +1208,8 @@
           "event_name": "3x3",
           "single_cs": 1569,
           "average_cs": 1982,
-          "single_nr": 1241,
-          "average_nr": 1327,
+          "single_nr": 1242,
+          "average_nr": 1328,
           "single_fmt": "15.69",
           "average_fmt": "19.82"
         },
@@ -1212,8 +1217,8 @@
           "event_name": "4x4",
           "single_cs": 6262,
           "average_cs": 8121,
-          "single_nr": 559,
-          "average_nr": 680,
+          "single_nr": 560,
+          "average_nr": 681,
           "single_fmt": "1:02.62",
           "average_fmt": "1:21.21"
         },
@@ -1231,7 +1236,7 @@
           "single_cs": 2789,
           "average_cs": 4664,
           "single_nr": 477,
-          "average_nr": 730,
+          "average_nr": 731,
           "single_fmt": "27.89",
           "average_fmt": "46.64"
         },
@@ -1248,8 +1253,8 @@
           "event_name": "Pyraminx",
           "single_cs": 484,
           "average_cs": 947,
-          "single_nr": 270,
-          "average_nr": 426,
+          "single_nr": 271,
+          "average_nr": 427,
           "single_fmt": "4.84",
           "average_fmt": "9.47"
         },
@@ -1285,7 +1290,7 @@
           "single_cs": 575,
           "average_cs": 1255,
           "single_nr": 290,
-          "average_nr": 487,
+          "average_nr": 489,
           "single_fmt": "5.75",
           "average_fmt": "12.55"
         }
@@ -1414,8 +1419,8 @@
           "event_name": "Square-1",
           "single_cs": 2285,
           "average_cs": 4247,
-          "single_nr": 114,
-          "average_nr": 167,
+          "single_nr": 115,
+          "average_nr": 168,
           "single_fmt": "22.85",
           "average_fmt": "42.47"
         },
@@ -1463,7 +1468,7 @@
           "single_cs": 636,
           "average_cs": 879,
           "single_nr": 16,
-          "average_nr": 38,
+          "average_nr": 39,
           "single_fmt": "6.36",
           "average_fmt": "8.79"
         },
@@ -1553,7 +1558,7 @@
           "single_cs": 790,
           "average_cs": 990,
           "single_nr": 69,
-          "average_nr": 74,
+          "average_nr": 75,
           "single_fmt": "7.90",
           "average_fmt": "9.90"
         }
@@ -1584,7 +1589,7 @@
           "single_cs": 225,
           "average_cs": 378,
           "single_nr": 225,
-          "average_nr": 168,
+          "average_nr": 169,
           "single_fmt": "2.25",
           "average_fmt": "3.78"
         },
@@ -1593,7 +1598,7 @@
           "single_cs": 822,
           "average_cs": 1107,
           "single_nr": 128,
-          "average_nr": 176,
+          "average_nr": 177,
           "single_fmt": "8.22",
           "average_fmt": "11.07"
         },
@@ -1602,7 +1607,7 @@
           "single_cs": 4397,
           "average_cs": 5069,
           "single_nr": 225,
-          "average_nr": 223,
+          "average_nr": 224,
           "single_fmt": "43.97",
           "average_fmt": "50.69"
         },
@@ -1628,8 +1633,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2293,
           "average_cs": 2728,
-          "single_nr": 304,
-          "average_nr": 271,
+          "single_nr": 305,
+          "average_nr": 272,
           "single_fmt": "22.93",
           "average_fmt": "27.28"
         },
@@ -1656,7 +1661,7 @@
           "single_cs": 330,
           "average_cs": 565,
           "single_nr": 105,
-          "average_nr": 110,
+          "average_nr": 111,
           "single_fmt": "3.30",
           "average_fmt": "5.65"
         },
@@ -1696,8 +1701,8 @@
           "event_name": "2x2",
           "single_cs": 1708,
           "average_cs": 2725,
-          "single_nr": 3349,
-          "average_nr": 3310,
+          "single_nr": 3354,
+          "average_nr": 3315,
           "single_fmt": "17.08",
           "average_fmt": "27.25"
         },
@@ -1705,8 +1710,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1447,
           "average_cs": 1901,
-          "single_nr": 1813,
-          "average_nr": 1635,
+          "single_nr": 1814,
+          "average_nr": 1636,
           "single_fmt": "14.47",
           "average_fmt": "19.01"
         },
@@ -1714,7 +1719,7 @@
           "event_name": "Skewb",
           "single_cs": 3423,
           "average_cs": null,
-          "single_nr": 1024,
+          "single_nr": 1026,
           "average_nr": null,
           "single_fmt": "34.23",
           "average_fmt": "—"
@@ -1749,7 +1754,7 @@
           "single_cs": 554,
           "average_cs": 806,
           "single_nr": 3,
-          "average_nr": 15,
+          "average_nr": 16,
           "single_fmt": "5.54",
           "average_fmt": "8.06"
         },
@@ -1793,7 +1798,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 1364,
           "average_cs": 1512,
-          "single_nr": 56,
+          "single_nr": 57,
           "average_nr": 19,
           "single_fmt": "13.64",
           "average_fmt": "15.12"
@@ -1829,8 +1834,8 @@
           "event_name": "Clock",
           "single_cs": 1059,
           "average_cs": 1338,
-          "single_nr": 126,
-          "average_nr": 129,
+          "single_nr": 127,
+          "average_nr": 131,
           "single_fmt": "10.59",
           "average_fmt": "13.38"
         },
@@ -1848,7 +1853,7 @@
           "single_cs": 2083,
           "average_cs": 3277,
           "single_nr": 102,
-          "average_nr": 114,
+          "average_nr": 115,
           "single_fmt": "20.83",
           "average_fmt": "32.77"
         }
@@ -1907,8 +1912,8 @@
           "event_name": "Pyraminx",
           "single_cs": 768,
           "average_cs": 1543,
-          "single_nr": 763,
-          "average_nr": 1255,
+          "single_nr": 765,
+          "average_nr": 1257,
           "single_fmt": "7.68",
           "average_fmt": "15.43"
         }
@@ -1948,7 +1953,7 @@
           "single_cs": 991,
           "average_cs": 1212,
           "single_nr": 286,
-          "average_nr": 274,
+          "average_nr": 275,
           "single_fmt": "9.91",
           "average_fmt": "12.12"
         },
@@ -2010,7 +2015,7 @@
           "event_name": "Megaminx",
           "single_cs": 6188,
           "average_cs": 7098,
-          "single_nr": 78,
+          "single_nr": 79,
           "average_nr": 81,
           "single_fmt": "1:01.88",
           "average_fmt": "1:10.98"
@@ -2067,7 +2072,7 @@
       "wca_id": "2024DELG14",
       "is_new": false,
       "country": "CO",
-      "avatar_url": null,
+      "avatar_url": "/uploads/avatars/2024DELG14.jpg",
       "events": [
         "222",
         "333",
@@ -2097,7 +2102,7 @@
           "single_cs": 980,
           "average_cs": 1267,
           "single_nr": 271,
-          "average_nr": 329,
+          "average_nr": 330,
           "single_fmt": "9.80",
           "average_fmt": "12.67"
         },
@@ -2141,7 +2146,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2298,
           "average_cs": 2908,
-          "single_nr": 309,
+          "single_nr": 310,
           "average_nr": 323,
           "single_fmt": "22.98",
           "average_fmt": "29.08"
@@ -2151,7 +2156,7 @@
           "single_cs": 1153,
           "average_cs": 1293,
           "single_nr": 146,
-          "average_nr": 124,
+          "average_nr": 126,
           "single_fmt": "11.53",
           "average_fmt": "12.93"
         },
@@ -2160,7 +2165,7 @@
           "single_cs": 13335,
           "average_cs": 14871,
           "single_nr": 378,
-          "average_nr": 352,
+          "average_nr": 353,
           "single_fmt": "2:13.35",
           "average_fmt": "2:28.71"
         },
@@ -2168,7 +2173,7 @@
           "event_name": "Pyraminx",
           "single_cs": 462,
           "average_cs": 751,
-          "single_nr": 238,
+          "single_nr": 239,
           "average_nr": 229,
           "single_fmt": "4.62",
           "average_fmt": "7.51"
@@ -2178,7 +2183,7 @@
           "single_cs": 656,
           "average_cs": 1308,
           "single_nr": 357,
-          "average_nr": 514,
+          "average_nr": 515,
           "single_fmt": "6.56",
           "average_fmt": "13.08"
         },
@@ -2186,7 +2191,7 @@
           "event_name": "Square-1",
           "single_cs": 2791,
           "average_cs": 3574,
-          "single_nr": 141,
+          "single_nr": 143,
           "average_nr": 137,
           "single_fmt": "27.91",
           "average_fmt": "35.74"
@@ -2220,7 +2225,7 @@
           "single_cs": 147,
           "average_cs": 374,
           "single_nr": 65,
-          "average_nr": 158,
+          "average_nr": 159,
           "single_fmt": "1.47",
           "average_fmt": "3.74"
         },
@@ -2337,7 +2342,7 @@
           "single_cs": 28,
           "average_cs": 3133,
           "single_nr": 14,
-          "average_nr": 6,
+          "average_nr": 7,
           "single_fmt": "28",
           "average_fmt": "3133"
         },
@@ -2374,7 +2379,7 @@
           "average_cs": null,
           "single_nr": 35,
           "average_nr": null,
-          "single_fmt": "MBLD:970075800",
+          "single_fmt": "2/2 12:38",
           "average_fmt": "—"
         }
       }
@@ -2415,7 +2420,7 @@
           "single_cs": 696,
           "average_cs": 834,
           "single_nr": 37,
-          "average_nr": 18,
+          "average_nr": 19,
           "single_fmt": "6.96",
           "average_fmt": "8.34"
         },
@@ -2468,7 +2473,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 1283,
           "average_cs": 1466,
-          "single_nr": 37,
+          "single_nr": 38,
           "average_nr": 14,
           "single_fmt": "12.83",
           "average_fmt": "14.66"
@@ -2553,7 +2558,7 @@
           "event_name": "Pyraminx",
           "single_cs": 1077,
           "average_cs": 1585,
-          "single_nr": 1313,
+          "single_nr": 1316,
           "average_nr": 1316,
           "single_fmt": "10.77",
           "average_fmt": "15.85"
@@ -2656,7 +2661,7 @@
           "single_cs": 222,
           "average_cs": 497,
           "single_nr": 36,
-          "average_nr": 77,
+          "average_nr": 78,
           "single_fmt": "2.22",
           "average_fmt": "4.97"
         },
@@ -2779,7 +2784,7 @@
           "single_cs": 1399,
           "average_cs": 1711,
           "single_nr": 63,
-          "average_nr": 51,
+          "average_nr": 52,
           "single_fmt": "13.99",
           "average_fmt": "17.11"
         },
@@ -2796,8 +2801,8 @@
           "event_name": "Megaminx",
           "single_cs": 6104,
           "average_cs": 6523,
-          "single_nr": 74,
-          "average_nr": 64,
+          "single_nr": 75,
+          "average_nr": 65,
           "single_fmt": "1:01.04",
           "average_fmt": "1:05.23"
         },
@@ -2806,7 +2811,7 @@
           "single_cs": 343,
           "average_cs": 596,
           "single_nr": 117,
-          "average_nr": 129,
+          "average_nr": 130,
           "single_fmt": "3.43",
           "average_fmt": "5.96"
         },
@@ -2852,7 +2857,7 @@
           "average_cs": null,
           "single_nr": 29,
           "average_nr": null,
-          "single_fmt": "MBLD:970056300",
+          "single_fmt": "2/2 9:23",
           "average_fmt": "—"
         },
         "444bf": {
@@ -2886,7 +2891,7 @@
           "event_name": "2x2",
           "single_cs": 376,
           "average_cs": 560,
-          "single_nr": 795,
+          "single_nr": 796,
           "average_nr": 652,
           "single_fmt": "3.76",
           "average_fmt": "5.60"
@@ -2896,7 +2901,7 @@
           "single_cs": 1226,
           "average_cs": 1534,
           "single_nr": 623,
-          "average_nr": 676,
+          "average_nr": 677,
           "single_fmt": "12.26",
           "average_fmt": "15.34"
         },
@@ -2904,8 +2909,8 @@
           "event_name": "4x4",
           "single_cs": 6050,
           "average_cs": 6704,
-          "single_nr": 514,
-          "average_nr": 482,
+          "single_nr": 515,
+          "average_nr": 483,
           "single_fmt": "1:00.50",
           "average_fmt": "1:07.04"
         },
@@ -2922,8 +2927,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2308,
           "average_cs": 2965,
-          "single_nr": 315,
-          "average_nr": 336,
+          "single_nr": 316,
+          "average_nr": 337,
           "single_fmt": "23.08",
           "average_fmt": "29.65"
         },
@@ -2931,7 +2936,7 @@
           "event_name": "Megaminx",
           "single_cs": 9856,
           "average_cs": 10474,
-          "single_nr": 247,
+          "single_nr": 249,
           "average_nr": 220,
           "single_fmt": "1:38.56",
           "average_fmt": "1:44.74"
@@ -2940,8 +2945,8 @@
           "event_name": "Pyraminx",
           "single_cs": 403,
           "average_cs": 798,
-          "single_nr": 180,
-          "average_nr": 268,
+          "single_nr": 181,
+          "average_nr": 269,
           "single_fmt": "4.03",
           "average_fmt": "7.98"
         },
@@ -2949,7 +2954,7 @@
           "event_name": "Skewb",
           "single_cs": 825,
           "average_cs": 1419,
-          "single_nr": 496,
+          "single_nr": 498,
           "average_nr": 561,
           "single_fmt": "8.25",
           "average_fmt": "14.19"
@@ -2978,8 +2983,8 @@
           "event_name": "2x2",
           "single_cs": 825,
           "average_cs": 1315,
-          "single_nr": 2341,
-          "average_nr": 2496,
+          "single_nr": 2345,
+          "average_nr": 2499,
           "single_fmt": "8.25",
           "average_fmt": "13.15"
         },
@@ -2987,8 +2992,8 @@
           "event_name": "3x3",
           "single_cs": 3224,
           "average_cs": 4111,
-          "single_nr": 3486,
-          "average_nr": 3599,
+          "single_nr": 3493,
+          "average_nr": 3605,
           "single_fmt": "32.24",
           "average_fmt": "41.11"
         },
@@ -3014,7 +3019,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 11434,
           "average_cs": null,
-          "single_nr": 1197,
+          "single_nr": 1199,
           "average_nr": null,
           "single_fmt": "1:54.34",
           "average_fmt": "—"
@@ -3023,7 +3028,7 @@
           "event_name": "Clock",
           "single_cs": 3706,
           "average_cs": null,
-          "single_nr": 406,
+          "single_nr": 407,
           "average_nr": null,
           "single_fmt": "37.06",
           "average_fmt": "—"
@@ -3041,8 +3046,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1328,
           "average_cs": 1631,
-          "single_nr": 1669,
-          "average_nr": 1360,
+          "single_nr": 1671,
+          "average_nr": 1361,
           "single_fmt": "13.28",
           "average_fmt": "16.31"
         },
@@ -3050,8 +3055,8 @@
           "event_name": "Skewb",
           "single_cs": 2035,
           "average_cs": 2327,
-          "single_nr": 921,
-          "average_nr": 815,
+          "single_nr": 922,
+          "average_nr": 817,
           "single_fmt": "20.35",
           "average_fmt": "23.27"
         }
@@ -3149,14 +3154,14 @@
           "average_cs": null,
           "single_nr": 32,
           "average_nr": null,
-          "single_fmt": "MBLD:970066500",
+          "single_fmt": "2/2 11:05",
           "average_fmt": "—"
         },
         "333oh": {
           "event_name": "3x3 One-Handed",
           "single_cs": 1345,
           "average_cs": 1843,
-          "single_nr": 52,
+          "single_nr": 53,
           "average_nr": 79,
           "single_fmt": "13.45",
           "average_fmt": "18.43"
@@ -3165,8 +3170,8 @@
           "event_name": "Clock",
           "single_cs": 850,
           "average_cs": 997,
-          "single_nr": 80,
-          "average_nr": 76,
+          "single_nr": 81,
+          "average_nr": 77,
           "single_fmt": "8.50",
           "average_fmt": "9.97"
         },
@@ -3175,7 +3180,7 @@
           "single_cs": 5034,
           "average_cs": 6491,
           "single_nr": 31,
-          "average_nr": 62,
+          "average_nr": 63,
           "single_fmt": "50.34",
           "average_fmt": "1:04.91"
         },
@@ -3184,7 +3189,7 @@
           "single_cs": 277,
           "average_cs": 511,
           "single_nr": 64,
-          "average_nr": 83,
+          "average_nr": 84,
           "single_fmt": "2.77",
           "average_fmt": "5.11"
         },
@@ -3211,7 +3216,7 @@
           "single_cs": 28,
           "average_cs": 3233,
           "single_nr": 14,
-          "average_nr": 11,
+          "average_nr": 12,
           "single_fmt": "28",
           "average_fmt": "3233"
         },
@@ -3244,7 +3249,6 @@
       "events": [
         "222",
         "333",
-        "333oh",
         "444",
         "pyram"
       ],
@@ -3254,7 +3258,7 @@
           "single_cs": 339,
           "average_cs": 897,
           "single_nr": 635,
-          "average_nr": 1716,
+          "average_nr": 1718,
           "single_fmt": "3.39",
           "average_fmt": "8.97"
         },
@@ -3262,8 +3266,8 @@
           "event_name": "3x3",
           "single_cs": 2101,
           "average_cs": 2461,
-          "single_nr": 2068,
-          "average_nr": 1922,
+          "single_nr": 2071,
+          "average_nr": 1925,
           "single_fmt": "21.01",
           "average_fmt": "24.61"
         },
@@ -3276,21 +3280,12 @@
           "single_fmt": "—",
           "average_fmt": "—"
         },
-        "333oh": {
-          "event_name": "3x3 One-Handed",
-          "single_cs": null,
-          "average_cs": null,
-          "single_nr": null,
-          "average_nr": null,
-          "single_fmt": "—",
-          "average_fmt": "—"
-        },
         "pyram": {
           "event_name": "Pyraminx",
           "single_cs": 2290,
           "average_cs": 3056,
-          "single_nr": 2283,
-          "average_nr": 2147,
+          "single_nr": 2287,
+          "average_nr": 2151,
           "single_fmt": "22.90",
           "average_fmt": "30.56"
         }
@@ -3313,8 +3308,8 @@
           "event_name": "2x2",
           "single_cs": 946,
           "average_cs": 1515,
-          "single_nr": 2575,
-          "average_nr": 2705,
+          "single_nr": 2579,
+          "average_nr": 2709,
           "single_fmt": "9.46",
           "average_fmt": "15.15"
         },
@@ -3322,8 +3317,8 @@
           "event_name": "3x3",
           "single_cs": 4462,
           "average_cs": 5629,
-          "single_nr": 4517,
-          "average_nr": 4596,
+          "single_nr": 4526,
+          "average_nr": 4606,
           "single_fmt": "44.62",
           "average_fmt": "56.29"
         },
@@ -3331,8 +3326,8 @@
           "event_name": "Clock",
           "single_cs": 2595,
           "average_cs": 3421,
-          "single_nr": 345,
-          "average_nr": 343,
+          "single_nr": 346,
+          "average_nr": 344,
           "single_fmt": "25.95",
           "average_fmt": "34.21"
         },
@@ -3340,8 +3335,8 @@
           "event_name": "Pyraminx",
           "single_cs": 919,
           "average_cs": 1798,
-          "single_nr": 1054,
-          "average_nr": 1534,
+          "single_nr": 1056,
+          "average_nr": 1535,
           "single_fmt": "9.19",
           "average_fmt": "17.98"
         }
@@ -3373,8 +3368,8 @@
           "event_name": "3x3",
           "single_cs": 1639,
           "average_cs": 2115,
-          "single_nr": 1338,
-          "average_nr": 1511,
+          "single_nr": 1340,
+          "average_nr": 1512,
           "single_fmt": "16.39",
           "average_fmt": "21.15"
         },
@@ -3423,7 +3418,7 @@
           "single_cs": 583,
           "average_cs": 825,
           "single_nr": 8,
-          "average_nr": 16,
+          "average_nr": 17,
           "single_fmt": "5.83",
           "average_fmt": "8.25"
         },
@@ -3450,7 +3445,7 @@
           "single_cs": 1957,
           "average_cs": 2792,
           "single_nr": 192,
-          "average_nr": 292,
+          "average_nr": 293,
           "single_fmt": "19.57",
           "average_fmt": "27.92"
         }
@@ -3472,7 +3467,7 @@
           "single_cs": 245,
           "average_cs": 1784,
           "single_nr": 272,
-          "average_nr": 2905,
+          "average_nr": 2908,
           "single_fmt": "2.45",
           "average_fmt": "17.84"
         },
@@ -3480,8 +3475,8 @@
           "event_name": "3x3",
           "single_cs": 3268,
           "average_cs": 4855,
-          "single_nr": 3533,
-          "average_nr": 4136,
+          "single_nr": 3540,
+          "average_nr": 4144,
           "single_fmt": "32.68",
           "average_fmt": "48.55"
         }
@@ -3509,7 +3504,7 @@
           "single_cs": 144,
           "average_cs": 382,
           "single_nr": 61,
-          "average_nr": 182,
+          "average_nr": 183,
           "single_fmt": "1.44",
           "average_fmt": "3.82"
         },
@@ -3526,8 +3521,8 @@
           "event_name": "4x4",
           "single_cs": 7491,
           "average_cs": 8288,
-          "single_nr": 753,
-          "average_nr": 699,
+          "single_nr": 754,
+          "average_nr": 700,
           "single_fmt": "1:14.91",
           "average_fmt": "1:22.88"
         },
@@ -3536,7 +3531,7 @@
           "single_cs": 1987,
           "average_cs": 2762,
           "single_nr": 202,
-          "average_nr": 280,
+          "average_nr": 281,
           "single_fmt": "19.87",
           "average_fmt": "27.62"
         },
@@ -3554,7 +3549,7 @@
           "single_cs": 327,
           "average_cs": 542,
           "single_nr": 101,
-          "average_nr": 98,
+          "average_nr": 99,
           "single_fmt": "3.27",
           "average_fmt": "5.42"
         },
@@ -3627,8 +3622,8 @@
           "event_name": "3x3",
           "single_cs": 1532,
           "average_cs": 1869,
-          "single_nr": 1180,
-          "average_nr": 1163,
+          "single_nr": 1181,
+          "average_nr": 1164,
           "single_fmt": "15.32",
           "average_fmt": "18.69"
         },
@@ -3636,8 +3631,8 @@
           "event_name": "4x4",
           "single_cs": 6468,
           "average_cs": 7311,
-          "single_nr": 595,
-          "average_nr": 571,
+          "single_nr": 596,
+          "average_nr": 572,
           "single_fmt": "1:04.68",
           "average_fmt": "1:13.11"
         },
@@ -3654,8 +3649,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 4538,
           "average_cs": 5575,
-          "single_nr": 896,
-          "average_nr": 860,
+          "single_nr": 898,
+          "average_nr": 861,
           "single_fmt": "45.38",
           "average_fmt": "55.75"
         },
@@ -3664,7 +3659,7 @@
           "single_cs": 1124,
           "average_cs": 1363,
           "single_nr": 140,
-          "average_nr": 131,
+          "average_nr": 133,
           "single_fmt": "11.24",
           "average_fmt": "13.63"
         },
@@ -3673,7 +3668,7 @@
           "single_cs": 13444,
           "average_cs": 14962,
           "single_nr": 381,
-          "average_nr": 354,
+          "average_nr": 355,
           "single_fmt": "2:14.44",
           "average_fmt": "2:29.62"
         },
@@ -3681,8 +3676,8 @@
           "event_name": "Pyraminx",
           "single_cs": 670,
           "average_cs": 997,
-          "single_nr": 571,
-          "average_nr": 487,
+          "single_nr": 572,
+          "average_nr": 488,
           "single_fmt": "6.70",
           "average_fmt": "9.97"
         },
@@ -3750,7 +3745,7 @@
           "single_cs": 687,
           "average_cs": 854,
           "single_nr": 31,
-          "average_nr": 25,
+          "average_nr": 26,
           "single_fmt": "6.87",
           "average_fmt": "8.54"
         },
@@ -3812,7 +3807,7 @@
           "event_name": "Megaminx",
           "single_cs": 4503,
           "average_cs": 5428,
-          "single_nr": 15,
+          "single_nr": 16,
           "average_nr": 23,
           "single_fmt": "45.03",
           "average_fmt": "54.28"
@@ -3868,29 +3863,8 @@
           "average_cs": null,
           "single_nr": 34,
           "average_nr": null,
-          "single_fmt": "MBLD:970073200",
+          "single_fmt": "2/2 12:12",
           "average_fmt": "—"
-        }
-      }
-    },
-    {
-      "name": "Jeferson David García García",
-      "wca_id": "2026GARC35",
-      "is_new": false,
-      "country": "CO",
-      "avatar_url": null,
-      "events": [
-        "333"
-      ],
-      "prs": {
-        "333": {
-          "event_name": "3x3",
-          "single_cs": 16099,
-          "average_cs": 20950,
-          "single_nr": 5920,
-          "average_nr": 5816,
-          "single_fmt": "2:40.99",
-          "average_fmt": "3:29.50"
         }
       }
     },
@@ -3935,7 +3909,7 @@
           "single_cs": 3984,
           "average_cs": 5036,
           "single_nr": 151,
-          "average_nr": 219,
+          "average_nr": 220,
           "single_fmt": "39.84",
           "average_fmt": "50.36"
         },
@@ -3954,15 +3928,15 @@
           "average_cs": null,
           "single_nr": 2,
           "average_nr": null,
-          "single_fmt": "MBLD:730327901",
+          "single_fmt": "27/28 54:39",
           "average_fmt": "—"
         },
         "333oh": {
           "event_name": "3x3 One-Handed",
           "single_cs": 1298,
           "average_cs": 1685,
-          "single_nr": 45,
-          "average_nr": 42,
+          "single_nr": 46,
+          "average_nr": 43,
           "single_fmt": "12.98",
           "average_fmt": "16.85"
         },
@@ -4006,8 +3980,8 @@
           "event_name": "Pyraminx",
           "single_cs": 522,
           "average_cs": 801,
-          "single_nr": 323,
-          "average_nr": 272,
+          "single_nr": 324,
+          "average_nr": 273,
           "single_fmt": "5.22",
           "average_fmt": "8.01"
         },
@@ -4040,7 +4014,7 @@
           "single_cs": 315,
           "average_cs": 1122,
           "single_nr": 523,
-          "average_nr": 2225,
+          "average_nr": 2228,
           "single_fmt": "3.15",
           "average_fmt": "11.22"
         },
@@ -4048,8 +4022,8 @@
           "event_name": "3x3",
           "single_cs": 2726,
           "average_cs": 3276,
-          "single_nr": 2950,
-          "average_nr": 2884,
+          "single_nr": 2956,
+          "average_nr": 2889,
           "single_fmt": "27.26",
           "average_fmt": "32.76"
         },
@@ -4057,8 +4031,8 @@
           "event_name": "Pyraminx",
           "single_cs": 920,
           "average_cs": 1479,
-          "single_nr": 1057,
-          "average_nr": 1159,
+          "single_nr": 1059,
+          "average_nr": 1161,
           "single_fmt": "9.20",
           "average_fmt": "14.79"
         },
@@ -4066,7 +4040,7 @@
           "event_name": "Skewb",
           "single_cs": 801,
           "average_cs": 1136,
-          "single_nr": 478,
+          "single_nr": 480,
           "average_nr": 419,
           "single_fmt": "8.01",
           "average_fmt": "11.36"
@@ -4093,7 +4067,7 @@
           "single_cs": 189,
           "average_cs": 628,
           "single_nr": 145,
-          "average_nr": 892,
+          "average_nr": 893,
           "single_fmt": "1.89",
           "average_fmt": "6.28"
         },
@@ -4101,8 +4075,8 @@
           "event_name": "3x3",
           "single_cs": 1335,
           "average_cs": 1675,
-          "single_nr": 834,
-          "average_nr": 879,
+          "single_nr": 836,
+          "average_nr": 880,
           "single_fmt": "13.35",
           "average_fmt": "16.75"
         },
@@ -4110,8 +4084,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 5200,
           "average_cs": 7908,
-          "single_nr": 991,
-          "average_nr": 949,
+          "single_nr": 994,
+          "average_nr": 952,
           "single_fmt": "52.00",
           "average_fmt": "1:19.08"
         },
@@ -4119,8 +4093,8 @@
           "event_name": "Clock",
           "single_cs": 2283,
           "average_cs": 2741,
-          "single_nr": 325,
-          "average_nr": 304,
+          "single_nr": 326,
+          "average_nr": 305,
           "single_fmt": "22.83",
           "average_fmt": "27.41"
         },
@@ -4128,8 +4102,8 @@
           "event_name": "Pyraminx",
           "single_cs": 516,
           "average_cs": 1004,
-          "single_nr": 312,
-          "average_nr": 499,
+          "single_nr": 313,
+          "average_nr": 500,
           "single_fmt": "5.16",
           "average_fmt": "10.04"
         },
@@ -4137,7 +4111,7 @@
           "event_name": "Skewb",
           "single_cs": 698,
           "average_cs": 1081,
-          "single_nr": 390,
+          "single_nr": 391,
           "average_nr": 387,
           "single_fmt": "6.98",
           "average_fmt": "10.81"
@@ -4238,7 +4212,7 @@
           "average_cs": null,
           "single_nr": 10,
           "average_nr": null,
-          "single_fmt": "MBLD:920319103",
+          "single_fmt": "10/13 53:11",
           "average_fmt": "—"
         },
         "333oh": {
@@ -4246,7 +4220,7 @@
           "single_cs": 1403,
           "average_cs": 1762,
           "single_nr": 64,
-          "average_nr": 59,
+          "average_nr": 60,
           "single_fmt": "14.03",
           "average_fmt": "17.62"
         },
@@ -4281,7 +4255,7 @@
           "event_name": "Megaminx",
           "single_cs": 4673,
           "average_cs": 5938,
-          "single_nr": 20,
+          "single_nr": 21,
           "average_nr": 42,
           "single_fmt": "46.73",
           "average_fmt": "59.38"
@@ -4316,11 +4290,11 @@
         "333fm": {
           "event_name": "Fewest Moves",
           "single_cs": 27,
-          "average_cs": 3233,
-          "single_nr": 8,
-          "average_nr": 11,
+          "average_cs": 3167,
+          "single_nr": 9,
+          "average_nr": 8,
           "single_fmt": "27",
-          "average_fmt": "3233"
+          "average_fmt": "3167"
         }
       }
     },
@@ -4352,8 +4326,8 @@
           "event_name": "3x3",
           "single_cs": 1277,
           "average_cs": 1556,
-          "single_nr": 727,
-          "average_nr": 709,
+          "single_nr": 729,
+          "average_nr": 710,
           "single_fmt": "12.77",
           "average_fmt": "15.56"
         },
@@ -4379,8 +4353,8 @@
           "event_name": "Clock",
           "single_cs": 1872,
           "average_cs": 2184,
-          "single_nr": 267,
-          "average_nr": 250,
+          "single_nr": 268,
+          "average_nr": 252,
           "single_fmt": "18.72",
           "average_fmt": "21.84"
         },
@@ -4388,8 +4362,8 @@
           "event_name": "Pyraminx",
           "single_cs": 822,
           "average_cs": 1152,
-          "single_nr": 862,
-          "average_nr": 713,
+          "single_nr": 865,
+          "average_nr": 714,
           "single_fmt": "8.22",
           "average_fmt": "11.52"
         }
@@ -4415,8 +4389,8 @@
           "event_name": "2x2",
           "single_cs": 973,
           "average_cs": 1030,
-          "single_nr": 2624,
-          "average_nr": 2051,
+          "single_nr": 2628,
+          "average_nr": 2054,
           "single_fmt": "9.73",
           "average_fmt": "10.30"
         },
@@ -4424,8 +4398,8 @@
           "event_name": "3x3",
           "single_cs": 2392,
           "average_cs": 2691,
-          "single_nr": 2514,
-          "average_nr": 2211,
+          "single_nr": 2517,
+          "average_nr": 2214,
           "single_fmt": "23.92",
           "average_fmt": "26.91"
         },
@@ -4460,8 +4434,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1071,
           "average_cs": 1386,
-          "single_nr": 1300,
-          "average_nr": 1035,
+          "single_nr": 1302,
+          "average_nr": 1036,
           "single_fmt": "10.71",
           "average_fmt": "13.86"
         },
@@ -4470,7 +4444,7 @@
           "single_cs": 1080,
           "average_cs": 1621,
           "single_nr": 659,
-          "average_nr": 642,
+          "average_nr": 643,
           "single_fmt": "10.80",
           "average_fmt": "16.21"
         }
@@ -4497,7 +4471,7 @@
           "single_cs": 129,
           "average_cs": 240,
           "single_nr": 36,
-          "average_nr": 18,
+          "average_nr": 19,
           "single_fmt": "1.29",
           "average_fmt": "2.40"
         },
@@ -4506,7 +4480,7 @@
           "single_cs": 674,
           "average_cs": 870,
           "single_nr": 26,
-          "average_nr": 36,
+          "average_nr": 37,
           "single_fmt": "6.74",
           "average_fmt": "8.70"
         },
@@ -4550,8 +4524,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 1331,
           "average_cs": 1673,
-          "single_nr": 50,
-          "average_nr": 38,
+          "single_nr": 51,
+          "average_nr": 39,
           "single_fmt": "13.31",
           "average_fmt": "16.73"
         },
@@ -4568,7 +4542,7 @@
           "event_name": "Pyraminx",
           "single_cs": 500,
           "average_cs": 729,
-          "single_nr": 286,
+          "single_nr": 287,
           "average_nr": 208,
           "single_fmt": "5.00",
           "average_fmt": "7.29"
@@ -4669,8 +4643,8 @@
           "event_name": "2x2",
           "single_cs": 1258,
           "average_cs": 2751,
-          "single_nr": 3001,
-          "average_nr": 3315,
+          "single_nr": 3006,
+          "average_nr": 3321,
           "single_fmt": "12.58",
           "average_fmt": "27.51"
         },
@@ -4678,8 +4652,8 @@
           "event_name": "3x3",
           "single_cs": 9415,
           "average_cs": 12586,
-          "single_nr": 5822,
-          "average_nr": 5745,
+          "single_nr": 5832,
+          "average_nr": 5755,
           "single_fmt": "1:34.15",
           "average_fmt": "2:05.86"
         }
@@ -4708,7 +4682,7 @@
           "single_cs": 97,
           "average_cs": 295,
           "single_nr": 10,
-          "average_nr": 55,
+          "average_nr": 56,
           "single_fmt": "0.97",
           "average_fmt": "2.95"
         },
@@ -4717,7 +4691,7 @@
           "single_cs": 725,
           "average_cs": 864,
           "single_nr": 55,
-          "average_nr": 32,
+          "average_nr": 33,
           "single_fmt": "7.25",
           "average_fmt": "8.64"
         },
@@ -4770,8 +4744,8 @@
           "event_name": "Megaminx",
           "single_cs": 9483,
           "average_cs": 12308,
-          "single_nr": 234,
-          "average_nr": 288,
+          "single_nr": 235,
+          "average_nr": 289,
           "single_fmt": "1:34.83",
           "average_fmt": "2:03.08"
         },
@@ -4780,7 +4754,7 @@
           "single_cs": 322,
           "average_cs": 608,
           "single_nr": 95,
-          "average_nr": 138,
+          "average_nr": 139,
           "single_fmt": "3.22",
           "average_fmt": "6.08"
         },
@@ -4826,7 +4800,7 @@
           "single_cs": 1191,
           "average_cs": 1350,
           "single_nr": 572,
-          "average_nr": 446,
+          "average_nr": 447,
           "single_fmt": "11.91",
           "average_fmt": "13.50"
         },
@@ -4834,8 +4808,8 @@
           "event_name": "4x4",
           "single_cs": 6386,
           "average_cs": 7363,
-          "single_nr": 582,
-          "average_nr": 578,
+          "single_nr": 583,
+          "average_nr": 579,
           "single_fmt": "1:03.86",
           "average_fmt": "1:13.63"
         },
@@ -4861,8 +4835,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2626,
           "average_cs": 3626,
-          "single_nr": 424,
-          "average_nr": 505,
+          "single_nr": 425,
+          "average_nr": 506,
           "single_fmt": "26.26",
           "average_fmt": "36.26"
         },
@@ -4870,8 +4844,8 @@
           "event_name": "Pyraminx",
           "single_cs": 928,
           "average_cs": 1267,
-          "single_nr": 1066,
-          "average_nr": 878,
+          "single_nr": 1067,
+          "average_nr": 880,
           "single_fmt": "9.28",
           "average_fmt": "12.67"
         },
@@ -4980,7 +4954,7 @@
           "average_cs": null,
           "single_nr": 11,
           "average_nr": null,
-          "single_fmt": "MBLD:930271800",
+          "single_fmt": "6/6 45:18",
           "average_fmt": "—"
         },
         "333oh": {
@@ -5014,8 +4988,8 @@
           "event_name": "Clock",
           "single_cs": 865,
           "average_cs": 973,
-          "single_nr": 84,
-          "average_nr": 70,
+          "single_nr": 86,
+          "average_nr": 71,
           "single_fmt": "8.65",
           "average_fmt": "9.73"
         },
@@ -5033,7 +5007,7 @@
           "single_cs": 350,
           "average_cs": 556,
           "single_nr": 124,
-          "average_nr": 106,
+          "average_nr": 107,
           "single_fmt": "3.50",
           "average_fmt": "5.56"
         },
@@ -5090,8 +5064,8 @@
           "event_name": "2x2",
           "single_cs": 1032,
           "average_cs": 1709,
-          "single_nr": 2725,
-          "average_nr": 2860,
+          "single_nr": 2729,
+          "average_nr": 2863,
           "single_fmt": "10.32",
           "average_fmt": "17.09"
         },
@@ -5099,8 +5073,8 @@
           "event_name": "3x3",
           "single_cs": 3734,
           "average_cs": 4212,
-          "single_nr": 3973,
-          "average_nr": 3669,
+          "single_nr": 3980,
+          "average_nr": 3675,
           "single_fmt": "37.34",
           "average_fmt": "42.12"
         },
@@ -5108,8 +5082,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1425,
           "average_cs": 1698,
-          "single_nr": 1789,
-          "average_nr": 1435,
+          "single_nr": 1790,
+          "average_nr": 1436,
           "single_fmt": "14.25",
           "average_fmt": "16.98"
         }
@@ -5130,8 +5104,8 @@
           "event_name": "2x2",
           "single_cs": 624,
           "average_cs": 1145,
-          "single_nr": 1777,
-          "average_nr": 2256,
+          "single_nr": 1778,
+          "average_nr": 2259,
           "single_fmt": "6.24",
           "average_fmt": "11.45"
         },
@@ -5139,8 +5113,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1466,
           "average_cs": 1691,
-          "single_nr": 1834,
-          "average_nr": 1429,
+          "single_nr": 1835,
+          "average_nr": 1430,
           "single_fmt": "14.66",
           "average_fmt": "16.91"
         }
@@ -5183,7 +5157,7 @@
           "single_cs": 4637,
           "average_cs": 5101,
           "single_nr": 274,
-          "average_nr": 226,
+          "average_nr": 227,
           "single_fmt": "46.37",
           "average_fmt": "51.01"
         },
@@ -5292,7 +5266,7 @@
           "single_cs": 277,
           "average_cs": 377,
           "single_nr": 364,
-          "average_nr": 166,
+          "average_nr": 167,
           "single_fmt": "2.77",
           "average_fmt": "3.77"
         },
@@ -5309,8 +5283,8 @@
           "event_name": "4x4",
           "single_cs": 6351,
           "average_cs": 7740,
-          "single_nr": 576,
-          "average_nr": 626,
+          "single_nr": 578,
+          "average_nr": 628,
           "single_fmt": "1:03.51",
           "average_fmt": "1:17.40"
         },
@@ -5328,7 +5302,7 @@
           "single_cs": 2002,
           "average_cs": 2803,
           "single_nr": 206,
-          "average_nr": 295,
+          "average_nr": 296,
           "single_fmt": "20.02",
           "average_fmt": "28.03"
         },
@@ -5355,7 +5329,7 @@
           "single_cs": 567,
           "average_cs": 849,
           "single_nr": 389,
-          "average_nr": 308,
+          "average_nr": 309,
           "single_fmt": "5.67",
           "average_fmt": "8.49"
         },
@@ -5372,8 +5346,8 @@
           "event_name": "Square-1",
           "single_cs": 2705,
           "average_cs": 4051,
-          "single_nr": 134,
-          "average_nr": 156,
+          "single_nr": 136,
+          "average_nr": 157,
           "single_fmt": "27.05",
           "average_fmt": "40.51"
         }
@@ -5396,8 +5370,8 @@
           "event_name": "2x2",
           "single_cs": 742,
           "average_cs": 909,
-          "single_nr": 2138,
-          "average_nr": 1749,
+          "single_nr": 2142,
+          "average_nr": 1752,
           "single_fmt": "7.42",
           "average_fmt": "9.09"
         },
@@ -5405,8 +5379,8 @@
           "event_name": "3x3",
           "single_cs": 1480,
           "average_cs": 2028,
-          "single_nr": 1101,
-          "average_nr": 1407,
+          "single_nr": 1102,
+          "average_nr": 1408,
           "single_fmt": "14.80",
           "average_fmt": "20.28"
         },
@@ -5423,8 +5397,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1957,
           "average_cs": 2719,
-          "single_nr": 2166,
-          "average_nr": 2079,
+          "single_nr": 2170,
+          "average_nr": 2082,
           "single_fmt": "19.57",
           "average_fmt": "27.19"
         }
@@ -5458,7 +5432,7 @@
           "single_cs": 630,
           "average_cs": 838,
           "single_nr": 15,
-          "average_nr": 20,
+          "average_nr": 21,
           "single_fmt": "6.30",
           "average_fmt": "8.38"
         },
@@ -5511,7 +5485,7 @@
           "event_name": "Fewest Moves",
           "single_cs": 27,
           "average_cs": 3000,
-          "single_nr": 8,
+          "single_nr": 9,
           "average_nr": 5,
           "single_fmt": "27",
           "average_fmt": "3000"
@@ -5529,8 +5503,8 @@
           "event_name": "Clock",
           "single_cs": 920,
           "average_cs": 983,
-          "single_nr": 95,
-          "average_nr": 72,
+          "single_nr": 96,
+          "average_nr": 73,
           "single_fmt": "9.20",
           "average_fmt": "9.83"
         },
@@ -5575,7 +5549,7 @@
           "single_cs": 332,
           "average_cs": 496,
           "single_nr": 603,
-          "average_nr": 448,
+          "average_nr": 449,
           "single_fmt": "3.32",
           "average_fmt": "4.96"
         },
@@ -5620,7 +5594,7 @@
           "single_cs": 556,
           "average_cs": 861,
           "single_nr": 374,
-          "average_nr": 327,
+          "average_nr": 328,
           "single_fmt": "5.56",
           "average_fmt": "8.61"
         },
@@ -5628,7 +5602,7 @@
           "event_name": "Skewb",
           "single_cs": 842,
           "average_cs": 1146,
-          "single_nr": 516,
+          "single_nr": 518,
           "average_nr": 427,
           "single_fmt": "8.42",
           "average_fmt": "11.46"
@@ -5658,7 +5632,7 @@
           "single_cs": 237,
           "average_cs": 373,
           "single_nr": 251,
-          "average_nr": 156,
+          "average_nr": 157,
           "single_fmt": "2.37",
           "average_fmt": "3.73"
         },
@@ -5666,7 +5640,7 @@
           "event_name": "3x3",
           "single_cs": 917,
           "average_cs": 1140,
-          "single_nr": 211,
+          "single_nr": 212,
           "average_nr": 209,
           "single_fmt": "9.17",
           "average_fmt": "11.40"
@@ -5693,7 +5667,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2154,
           "average_cs": 2724,
-          "single_nr": 256,
+          "single_nr": 257,
           "average_nr": 269,
           "single_fmt": "21.54",
           "average_fmt": "27.24"
@@ -5702,8 +5676,8 @@
           "event_name": "Clock",
           "single_cs": 885,
           "average_cs": 1127,
-          "single_nr": 88,
-          "average_nr": 96,
+          "single_nr": 89,
+          "average_nr": 97,
           "single_fmt": "8.85",
           "average_fmt": "11.27"
         },
@@ -5721,7 +5695,7 @@
           "single_cs": 290,
           "average_cs": 600,
           "single_nr": 71,
-          "average_nr": 134,
+          "average_nr": 135,
           "single_fmt": "2.90",
           "average_fmt": "6.00"
         },
@@ -5836,8 +5810,8 @@
           "event_name": "Pyraminx",
           "single_cs": 768,
           "average_cs": 1345,
-          "single_nr": 763,
-          "average_nr": 985,
+          "single_nr": 765,
+          "average_nr": 986,
           "single_fmt": "7.68",
           "average_fmt": "13.45"
         },
@@ -5845,7 +5819,7 @@
           "event_name": "Skewb",
           "single_cs": 902,
           "average_cs": 1454,
-          "single_nr": 562,
+          "single_nr": 563,
           "average_nr": 576,
           "single_fmt": "9.02",
           "average_fmt": "14.54"
@@ -5854,7 +5828,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2215,
           "average_cs": 2650,
-          "single_nr": 283,
+          "single_nr": 284,
           "average_nr": 240,
           "single_fmt": "22.15",
           "average_fmt": "26.50"
@@ -5885,7 +5859,7 @@
           "event_name": "2x2",
           "single_cs": 400,
           "average_cs": 473,
-          "single_nr": 892,
+          "single_nr": 893,
           "average_nr": 372,
           "single_fmt": "4.00",
           "average_fmt": "4.73"
@@ -5894,8 +5868,8 @@
           "event_name": "3x3",
           "single_cs": 2130,
           "average_cs": 2601,
-          "single_nr": 2115,
-          "average_nr": 2100,
+          "single_nr": 2118,
+          "average_nr": 2102,
           "single_fmt": "21.30",
           "average_fmt": "26.01"
         },
@@ -5903,8 +5877,8 @@
           "event_name": "Pyraminx",
           "single_cs": 2702,
           "average_cs": 4082,
-          "single_nr": 2332,
-          "average_nr": 2226,
+          "single_nr": 2336,
+          "average_nr": 2230,
           "single_fmt": "27.02",
           "average_fmt": "40.82"
         }
@@ -5947,7 +5921,7 @@
           "event_name": "4x4",
           "single_cs": 10385,
           "average_cs": null,
-          "single_nr": 1076,
+          "single_nr": 1077,
           "average_nr": null,
           "single_fmt": "1:43.85",
           "average_fmt": "—"
@@ -5956,8 +5930,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2614,
           "average_cs": 3088,
-          "single_nr": 418,
-          "average_nr": 364,
+          "single_nr": 419,
+          "average_nr": 365,
           "single_fmt": "26.14",
           "average_fmt": "30.88"
         },
@@ -5965,8 +5939,8 @@
           "event_name": "Pyraminx",
           "single_cs": 774,
           "average_cs": 1175,
-          "single_nr": 775,
-          "average_nr": 756,
+          "single_nr": 777,
+          "average_nr": 757,
           "single_fmt": "7.74",
           "average_fmt": "11.75"
         },
@@ -5974,7 +5948,7 @@
           "event_name": "Skewb",
           "single_cs": 819,
           "average_cs": 1494,
-          "single_nr": 492,
+          "single_nr": 494,
           "average_nr": 593,
           "single_fmt": "8.19",
           "average_fmt": "14.94"
@@ -5999,7 +5973,7 @@
           "event_name": "2x2",
           "single_cs": 369,
           "average_cs": 788,
-          "single_nr": 761,
+          "single_nr": 762,
           "average_nr": 1405,
           "single_fmt": "3.69",
           "average_fmt": "7.88"
@@ -6008,8 +5982,8 @@
           "event_name": "3x3",
           "single_cs": 1515,
           "average_cs": 2145,
-          "single_nr": 1161,
-          "average_nr": 1547,
+          "single_nr": 1162,
+          "average_nr": 1548,
           "single_fmt": "15.15",
           "average_fmt": "21.45"
         },
@@ -6035,7 +6009,7 @@
           "event_name": "Pyraminx",
           "single_cs": 797,
           "average_cs": 989,
-          "single_nr": 818,
+          "single_nr": 820,
           "average_nr": 471,
           "single_fmt": "7.97",
           "average_fmt": "9.89"
@@ -6086,7 +6060,7 @@
           "single_cs": 700,
           "average_cs": 860,
           "single_nr": 38,
-          "average_nr": 29,
+          "average_nr": 30,
           "single_fmt": "7.00",
           "average_fmt": "8.60"
         },
@@ -6139,8 +6113,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 1285,
           "average_cs": 2176,
-          "single_nr": 39,
-          "average_nr": 129,
+          "single_nr": 40,
+          "average_nr": 130,
           "single_fmt": "12.85",
           "average_fmt": "21.76"
         },
@@ -6219,8 +6193,8 @@
           "event_name": "4x4",
           "single_cs": 6437,
           "average_cs": 6945,
-          "single_nr": 592,
-          "average_nr": 528,
+          "single_nr": 593,
+          "average_nr": 529,
           "single_fmt": "1:04.37",
           "average_fmt": "1:09.45"
         },
@@ -6244,19 +6218,19 @@
         },
         "333oh": {
           "event_name": "3x3 One-Handed",
-          "single_cs": 2725,
-          "average_cs": 3527,
-          "single_nr": 452,
-          "average_nr": 477,
-          "single_fmt": "27.25",
-          "average_fmt": "35.27"
+          "single_cs": 2115,
+          "average_cs": 2910,
+          "single_nr": 243,
+          "average_nr": 324,
+          "single_fmt": "21.15",
+          "average_fmt": "29.10"
         },
         "clock": {
           "event_name": "Clock",
           "single_cs": 913,
           "average_cs": 1133,
-          "single_nr": 94,
-          "average_nr": 97,
+          "single_nr": 95,
+          "average_nr": 98,
           "single_fmt": "9.13",
           "average_fmt": "11.33"
         },
@@ -6282,8 +6256,8 @@
           "event_name": "Pyraminx",
           "single_cs": 941,
           "average_cs": 1226,
-          "single_nr": 1093,
-          "average_nr": 820,
+          "single_nr": 1094,
+          "average_nr": 821,
           "single_fmt": "9.41",
           "average_fmt": "12.26"
         },
@@ -6291,8 +6265,8 @@
           "event_name": "Skewb",
           "single_cs": 754,
           "average_cs": 1516,
-          "single_nr": 435,
-          "average_nr": 600,
+          "single_nr": 436,
+          "average_nr": 601,
           "single_fmt": "7.54",
           "average_fmt": "15.16"
         }
@@ -6330,8 +6304,8 @@
           "event_name": "3x3",
           "single_cs": 1285,
           "average_cs": 1873,
-          "single_nr": 744,
-          "average_nr": 1174,
+          "single_nr": 746,
+          "average_nr": 1175,
           "single_fmt": "12.85",
           "average_fmt": "18.73"
         },
@@ -6357,7 +6331,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 5071,
           "average_cs": null,
-          "single_nr": 974,
+          "single_nr": 977,
           "average_nr": null,
           "single_fmt": "50.71",
           "average_fmt": "—"
@@ -6366,8 +6340,8 @@
           "event_name": "Clock",
           "single_cs": 2273,
           "average_cs": 2876,
-          "single_nr": 324,
-          "average_nr": 311,
+          "single_nr": 325,
+          "average_nr": 312,
           "single_fmt": "22.73",
           "average_fmt": "28.76"
         },
@@ -6385,7 +6359,7 @@
           "single_cs": 557,
           "average_cs": 1143,
           "single_nr": 376,
-          "average_nr": 698,
+          "average_nr": 699,
           "single_fmt": "5.57",
           "average_fmt": "11.43"
         },
@@ -6433,8 +6407,8 @@
           "event_name": "3x3",
           "single_cs": 1393,
           "average_cs": 1634,
-          "single_nr": 947,
-          "average_nr": 821,
+          "single_nr": 949,
+          "average_nr": 822,
           "single_fmt": "13.93",
           "average_fmt": "16.34"
         }
@@ -6547,8 +6521,8 @@
           "event_name": "Clock",
           "single_cs": 2707,
           "average_cs": 3053,
-          "single_nr": 353,
-          "average_nr": 322,
+          "single_nr": 354,
+          "average_nr": 323,
           "single_fmt": "27.07",
           "average_fmt": "30.53"
         },
@@ -6556,7 +6530,7 @@
           "event_name": "Megaminx",
           "single_cs": 5682,
           "average_cs": 6122,
-          "single_nr": 58,
+          "single_nr": 59,
           "average_nr": 48,
           "single_fmt": "56.82",
           "average_fmt": "1:01.22"
@@ -6679,8 +6653,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2494,
           "average_cs": 3256,
-          "single_nr": 380,
-          "average_nr": 415,
+          "single_nr": 381,
+          "average_nr": 416,
           "single_fmt": "24.94",
           "average_fmt": "32.56"
         },
@@ -6724,7 +6698,7 @@
           "event_name": "Square-1",
           "single_cs": 2896,
           "average_cs": 4380,
-          "single_nr": 146,
+          "single_nr": 148,
           "average_nr": 171,
           "single_fmt": "28.96",
           "average_fmt": "43.80"
@@ -6759,7 +6733,7 @@
           "single_cs": 218,
           "average_cs": 372,
           "single_nr": 208,
-          "average_nr": 153,
+          "average_nr": 154,
           "single_fmt": "2.18",
           "average_fmt": "3.72"
         },
@@ -6768,7 +6742,7 @@
           "single_cs": 989,
           "average_cs": 1274,
           "single_nr": 282,
-          "average_nr": 341,
+          "average_nr": 342,
           "single_fmt": "9.89",
           "average_fmt": "12.74"
         },
@@ -6830,8 +6804,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2660,
           "average_cs": 3272,
-          "single_nr": 432,
-          "average_nr": 422,
+          "single_nr": 433,
+          "average_nr": 423,
           "single_fmt": "26.60",
           "average_fmt": "32.72"
         },
@@ -6848,8 +6822,8 @@
           "event_name": "Megaminx",
           "single_cs": 9422,
           "average_cs": 10891,
-          "single_nr": 229,
-          "average_nr": 242,
+          "single_nr": 230,
+          "average_nr": 243,
           "single_fmt": "1:34.22",
           "average_fmt": "1:48.91"
         },
@@ -6857,7 +6831,7 @@
           "event_name": "Pyraminx",
           "single_cs": 412,
           "average_cs": 714,
-          "single_nr": 193,
+          "single_nr": 194,
           "average_nr": 200,
           "single_fmt": "4.12",
           "average_fmt": "7.14"
@@ -6918,7 +6892,7 @@
           "single_cs": 1026,
           "average_cs": 1216,
           "single_nr": 327,
-          "average_nr": 276,
+          "average_nr": 277,
           "single_fmt": "10.26",
           "average_fmt": "12.16"
         },
@@ -6971,8 +6945,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2295,
           "average_cs": 2955,
-          "single_nr": 306,
-          "average_nr": 334,
+          "single_nr": 307,
+          "average_nr": 335,
           "single_fmt": "22.95",
           "average_fmt": "29.55"
         },
@@ -6980,8 +6954,8 @@
           "event_name": "Clock",
           "single_cs": 929,
           "average_cs": 1099,
-          "single_nr": 97,
-          "average_nr": 91,
+          "single_nr": 98,
+          "average_nr": 92,
           "single_fmt": "9.29",
           "average_fmt": "10.99"
         },
@@ -7016,8 +6990,8 @@
           "event_name": "Square-1",
           "single_cs": 2786,
           "average_cs": 3500,
-          "single_nr": 140,
-          "average_nr": 128,
+          "single_nr": 142,
+          "average_nr": 129,
           "single_fmt": "27.86",
           "average_fmt": "35.00"
         }
@@ -7120,8 +7094,8 @@
           "event_name": "Megaminx",
           "single_cs": 6006,
           "average_cs": 6878,
-          "single_nr": 70,
-          "average_nr": 69,
+          "single_nr": 71,
+          "average_nr": 70,
           "single_fmt": "1:00.06",
           "average_fmt": "1:08.78"
         },
@@ -7182,7 +7156,7 @@
           "single_cs": 169,
           "average_cs": 372,
           "single_nr": 103,
-          "average_nr": 153,
+          "average_nr": 154,
           "single_fmt": "1.69",
           "average_fmt": "3.72"
         },
@@ -7236,7 +7210,7 @@
           "single_cs": 1722,
           "average_cs": 2736,
           "single_nr": 128,
-          "average_nr": 274,
+          "average_nr": 275,
           "single_fmt": "17.22",
           "average_fmt": "27.36"
         },
@@ -7253,8 +7227,8 @@
           "event_name": "Square-1",
           "single_cs": 2734,
           "average_cs": 4228,
-          "single_nr": 136,
-          "average_nr": 166,
+          "single_nr": 138,
+          "average_nr": 167,
           "single_fmt": "27.34",
           "average_fmt": "42.28"
         },
@@ -7271,8 +7245,8 @@
           "event_name": "Megaminx",
           "single_cs": 9616,
           "average_cs": 12156,
-          "single_nr": 239,
-          "average_nr": 282,
+          "single_nr": 241,
+          "average_nr": 283,
           "single_fmt": "1:36.16",
           "average_fmt": "2:01.56"
         },
@@ -7281,7 +7255,7 @@
           "single_cs": 273,
           "average_cs": 609,
           "single_nr": 59,
-          "average_nr": 139,
+          "average_nr": 140,
           "single_fmt": "2.73",
           "average_fmt": "6.09"
         },
@@ -7338,7 +7312,7 @@
           "single_cs": 906,
           "average_cs": 1115,
           "single_nr": 204,
-          "average_nr": 187,
+          "average_nr": 188,
           "single_fmt": "9.06",
           "average_fmt": "11.15"
         },
@@ -7391,7 +7365,7 @@
           "event_name": "Pyraminx",
           "single_cs": 481,
           "average_cs": 739,
-          "single_nr": 267,
+          "single_nr": 268,
           "average_nr": 222,
           "single_fmt": "4.81",
           "average_fmt": "7.39"
@@ -7401,7 +7375,7 @@
           "single_cs": 534,
           "average_cs": 774,
           "single_nr": 259,
-          "average_nr": 194,
+          "average_nr": 195,
           "single_fmt": "5.34",
           "average_fmt": "7.74"
         },
@@ -7409,7 +7383,7 @@
           "event_name": "Square-1",
           "single_cs": 2372,
           "average_cs": 2805,
-          "single_nr": 120,
+          "single_nr": 121,
           "average_nr": 99,
           "single_fmt": "23.72",
           "average_fmt": "28.05"
@@ -7504,8 +7478,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 1360,
           "average_cs": 1749,
-          "single_nr": 55,
-          "average_nr": 56,
+          "single_nr": 56,
+          "average_nr": 57,
           "single_fmt": "13.60",
           "average_fmt": "17.49"
         },
@@ -7513,8 +7487,8 @@
           "event_name": "Clock",
           "single_cs": 846,
           "average_cs": 1034,
-          "single_nr": 79,
-          "average_nr": 83,
+          "single_nr": 80,
+          "average_nr": 84,
           "single_fmt": "8.46",
           "average_fmt": "10.34"
         },
@@ -7659,7 +7633,7 @@
           "average_cs": null,
           "single_nr": 1,
           "average_nr": null,
-          "single_fmt": "MBLD:720357500",
+          "single_fmt": "27/27 59:35",
           "average_fmt": "—"
         },
         "333oh": {
@@ -7667,7 +7641,7 @@
           "single_cs": 1504,
           "average_cs": 1768,
           "single_nr": 82,
-          "average_nr": 63,
+          "average_nr": 64,
           "single_fmt": "15.04",
           "average_fmt": "17.68"
         },
@@ -7738,8 +7712,8 @@
           "event_name": "Fewest Moves",
           "single_cs": 27,
           "average_cs": 3200,
-          "single_nr": 8,
-          "average_nr": 9,
+          "single_nr": 9,
+          "average_nr": 10,
           "single_fmt": "27",
           "average_fmt": "3200"
         }
@@ -7768,7 +7742,7 @@
           "single_cs": 351,
           "average_cs": 678,
           "single_nr": 686,
-          "average_nr": 1053,
+          "average_nr": 1054,
           "single_fmt": "3.51",
           "average_fmt": "6.78"
         },
@@ -7776,8 +7750,8 @@
           "event_name": "3x3",
           "single_cs": 1569,
           "average_cs": 1992,
-          "single_nr": 1241,
-          "average_nr": 1352,
+          "single_nr": 1242,
+          "average_nr": 1353,
           "single_fmt": "15.69",
           "average_fmt": "19.92"
         },
@@ -7785,8 +7759,8 @@
           "event_name": "4x4",
           "single_cs": 9138,
           "average_cs": 11767,
-          "single_nr": 949,
-          "average_nr": 933,
+          "single_nr": 952,
+          "average_nr": 936,
           "single_fmt": "1:31.38",
           "average_fmt": "1:57.67"
         },
@@ -7823,35 +7797,35 @@
           "average_cs": null,
           "single_nr": 27,
           "average_nr": null,
-          "single_fmt": "MBLD:960178000",
+          "single_fmt": "3/3 29:40",
           "average_fmt": "—"
         },
         "333oh": {
           "event_name": "3x3 One-Handed",
           "single_cs": 3654,
           "average_cs": 4483,
-          "single_nr": 734,
-          "average_nr": 706,
+          "single_nr": 735,
+          "average_nr": 707,
           "single_fmt": "36.54",
           "average_fmt": "44.83"
         },
         "clock": {
           "event_name": "Clock",
-          "single_cs": 2160,
-          "average_cs": 2514,
-          "single_nr": 310,
-          "average_nr": 285,
-          "single_fmt": "21.60",
-          "average_fmt": "25.14"
+          "single_cs": 1715,
+          "average_cs": 2015,
+          "single_nr": 250,
+          "average_nr": 235,
+          "single_fmt": "17.15",
+          "average_fmt": "20.15"
         },
         "pyram": {
           "event_name": "Pyraminx",
-          "single_cs": 1182,
-          "average_cs": 1556,
-          "single_nr": 1471,
-          "average_nr": 1277,
-          "single_fmt": "11.82",
-          "average_fmt": "15.56"
+          "single_cs": 1072,
+          "average_cs": 1420,
+          "single_nr": 1303,
+          "average_nr": 1085,
+          "single_fmt": "10.72",
+          "average_fmt": "14.20"
         },
         "skewb": {
           "event_name": "Skewb",
@@ -7906,8 +7880,8 @@
           "event_name": "3x3",
           "single_cs": 19426,
           "average_cs": 24098,
-          "single_nr": 5926,
-          "average_nr": 5821,
+          "single_nr": 5936,
+          "average_nr": 5831,
           "single_fmt": "3:14.26",
           "average_fmt": "4:00.98"
         }
@@ -7945,7 +7919,7 @@
           "event_name": "3x3",
           "single_cs": 1384,
           "average_cs": 1695,
-          "single_nr": 926,
+          "single_nr": 928,
           "average_nr": 912,
           "single_fmt": "13.84",
           "average_fmt": "16.95"
@@ -7954,8 +7928,8 @@
           "event_name": "4x4",
           "single_cs": 6169,
           "average_cs": 7779,
-          "single_nr": 540,
-          "average_nr": 637,
+          "single_nr": 541,
+          "average_nr": 638,
           "single_fmt": "1:01.69",
           "average_fmt": "1:17.79"
         },
@@ -7972,8 +7946,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2634,
           "average_cs": 3580,
-          "single_nr": 427,
-          "average_nr": 494,
+          "single_nr": 428,
+          "average_nr": 495,
           "single_fmt": "26.34",
           "average_fmt": "35.80"
         },
@@ -7990,8 +7964,8 @@
           "event_name": "Megaminx",
           "single_cs": 9387,
           "average_cs": 10881,
-          "single_nr": 227,
-          "average_nr": 239,
+          "single_nr": 228,
+          "average_nr": 240,
           "single_fmt": "1:33.87",
           "average_fmt": "1:48.81"
         },
@@ -7999,8 +7973,8 @@
           "event_name": "Pyraminx",
           "single_cs": 537,
           "average_cs": 939,
-          "single_nr": 341,
-          "average_nr": 413,
+          "single_nr": 342,
+          "average_nr": 414,
           "single_fmt": "5.37",
           "average_fmt": "9.39"
         },
@@ -8008,8 +7982,8 @@
           "event_name": "Skewb",
           "single_cs": 778,
           "average_cs": 1287,
-          "single_nr": 457,
-          "average_nr": 503,
+          "single_nr": 458,
+          "average_nr": 505,
           "single_fmt": "7.78",
           "average_fmt": "12.87"
         },
@@ -8017,7 +7991,7 @@
           "event_name": "Square-1",
           "single_cs": 2330,
           "average_cs": 2704,
-          "single_nr": 116,
+          "single_nr": 117,
           "average_nr": 92,
           "single_fmt": "23.30",
           "average_fmt": "27.04"
@@ -8102,8 +8076,8 @@
           "event_name": "Pyraminx",
           "single_cs": 369,
           "average_cs": 625,
-          "single_nr": 142,
-          "average_nr": 145,
+          "single_nr": 143,
+          "average_nr": 146,
           "single_fmt": "3.69",
           "average_fmt": "6.25"
         },
@@ -8138,20 +8112,20 @@
         "222": {
           "event_name": "2x2",
           "single_cs": 266,
-          "average_cs": 402,
+          "average_cs": 371,
           "single_nr": 331,
-          "average_nr": 223,
+          "average_nr": 149,
           "single_fmt": "2.66",
-          "average_fmt": "4.02"
+          "average_fmt": "3.71"
         },
         "333": {
           "event_name": "3x3",
           "single_cs": 876,
-          "average_cs": 1354,
+          "average_cs": 1266,
           "single_nr": 168,
-          "average_nr": 455,
+          "average_nr": 327,
           "single_fmt": "8.76",
-          "average_fmt": "13.54"
+          "average_fmt": "12.66"
         },
         "444": {
           "event_name": "4x4",
@@ -8173,37 +8147,37 @@
         },
         "333oh": {
           "event_name": "3x3 One-Handed",
-          "single_cs": 3378,
-          "average_cs": 4143,
-          "single_nr": 659,
-          "average_nr": 643,
-          "single_fmt": "33.78",
-          "average_fmt": "41.43"
+          "single_cs": 3063,
+          "average_cs": 3422,
+          "single_nr": 548,
+          "average_nr": 458,
+          "single_fmt": "30.63",
+          "average_fmt": "34.22"
         },
         "clock": {
           "event_name": "Clock",
-          "single_cs": 1073,
-          "average_cs": 1367,
-          "single_nr": 130,
-          "average_nr": 133,
-          "single_fmt": "10.73",
-          "average_fmt": "13.67"
+          "single_cs": 864,
+          "average_cs": 1027,
+          "single_nr": 85,
+          "average_nr": 82,
+          "single_fmt": "8.64",
+          "average_fmt": "10.27"
         },
         "pyram": {
           "event_name": "Pyraminx",
           "single_cs": 586,
-          "average_cs": 907,
+          "average_cs": 778,
           "single_nr": 423,
-          "average_nr": 381,
+          "average_nr": 255,
           "single_fmt": "5.86",
-          "average_fmt": "9.07"
+          "average_fmt": "7.78"
         },
         "skewb": {
           "event_name": "Skewb",
           "single_cs": 396,
           "average_cs": 765,
           "single_nr": 134,
-          "average_nr": 188,
+          "average_nr": 189,
           "single_fmt": "3.96",
           "average_fmt": "7.65"
         }
@@ -8283,7 +8257,7 @@
           "single_cs": 282,
           "average_cs": 374,
           "single_nr": 387,
-          "average_nr": 158,
+          "average_nr": 159,
           "single_fmt": "2.82",
           "average_fmt": "3.74"
         },
@@ -8372,8 +8346,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2418,
           "average_cs": 3102,
-          "single_nr": 351,
-          "average_nr": 368,
+          "single_nr": 352,
+          "average_nr": 369,
           "single_fmt": "24.18",
           "average_fmt": "31.02"
         }
@@ -8414,7 +8388,7 @@
           "single_cs": 616,
           "average_cs": 841,
           "single_nr": 13,
-          "average_nr": 22,
+          "average_nr": 23,
           "single_fmt": "6.16",
           "average_fmt": "8.41"
         },
@@ -8423,7 +8397,7 @@
           "single_cs": 3187,
           "average_cs": 3696,
           "single_nr": 46,
-          "average_nr": 41,
+          "average_nr": 42,
           "single_fmt": "31.87",
           "average_fmt": "36.96"
         },
@@ -8526,8 +8500,8 @@
           "event_name": "2x2",
           "single_cs": 1216,
           "average_cs": 1907,
-          "single_nr": 2962,
-          "average_nr": 3006,
+          "single_nr": 2967,
+          "average_nr": 3012,
           "single_fmt": "12.16",
           "average_fmt": "19.07"
         },
@@ -8535,8 +8509,8 @@
           "event_name": "3x3",
           "single_cs": 4512,
           "average_cs": 5558,
-          "single_nr": 4550,
-          "average_nr": 4560,
+          "single_nr": 4559,
+          "average_nr": 4570,
           "single_fmt": "45.12",
           "average_fmt": "55.58"
         },
@@ -8544,8 +8518,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1511,
           "average_cs": 2416,
-          "single_nr": 1883,
-          "average_nr": 1967,
+          "single_nr": 1884,
+          "average_nr": 1970,
           "single_fmt": "15.11",
           "average_fmt": "24.16"
         },
@@ -8553,7 +8527,7 @@
           "event_name": "Clock",
           "single_cs": 3724,
           "average_cs": null,
-          "single_nr": 407,
+          "single_nr": 408,
           "average_nr": null,
           "single_fmt": "37.24",
           "average_fmt": "—"
@@ -8591,7 +8565,7 @@
           "single_cs": 654,
           "average_cs": 848,
           "single_nr": 20,
-          "average_nr": 24,
+          "average_nr": 25,
           "single_fmt": "6.54",
           "average_fmt": "8.48"
         },
@@ -8600,7 +8574,7 @@
           "single_cs": 3164,
           "average_cs": 3642,
           "single_nr": 44,
-          "average_nr": 36,
+          "average_nr": 37,
           "single_fmt": "31.64",
           "average_fmt": "36.42"
         },
@@ -8644,8 +8618,8 @@
           "event_name": "Megaminx",
           "single_cs": 6032,
           "average_cs": 7161,
-          "single_nr": 71,
-          "average_nr": 82,
+          "single_nr": 72,
+          "average_nr": 83,
           "single_fmt": "1:00.32",
           "average_fmt": "1:11.61"
         },
@@ -8662,8 +8636,8 @@
           "event_name": "Clock",
           "single_cs": 997,
           "average_cs": 1334,
-          "single_nr": 111,
-          "average_nr": 127,
+          "single_nr": 112,
+          "average_nr": 129,
           "single_fmt": "9.97",
           "average_fmt": "13.34"
         },
@@ -8778,7 +8752,7 @@
           "single_cs": 1435,
           "average_cs": 1675,
           "single_nr": 70,
-          "average_nr": 39,
+          "average_nr": 40,
           "single_fmt": "14.35",
           "average_fmt": "16.75"
         },
@@ -8786,8 +8760,8 @@
           "event_name": "Clock",
           "single_cs": 845,
           "average_cs": 1007,
-          "single_nr": 78,
-          "average_nr": 78,
+          "single_nr": 79,
+          "average_nr": 79,
           "single_fmt": "8.45",
           "average_fmt": "10.07"
         },
@@ -8796,7 +8770,7 @@
           "single_cs": 13687,
           "average_cs": 15476,
           "single_nr": 393,
-          "average_nr": 363,
+          "average_nr": 364,
           "single_fmt": "2:16.87",
           "average_fmt": "2:34.76"
         },
@@ -8804,8 +8778,8 @@
           "event_name": "Pyraminx",
           "single_cs": 449,
           "average_cs": 660,
-          "single_nr": 220,
-          "average_nr": 167,
+          "single_nr": 221,
+          "average_nr": 168,
           "single_fmt": "4.49",
           "average_fmt": "6.60"
         },
@@ -8856,8 +8830,8 @@
           "event_name": "3x3",
           "single_cs": 1498,
           "average_cs": 2063,
-          "single_nr": 1131,
-          "average_nr": 1450,
+          "single_nr": 1132,
+          "average_nr": 1451,
           "single_fmt": "14.98",
           "average_fmt": "20.63"
         },
@@ -8875,7 +8849,7 @@
           "single_cs": 579,
           "average_cs": 1326,
           "single_nr": 407,
-          "average_nr": 958,
+          "average_nr": 960,
           "single_fmt": "5.79",
           "average_fmt": "13.26"
         },
@@ -8904,8 +8878,8 @@
           "event_name": "3x3",
           "single_cs": 3769,
           "average_cs": 4142,
-          "single_nr": 4003,
-          "average_nr": 3623,
+          "single_nr": 4010,
+          "average_nr": 3629,
           "single_fmt": "37.69",
           "average_fmt": "41.42"
         }
@@ -8931,7 +8905,7 @@
           "single_cs": 316,
           "average_cs": 660,
           "single_nr": 528,
-          "average_nr": 1008,
+          "average_nr": 1009,
           "single_fmt": "3.16",
           "average_fmt": "6.60"
         },
@@ -8939,8 +8913,8 @@
           "event_name": "3x3",
           "single_cs": 1347,
           "average_cs": 1630,
-          "single_nr": 856,
-          "average_nr": 816,
+          "single_nr": 857,
+          "average_nr": 817,
           "single_fmt": "13.47",
           "average_fmt": "16.30"
         },
@@ -8948,8 +8922,8 @@
           "event_name": "4x4",
           "single_cs": 8883,
           "average_cs": 9735,
-          "single_nr": 922,
-          "average_nr": 837,
+          "single_nr": 925,
+          "average_nr": 839,
           "single_fmt": "1:28.83",
           "average_fmt": "1:37.35"
         },
@@ -8967,7 +8941,7 @@
           "single_cs": 2738,
           "average_cs": 3254,
           "single_nr": 454,
-          "average_nr": 414,
+          "average_nr": 415,
           "single_fmt": "27.38",
           "average_fmt": "32.54"
         },
@@ -8975,8 +8949,8 @@
           "event_name": "Pyraminx",
           "single_cs": 554,
           "average_cs": 1308,
-          "single_nr": 371,
-          "average_nr": 934,
+          "single_nr": 372,
+          "average_nr": 936,
           "single_fmt": "5.54",
           "average_fmt": "13.08"
         },
@@ -8984,7 +8958,7 @@
           "event_name": "Skewb",
           "single_cs": 3238,
           "average_cs": null,
-          "single_nr": 1014,
+          "single_nr": 1016,
           "average_nr": null,
           "single_fmt": "32.38",
           "average_fmt": "—"
@@ -9008,8 +8982,7 @@
         "555bf",
         "clock",
         "pyram",
-        "skewb",
-        "sq1"
+        "skewb"
       ],
       "prs": {
         "222": {
@@ -9017,7 +8990,7 @@
           "single_cs": 225,
           "average_cs": 399,
           "single_nr": 225,
-          "average_nr": 218,
+          "average_nr": 219,
           "single_fmt": "2.25",
           "average_fmt": "3.99"
         },
@@ -9115,8 +9088,8 @@
           "event_name": "Clock",
           "single_cs": 920,
           "average_cs": 1134,
-          "single_nr": 95,
-          "average_nr": 98,
+          "single_nr": 96,
+          "average_nr": 99,
           "single_fmt": "9.20",
           "average_fmt": "11.34"
         },
@@ -9124,8 +9097,8 @@
           "event_name": "Pyraminx",
           "single_cs": 397,
           "average_cs": 600,
-          "single_nr": 171,
-          "average_nr": 134,
+          "single_nr": 172,
+          "average_nr": 135,
           "single_fmt": "3.97",
           "average_fmt": "6.00"
         },
@@ -9138,23 +9111,23 @@
           "single_fmt": "5.10",
           "average_fmt": "6.88"
         },
-        "sq1": {
-          "event_name": "Square-1",
-          "single_cs": 3275,
-          "average_cs": 3931,
-          "single_nr": 168,
-          "average_nr": 151,
-          "single_fmt": "32.75",
-          "average_fmt": "39.31"
-        },
         "minx": {
           "event_name": "Megaminx",
           "single_cs": 9099,
           "average_cs": 10779,
           "single_nr": 209,
-          "average_nr": 234,
+          "average_nr": 235,
           "single_fmt": "1:30.99",
           "average_fmt": "1:47.79"
+        },
+        "sq1": {
+          "event_name": "Square-1",
+          "single_cs": 3275,
+          "average_cs": 3931,
+          "single_nr": 169,
+          "average_nr": 152,
+          "single_fmt": "32.75",
+          "average_fmt": "39.31"
         }
       }
     },
@@ -9172,8 +9145,8 @@
           "event_name": "3x3",
           "single_cs": 7468,
           "average_cs": 8862,
-          "single_nr": 5630,
-          "average_nr": 5491,
+          "single_nr": 5640,
+          "average_nr": 5501,
           "single_fmt": "1:14.68",
           "average_fmt": "1:28.62"
         }
@@ -9203,7 +9176,7 @@
           "single_cs": 340,
           "average_cs": 678,
           "single_nr": 641,
-          "average_nr": 1053,
+          "average_nr": 1054,
           "single_fmt": "3.40",
           "average_fmt": "6.78"
         },
@@ -9211,8 +9184,8 @@
           "event_name": "3x3",
           "single_cs": 1990,
           "average_cs": 2170,
-          "single_nr": 1887,
-          "average_nr": 1578,
+          "single_nr": 1889,
+          "average_nr": 1579,
           "single_fmt": "19.90",
           "average_fmt": "21.70"
         },
@@ -9220,8 +9193,8 @@
           "event_name": "4x4",
           "single_cs": 9828,
           "average_cs": 10437,
-          "single_nr": 1020,
-          "average_nr": 876,
+          "single_nr": 1023,
+          "average_nr": 879,
           "single_fmt": "1:38.28",
           "average_fmt": "1:44.37"
         },
@@ -9238,7 +9211,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 6124,
           "average_cs": null,
-          "single_nr": 1051,
+          "single_nr": 1054,
           "average_nr": null,
           "single_fmt": "1:01.24",
           "average_fmt": "—"
@@ -9265,8 +9238,8 @@
           "event_name": "Pyraminx",
           "single_cs": 669,
           "average_cs": 998,
-          "single_nr": 570,
-          "average_nr": 490,
+          "single_nr": 571,
+          "average_nr": 492,
           "single_fmt": "6.69",
           "average_fmt": "9.98"
         },
@@ -9323,7 +9296,7 @@
           "event_name": "3x3",
           "single_cs": 1434,
           "average_cs": 1759,
-          "single_nr": 1018,
+          "single_nr": 1021,
           "average_nr": 1013,
           "single_fmt": "14.34",
           "average_fmt": "17.59"
@@ -9332,8 +9305,8 @@
           "event_name": "4x4",
           "single_cs": 8655,
           "average_cs": 9605,
-          "single_nr": 897,
-          "average_nr": 827,
+          "single_nr": 899,
+          "average_nr": 829,
           "single_fmt": "1:26.55",
           "average_fmt": "1:36.05"
         },
@@ -9359,8 +9332,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2368,
           "average_cs": 3248,
-          "single_nr": 334,
-          "average_nr": 411,
+          "single_nr": 335,
+          "average_nr": 412,
           "single_fmt": "23.68",
           "average_fmt": "32.48"
         },
@@ -9368,8 +9341,8 @@
           "event_name": "Clock",
           "single_cs": 2058,
           "average_cs": 2436,
-          "single_nr": 297,
-          "average_nr": 276,
+          "single_nr": 299,
+          "average_nr": 278,
           "single_fmt": "20.58",
           "average_fmt": "24.36"
         },
@@ -9378,7 +9351,7 @@
           "single_cs": 13650,
           "average_cs": 16578,
           "single_nr": 390,
-          "average_nr": 377,
+          "average_nr": 378,
           "single_fmt": "2:16.50",
           "average_fmt": "2:45.78"
         },
@@ -9387,7 +9360,7 @@
           "single_cs": 639,
           "average_cs": 931,
           "single_nr": 500,
-          "average_nr": 404,
+          "average_nr": 405,
           "single_fmt": "6.39",
           "average_fmt": "9.31"
         },
@@ -9395,8 +9368,8 @@
           "event_name": "Skewb",
           "single_cs": 765,
           "average_cs": 1359,
-          "single_nr": 445,
-          "average_nr": 530,
+          "single_nr": 446,
+          "average_nr": 531,
           "single_fmt": "7.65",
           "average_fmt": "13.59"
         },
@@ -9458,8 +9431,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2492,
           "average_cs": 3121,
-          "single_nr": 377,
-          "average_nr": 376,
+          "single_nr": 378,
+          "average_nr": 377,
           "single_fmt": "24.92",
           "average_fmt": "31.21"
         },
@@ -9467,8 +9440,8 @@
           "event_name": "Megaminx",
           "single_cs": 10284,
           "average_cs": 12188,
-          "single_nr": 268,
-          "average_nr": 283,
+          "single_nr": 270,
+          "average_nr": 284,
           "single_fmt": "1:42.84",
           "average_fmt": "2:01.88"
         },
@@ -9485,7 +9458,7 @@
           "event_name": "Skewb",
           "single_cs": 2002,
           "average_cs": null,
-          "single_nr": 912,
+          "single_nr": 913,
           "average_nr": null,
           "single_fmt": "20.02",
           "average_fmt": "—"
@@ -9529,8 +9502,8 @@
           "event_name": "3x3",
           "single_cs": 1674,
           "average_cs": 1830,
-          "single_nr": 1412,
-          "average_nr": 1101,
+          "single_nr": 1414,
+          "average_nr": 1102,
           "single_fmt": "16.74",
           "average_fmt": "18.30"
         },
@@ -9547,8 +9520,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 4203,
           "average_cs": 4952,
-          "single_nr": 841,
-          "average_nr": 784,
+          "single_nr": 843,
+          "average_nr": 785,
           "single_fmt": "42.03",
           "average_fmt": "49.52"
         },
@@ -9557,7 +9530,7 @@
           "single_cs": 659,
           "average_cs": 1089,
           "single_nr": 545,
-          "average_nr": 623,
+          "average_nr": 624,
           "single_fmt": "6.59",
           "average_fmt": "10.89"
         },
@@ -9648,8 +9621,8 @@
           "event_name": "Megaminx",
           "single_cs": 5779,
           "average_cs": 6906,
-          "single_nr": 64,
-          "average_nr": 72,
+          "single_nr": 65,
+          "average_nr": 73,
           "single_fmt": "57.79",
           "average_fmt": "1:09.06"
         },
@@ -9723,7 +9696,7 @@
           "single_cs": 695,
           "average_cs": 826,
           "single_nr": 35,
-          "average_nr": 17,
+          "average_nr": 18,
           "single_fmt": "6.95",
           "average_fmt": "8.26"
         },
@@ -9786,7 +9759,7 @@
           "single_cs": 292,
           "average_cs": 546,
           "single_nr": 73,
-          "average_nr": 101,
+          "average_nr": 102,
           "single_fmt": "2.92",
           "average_fmt": "5.46"
         },
@@ -9835,8 +9808,8 @@
           "event_name": "3x3",
           "single_cs": 6075,
           "average_cs": 6702,
-          "single_nr": 5306,
-          "average_nr": 5005,
+          "single_nr": 5316,
+          "average_nr": 5015,
           "single_fmt": "1:00.75",
           "average_fmt": "1:07.02"
         },
@@ -9867,8 +9840,8 @@
           "event_name": "2x2",
           "single_cs": 640,
           "average_cs": 981,
-          "single_nr": 1830,
-          "average_nr": 1917,
+          "single_nr": 1832,
+          "average_nr": 1922,
           "single_fmt": "6.40",
           "average_fmt": "9.81"
         },
@@ -9876,8 +9849,8 @@
           "event_name": "3x3",
           "single_cs": 1524,
           "average_cs": 1941,
-          "single_nr": 1171,
-          "average_nr": 1270,
+          "single_nr": 1172,
+          "average_nr": 1271,
           "single_fmt": "15.24",
           "average_fmt": "19.41"
         },
@@ -9885,8 +9858,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1455,
           "average_cs": 1955,
-          "single_nr": 1820,
-          "average_nr": 1676,
+          "single_nr": 1821,
+          "average_nr": 1677,
           "single_fmt": "14.55",
           "average_fmt": "19.55"
         }
@@ -9920,8 +9893,8 @@
           "event_name": "3x3",
           "single_cs": 1660,
           "average_cs": 2010,
-          "single_nr": 1380,
-          "average_nr": 1376,
+          "single_nr": 1382,
+          "average_nr": 1377,
           "single_fmt": "16.60",
           "average_fmt": "20.10"
         },
@@ -9929,8 +9902,8 @@
           "event_name": "4x4",
           "single_cs": 7498,
           "average_cs": 7985,
-          "single_nr": 758,
-          "average_nr": 662,
+          "single_nr": 759,
+          "average_nr": 663,
           "single_fmt": "1:14.98",
           "average_fmt": "1:19.85"
         },
@@ -9966,7 +9939,7 @@
           "single_cs": 2889,
           "average_cs": 3855,
           "single_nr": 506,
-          "average_nr": 565,
+          "average_nr": 566,
           "single_fmt": "28.89",
           "average_fmt": "38.55"
         }
@@ -9988,8 +9961,8 @@
           "event_name": "2x2",
           "single_cs": 707,
           "average_cs": 1058,
-          "single_nr": 2034,
-          "average_nr": 2111,
+          "single_nr": 2036,
+          "average_nr": 2114,
           "single_fmt": "7.07",
           "average_fmt": "10.58"
         },
@@ -9997,8 +9970,8 @@
           "event_name": "3x3",
           "single_cs": 2221,
           "average_cs": 2594,
-          "single_nr": 2258,
-          "average_nr": 2088,
+          "single_nr": 2262,
+          "average_nr": 2090,
           "single_fmt": "22.21",
           "average_fmt": "25.94"
         },
@@ -10006,8 +9979,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1188,
           "average_cs": 1615,
-          "single_nr": 1479,
-          "average_nr": 1347,
+          "single_nr": 1482,
+          "average_nr": 1348,
           "single_fmt": "11.88",
           "average_fmt": "16.15"
         }
@@ -10028,8 +10001,8 @@
           "event_name": "3x3",
           "single_cs": 7638,
           "average_cs": 10641,
-          "single_nr": 5658,
-          "average_nr": 5651,
+          "single_nr": 5668,
+          "average_nr": 5661,
           "single_fmt": "1:16.38",
           "average_fmt": "1:46.41"
         },
@@ -10068,7 +10041,7 @@
           "single_cs": 262,
           "average_cs": 402,
           "single_nr": 318,
-          "average_nr": 223,
+          "average_nr": 224,
           "single_fmt": "2.62",
           "average_fmt": "4.02"
         },
@@ -10077,7 +10050,7 @@
           "single_cs": 1093,
           "average_cs": 1274,
           "single_nr": 424,
-          "average_nr": 341,
+          "average_nr": 342,
           "single_fmt": "10.93",
           "average_fmt": "12.74"
         },
@@ -10112,7 +10085,7 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2163,
           "average_cs": 2607,
-          "single_nr": 261,
+          "single_nr": 262,
           "average_nr": 229,
           "single_fmt": "21.63",
           "average_fmt": "26.07"
@@ -10121,8 +10094,8 @@
           "event_name": "Clock",
           "single_cs": 931,
           "average_cs": 1286,
-          "single_nr": 100,
-          "average_nr": 123,
+          "single_nr": 101,
+          "average_nr": 125,
           "single_fmt": "9.31",
           "average_fmt": "12.86"
         },
@@ -10139,8 +10112,8 @@
           "event_name": "Pyraminx",
           "single_cs": 421,
           "average_cs": 581,
-          "single_nr": 199,
-          "average_nr": 115,
+          "single_nr": 200,
+          "average_nr": 116,
           "single_fmt": "4.21",
           "average_fmt": "5.81"
         },
@@ -10195,7 +10168,7 @@
           "single_cs": 4500,
           "average_cs": 4879,
           "single_nr": 252,
-          "average_nr": 196,
+          "average_nr": 197,
           "single_fmt": "45.00",
           "average_fmt": "48.79"
         },
@@ -10221,8 +10194,8 @@
           "event_name": "Megaminx",
           "single_cs": 9575,
           "average_cs": 11752,
-          "single_nr": 236,
-          "average_nr": 269,
+          "single_nr": 237,
+          "average_nr": 270,
           "single_fmt": "1:35.75",
           "average_fmt": "1:57.52"
         },
@@ -10239,7 +10212,7 @@
           "event_name": "Skewb",
           "single_cs": 787,
           "average_cs": 1101,
-          "single_nr": 466,
+          "single_nr": 467,
           "average_nr": 402,
           "single_fmt": "7.87",
           "average_fmt": "11.01"
@@ -10272,7 +10245,7 @@
           "event_name": "3x3",
           "single_cs": 1309,
           "average_cs": 1429,
-          "single_nr": 778,
+          "single_nr": 780,
           "average_nr": 542,
           "single_fmt": "13.09",
           "average_fmt": "14.29"
@@ -10282,7 +10255,7 @@
           "single_cs": 3041,
           "average_cs": 3560,
           "single_nr": 538,
-          "average_nr": 487,
+          "average_nr": 488,
           "single_fmt": "30.41",
           "average_fmt": "35.60"
         },
@@ -10290,8 +10263,8 @@
           "event_name": "Pyraminx",
           "single_cs": 690,
           "average_cs": 1466,
-          "single_nr": 613,
-          "average_nr": 1150,
+          "single_nr": 614,
+          "average_nr": 1152,
           "single_fmt": "6.90",
           "average_fmt": "14.66"
         }
@@ -10321,7 +10294,7 @@
           "single_cs": 132,
           "average_cs": 384,
           "single_nr": 38,
-          "average_nr": 187,
+          "average_nr": 188,
           "single_fmt": "1.32",
           "average_fmt": "3.84"
         },
@@ -10330,7 +10303,7 @@
           "single_cs": 898,
           "average_cs": 1094,
           "single_nr": 197,
-          "average_nr": 163,
+          "average_nr": 164,
           "single_fmt": "8.98",
           "average_fmt": "10.94"
         },
@@ -10374,8 +10347,8 @@
           "event_name": "Megaminx",
           "single_cs": 5657,
           "average_cs": 6393,
-          "single_nr": 57,
-          "average_nr": 56,
+          "single_nr": 58,
+          "average_nr": 57,
           "single_fmt": "56.57",
           "average_fmt": "1:03.93"
         },
@@ -10466,8 +10439,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2371,
           "average_cs": 2789,
-          "single_nr": 337,
-          "average_nr": 289,
+          "single_nr": 338,
+          "average_nr": 290,
           "single_fmt": "23.71",
           "average_fmt": "27.89"
         },
@@ -10476,7 +10449,7 @@
           "single_cs": 14263,
           "average_cs": 15151,
           "single_nr": 407,
-          "average_nr": 358,
+          "average_nr": 359,
           "single_fmt": "2:22.63",
           "average_fmt": "2:31.51"
         },
@@ -10484,7 +10457,7 @@
           "event_name": "Pyraminx",
           "single_cs": 480,
           "average_cs": 706,
-          "single_nr": 265,
+          "single_nr": 266,
           "average_nr": 193,
           "single_fmt": "4.80",
           "average_fmt": "7.06"
@@ -10536,7 +10509,7 @@
           "single_cs": 1187,
           "average_cs": 1594,
           "single_nr": 564,
-          "average_nr": 766,
+          "average_nr": 767,
           "single_fmt": "11.87",
           "average_fmt": "15.94"
         },
@@ -10554,7 +10527,7 @@
           "single_cs": 1206,
           "average_cs": 1386,
           "single_nr": 163,
-          "average_nr": 137,
+          "average_nr": 138,
           "single_fmt": "12.06",
           "average_fmt": "13.86"
         }
@@ -10667,8 +10640,8 @@
           "event_name": "Megaminx",
           "single_cs": 9651,
           "average_cs": 12113,
-          "single_nr": 240,
-          "average_nr": 280,
+          "single_nr": 242,
+          "average_nr": 281,
           "single_fmt": "1:36.51",
           "average_fmt": "2:01.13"
         },
@@ -10731,7 +10704,7 @@
           "event_name": "2x2",
           "single_cs": 627,
           "average_cs": 798,
-          "single_nr": 1786,
+          "single_nr": 1787,
           "average_nr": 1441,
           "single_fmt": "6.27",
           "average_fmt": "7.98"
@@ -10740,8 +10713,8 @@
           "event_name": "3x3",
           "single_cs": 1891,
           "average_cs": 2360,
-          "single_nr": 1744,
-          "average_nr": 1814,
+          "single_nr": 1745,
+          "average_nr": 1816,
           "single_fmt": "18.91",
           "average_fmt": "23.60"
         },
@@ -10749,7 +10722,7 @@
           "event_name": "4x4",
           "single_cs": 9751,
           "average_cs": null,
-          "single_nr": 1011,
+          "single_nr": 1014,
           "average_nr": null,
           "single_fmt": "1:37.51",
           "average_fmt": "—"
@@ -10785,8 +10758,8 @@
           "event_name": "Pyraminx",
           "single_cs": 715,
           "average_cs": 1147,
-          "single_nr": 660,
-          "average_nr": 704,
+          "single_nr": 661,
+          "average_nr": 705,
           "single_fmt": "7.15",
           "average_fmt": "11.47"
         },
@@ -10795,7 +10768,7 @@
           "single_cs": 1229,
           "average_cs": 1666,
           "single_nr": 721,
-          "average_nr": 663,
+          "average_nr": 664,
           "single_fmt": "12.29",
           "average_fmt": "16.66"
         }
@@ -10837,7 +10810,7 @@
           "single_cs": 1244,
           "average_cs": 1513,
           "single_nr": 653,
-          "average_nr": 649,
+          "average_nr": 650,
           "single_fmt": "12.44",
           "average_fmt": "15.13"
         },
@@ -10890,8 +10863,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 2516,
           "average_cs": 3638,
-          "single_nr": 390,
-          "average_nr": 508,
+          "single_nr": 391,
+          "average_nr": 509,
           "single_fmt": "25.16",
           "average_fmt": "36.38"
         },
@@ -10899,8 +10872,8 @@
           "event_name": "Clock",
           "single_cs": 2850,
           "average_cs": 3647,
-          "single_nr": 360,
-          "average_nr": 350,
+          "single_nr": 361,
+          "average_nr": 351,
           "single_fmt": "28.50",
           "average_fmt": "36.47"
         },
@@ -10909,7 +10882,7 @@
           "single_cs": 9159,
           "average_cs": 10914,
           "single_nr": 213,
-          "average_nr": 243,
+          "average_nr": 244,
           "single_fmt": "1:31.59",
           "average_fmt": "1:49.14"
         },
@@ -10918,7 +10891,7 @@
           "single_cs": 656,
           "average_cs": 1035,
           "single_nr": 537,
-          "average_nr": 545,
+          "average_nr": 546,
           "single_fmt": "6.56",
           "average_fmt": "10.35"
         },
@@ -10927,7 +10900,7 @@
           "single_cs": 1064,
           "average_cs": 1659,
           "single_nr": 655,
-          "average_nr": 659,
+          "average_nr": 660,
           "single_fmt": "10.64",
           "average_fmt": "16.59"
         },
@@ -10959,8 +10932,8 @@
           "event_name": "2x2",
           "single_cs": 1576,
           "average_cs": 3233,
-          "single_nr": 3269,
-          "average_nr": 3385,
+          "single_nr": 3274,
+          "average_nr": 3391,
           "single_fmt": "15.76",
           "average_fmt": "32.33"
         },
@@ -10968,8 +10941,8 @@
           "event_name": "3x3",
           "single_cs": 5883,
           "average_cs": 7183,
-          "single_nr": 5233,
-          "average_nr": 5159,
+          "single_nr": 5243,
+          "average_nr": 5169,
           "single_fmt": "58.83",
           "average_fmt": "1:11.83"
         },
@@ -10977,7 +10950,7 @@
           "event_name": "Clock",
           "single_cs": 3067,
           "average_cs": null,
-          "single_nr": 378,
+          "single_nr": 379,
           "average_nr": null,
           "single_fmt": "30.67",
           "average_fmt": "—"
@@ -11010,7 +10983,7 @@
           "single_cs": 335,
           "average_cs": 683,
           "single_nr": 619,
-          "average_nr": 1063,
+          "average_nr": 1064,
           "single_fmt": "3.35",
           "average_fmt": "6.83"
         },
@@ -11028,7 +11001,7 @@
           "single_cs": 2881,
           "average_cs": 3071,
           "single_nr": 503,
-          "average_nr": 360,
+          "average_nr": 361,
           "single_fmt": "28.81",
           "average_fmt": "30.71"
         },
@@ -11036,8 +11009,8 @@
           "event_name": "Pyraminx",
           "single_cs": 1527,
           "average_cs": 3480,
-          "single_nr": 1905,
-          "average_nr": 2198,
+          "single_nr": 1906,
+          "average_nr": 2202,
           "single_fmt": "15.27",
           "average_fmt": "34.80"
         }
@@ -11098,8 +11071,8 @@
           "event_name": "3x3",
           "single_cs": 2606,
           "average_cs": 3779,
-          "single_nr": 2814,
-          "average_nr": 3347,
+          "single_nr": 2819,
+          "average_nr": 3352,
           "single_fmt": "26.06",
           "average_fmt": "37.79"
         }
@@ -11140,7 +11113,7 @@
           "single_cs": 1142,
           "average_cs": 1519,
           "single_nr": 508,
-          "average_nr": 661,
+          "average_nr": 662,
           "single_fmt": "11.42",
           "average_fmt": "15.19"
         },
@@ -11184,8 +11157,8 @@
           "event_name": "3x3 One-Handed",
           "single_cs": 3088,
           "average_cs": 3439,
-          "single_nr": 555,
-          "average_nr": 462,
+          "single_nr": 556,
+          "average_nr": 464,
           "single_fmt": "30.88",
           "average_fmt": "34.39"
         },
@@ -11211,8 +11184,8 @@
           "event_name": "Pyraminx",
           "single_cs": 520,
           "average_cs": 852,
-          "single_nr": 318,
-          "average_nr": 314,
+          "single_nr": 319,
+          "average_nr": 315,
           "single_fmt": "5.20",
           "average_fmt": "8.52"
         },
@@ -11220,7 +11193,7 @@
           "event_name": "Skewb",
           "single_cs": 750,
           "average_cs": 1090,
-          "single_nr": 428,
+          "single_nr": 429,
           "average_nr": 393,
           "single_fmt": "7.50",
           "average_fmt": "10.90"
@@ -11229,7 +11202,7 @@
           "event_name": "Square-1",
           "single_cs": 3052,
           "average_cs": 6646,
-          "single_nr": 156,
+          "single_nr": 158,
           "average_nr": 233,
           "single_fmt": "30.52",
           "average_fmt": "1:06.46"
@@ -11312,7 +11285,7 @@
           "single_cs": 1466,
           "average_cs": 1708,
           "single_nr": 76,
-          "average_nr": 50,
+          "average_nr": 51,
           "single_fmt": "14.66",
           "average_fmt": "17.08"
         },
@@ -11330,7 +11303,7 @@
           "single_cs": 1202,
           "average_cs": 1378,
           "single_nr": 162,
-          "average_nr": 135,
+          "average_nr": 136,
           "single_fmt": "12.02",
           "average_fmt": "13.78"
         },
@@ -11339,7 +11312,7 @@
           "single_cs": 359,
           "average_cs": 661,
           "single_nr": 132,
-          "average_nr": 168,
+          "average_nr": 169,
           "single_fmt": "3.59",
           "average_fmt": "6.61"
         },
@@ -11383,7 +11356,7 @@
           "single_cs": 4521,
           "average_cs": 5121,
           "single_nr": 259,
-          "average_nr": 231,
+          "average_nr": 232,
           "single_fmt": "45.21",
           "average_fmt": "51.21"
         },
@@ -11442,8 +11415,8 @@
           "event_name": "2x2",
           "single_cs": 810,
           "average_cs": 1014,
-          "single_nr": 2307,
-          "average_nr": 2006,
+          "single_nr": 2311,
+          "average_nr": 2009,
           "single_fmt": "8.10",
           "average_fmt": "10.14"
         },
@@ -11451,8 +11424,8 @@
           "event_name": "3x3",
           "single_cs": 2941,
           "average_cs": 3336,
-          "single_nr": 3177,
-          "average_nr": 2938,
+          "single_nr": 3184,
+          "average_nr": 2943,
           "single_fmt": "29.41",
           "average_fmt": "33.36"
         },
@@ -11491,8 +11464,8 @@
           "event_name": "3x3",
           "single_cs": 10324,
           "average_cs": 12095,
-          "single_nr": 5861,
-          "average_nr": 5726,
+          "single_nr": 5871,
+          "average_nr": 5736,
           "single_fmt": "1:43.24",
           "average_fmt": "2:00.95"
         },
@@ -11500,8 +11473,8 @@
           "event_name": "Clock",
           "single_cs": 2523,
           "average_cs": 2847,
-          "single_nr": 341,
-          "average_nr": 309,
+          "single_nr": 342,
+          "average_nr": 310,
           "single_fmt": "25.23",
           "average_fmt": "28.47"
         }

@@ -14,6 +14,8 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { OBSWebSocket } from 'obs-websocket-js';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
+import os from 'os';
 import { fileURLToPath } from 'url';
 import {
   fetchLiveCompetitionRounds,
@@ -58,6 +60,7 @@ const EVENT_NAMES = {
 
 // ── Estado en memoria ──
 let tournamentData = null;
+let tournamentDataFile = null;
 let currentEvent = null;
 let currentCompetitor = null;   // Competidor 1 (Mesa 1)
 let currentCompetitor2 = null;  // Competidor 2 (Mesa 2)
@@ -95,6 +98,9 @@ let lowerThirdData = {            // Contenido del Mini Banner de Texto
 
 // ── Estado del Banner de Finales Versus (Cara a Cara WCA Live con WPA/BPA/AVG) ──
 let versusBannerVisible = false;
+let clasifBannerEnabled = true;
+let clasifBannerSwapped = false;
+let clasifFixtureVisible = false;
 let versusRoundId = null;
 let versusCompId = null;
 let versusPollInterval = 2; // segundos (rápido para finales)
@@ -137,7 +143,8 @@ let liveRankingWidgetConfig = {
   cutoff: 0,
   dynamicPaging: true,
   autoBalance: true,
-  pageDuration: 10
+  pageDuration: 10,
+  layoutMode: 'vertical'
 };
 
 // ── Tema y Personalización de Fondo para Fullscreen ──
@@ -251,6 +258,7 @@ function saveLiveState(immediate = false) {
         : bigLogoUrl;
 
       const state = {
+        tournamentDataFile: tournamentDataFile,
         compId: liveRankingCompId,
         roundId: liveRankingRoundId,
         rounds: liveRankingRounds,
@@ -280,6 +288,9 @@ function saveLiveState(immediate = false) {
         lowerThirdVisible: lowerThirdVisible,
         lowerThirdData: lowerThirdData,
         versusBannerVisible: versusBannerVisible,
+        clasifBannerEnabled: clasifBannerEnabled,
+        clasifBannerSwapped: clasifBannerSwapped,
+        clasifFixtureVisible: clasifFixtureVisible,
         versusRoundId: versusRoundId,
         versusCompId: versusCompId,
         versusPollInterval: versusPollInterval,
@@ -304,6 +315,7 @@ function loadLiveState() {
   try {
     if (fs.existsSync(LIVE_STATE_FILE)) {
       const state = JSON.parse(fs.readFileSync(LIVE_STATE_FILE, 'utf8'));
+      if (state.tournamentDataFile) tournamentDataFile = state.tournamentDataFile;
       if (state.compId) liveRankingCompId = state.compId;
       if (state.roundId) liveRankingRoundId = state.roundId;
       if (state.rounds && Array.isArray(state.rounds)) liveRankingRounds = state.rounds;
@@ -358,6 +370,9 @@ function loadLiveState() {
         };
       }
       if (state.versusBannerVisible !== undefined) versusBannerVisible = state.versusBannerVisible;
+      if (state.clasifBannerEnabled !== undefined) clasifBannerEnabled = !!state.clasifBannerEnabled;
+      if (state.clasifBannerSwapped !== undefined) clasifBannerSwapped = !!state.clasifBannerSwapped;
+      if (state.clasifFixtureVisible !== undefined) clasifFixtureVisible = !!state.clasifFixtureVisible;
       if (state.versusRoundId) versusRoundId = state.versusRoundId;
       if (state.versusCompId) versusCompId = state.versusCompId;
       if (state.versusPollInterval !== undefined) versusPollInterval = state.versusPollInterval;
@@ -408,6 +423,7 @@ if (specifiedDataFile) {
   if (fs.existsSync(customPath)) {
     try {
       tournamentData = JSON.parse(fs.readFileSync(customPath, 'utf8'));
+      tournamentDataFile = path.basename(customPath);
       if (tournamentData?.competitors) enrichCompetitorsWithLocalAvatars(tournamentData.competitors);
       console.log(`[Torneo] Cargado desde argumento: ${tournamentData.name} (${tournamentData.competitors?.length || 0} competidores)`);
     } catch (err) {
@@ -417,10 +433,25 @@ if (specifiedDataFile) {
     console.warn(`[Torneo] Archivo especificado no encontrado: ${specifiedDataFile}`);
   }
 } else {
-  console.log('[Torneo] Servidor iniciado sin torneo por defecto. Carga uno desde el panel web o con --data <archivo.json>');
+  const candidates = [];
+  if (tournamentDataFile) candidates.push(path.join(__dirname, path.basename(tournamentDataFile)));
+  if (liveRankingCompId) candidates.push(path.join(__dirname, `${String(liveRankingCompId).replace(/[^a-zA-Z0-9_-]/g, '_')}_data.json`));
+  const autoPath = candidates.find(p => fs.existsSync(p));
+  if (autoPath) {
+    try {
+      tournamentData = JSON.parse(fs.readFileSync(autoPath, 'utf8'));
+      tournamentDataFile = path.basename(autoPath);
+      if (tournamentData?.competitors) enrichCompetitorsWithLocalAvatars(tournamentData.competitors);
+      console.log(`[Torneo] Restaurado automáticamente desde ${tournamentDataFile}: ${tournamentData.name} (${tournamentData.competitors?.length || 0} competidores)`);
+    } catch (err) {
+      console.warn('[Torneo] Error restaurando torneo guardado:', err.message);
+    }
+  } else {
+    console.log('[Torneo] Servidor iniciado sin torneo por defecto. Carga uno desde el panel web o con --data <archivo.json>');
+  }
 }
 
-// Si había una ronda de WCA Live guardada en estado previo, precargar su ranking
+// Si había una ronda de WCA Live guardada en estado previo, precargar su ranking e iniciar polling automático
 if (liveRankingRoundId) {
   fetchLiveRoundRanking(liveRankingRoundId, liveRankingDynamicPaging ? 0 : liveRankingTop, liveRankingCutoff)
     .then(ranking => {
@@ -429,6 +460,11 @@ if (liveRankingRoundId) {
     })
     .catch(err => {
       console.warn(`[LiveRanking] No se pudo precargar ranking para ${liveRankingRoundId}:`, err.message);
+    })
+    .finally(() => {
+      if (liveRankingPollInterval > 0) {
+        startLiveRankingPolling(liveRankingPollInterval);
+      }
     });
 }
 
@@ -511,9 +547,23 @@ let obsStatus = {
 
 // ── Funciones de ayuda WCA ──
 function formatTime(centiseconds, eventId) {
-  if (centiseconds === null || centiseconds === undefined) return '—';
+  if (centiseconds === null || centiseconds === undefined || centiseconds === 0) return '—';
+  if (centiseconds === -1) return 'DNF';
+  if (centiseconds === -2) return 'DNS';
   if (eventId === '333fm') return String(centiseconds);
-  if (eventId === '333mbf') return `MBLD:${centiseconds}`;
+  if (eventId === '333mbf') {
+    const value = parseInt(centiseconds, 10);
+    if (Number.isNaN(value) || value <= 0) return '—';
+    const missed = value % 100;
+    const timeSeconds = Math.floor(value / 100) % 100000;
+    const difference = 99 - (Math.floor(value / 10000000) % 100);
+    const solved = difference + missed;
+    const attempted = solved + missed;
+    if (timeSeconds === 99999) return `${solved}/${attempted}`;
+    const minutes = Math.floor(timeSeconds / 60);
+    const seconds = timeSeconds % 60;
+    return `${solved}/${attempted} ${minutes}:${String(seconds).padStart(2, '0')}`;
+  }
 
   const totalCs = parseInt(centiseconds, 10);
   const minutes = Math.floor(totalCs / 6000);
@@ -530,6 +580,146 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(express.json({ limit: '15mb' }));
+
+// ── Autenticación por contraseña para el Panel de Control (OBS overlays quedan libres) ──
+const PANEL_PASSWORD = process.env.PANEL_PASSWORD || '3131';
+const AUTH_COOKIE_NAME = 'directoobs_auth';
+const AUTH_TOKEN = crypto
+  .createHmac('sha256', `directoobs-panel:${PANEL_PASSWORD}`)
+  .update('session-v1')
+  .digest('hex');
+
+function parseCookies(cookieHeader) {
+  const out = {};
+  if (!cookieHeader || typeof cookieHeader !== 'string') return out;
+  for (const part of cookieHeader.split(';')) {
+    const idx = part.indexOf('=');
+    if (idx <= 0) continue;
+    const k = part.slice(0, idx).trim();
+    const v = part.slice(idx + 1).trim();
+    out[k] = decodeURIComponent(v);
+  }
+  return out;
+}
+
+function safeEqualStr(a, b) {
+  const bufA = Buffer.from(String(a || ''), 'utf8');
+  const bufB = Buffer.from(String(b || ''), 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+function isRequestAuthenticated(req) {
+  const cookies = parseCookies(req?.headers?.cookie);
+  const token = cookies[AUTH_COOKIE_NAME];
+  return !!token && safeEqualStr(token, AUTH_TOKEN);
+}
+
+function renderPanelLoginHtml() {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DirectoOBS · Acceso al Panel</title>
+  <style>
+    * { box-sizing: border-box; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle at top, #172554 0%, #090d16 65%); color: #f8fafc; padding: 20px;
+    }
+    .card {
+      width: 100%; max-width: 380px; background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.22); border-radius: 16px;
+      padding: 28px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    }
+    h1 { margin: 0 0 6px; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+    p { margin: 0 0 20px; color: #94a3b8; font-size: 13.5px; line-height: 1.45; }
+    label { display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    input {
+      width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #0b1120; color: #f8fafc; font-size: 15px; outline: none; transition: border-color 0.15s;
+    }
+    input:focus { border-color: #38bdf8; }
+    button {
+      margin-top: 14px; width: 100%; padding: 12px; border-radius: 10px; border: none;
+      background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; font-size: 14.5px;
+      font-weight: 700; cursor: pointer; transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.92; }
+    .err { margin-top: 12px; color: #f87171; font-size: 13px; min-height: 18px; }
+  </style>
+</head>
+<body>
+  <form class="card" id="login-form">
+    <h1>DirectoOBS</h1>
+    <p>Ingresa la contraseña para acceder al panel de control.</p>
+    <label for="pw">Contraseña</label>
+    <input id="pw" name="password" type="password" autocomplete="current-password" placeholder="Contraseña..." autofocus required />
+    <button type="submit">Entrar al panel</button>
+    <div class="err" id="err"></div>
+  </form>
+  <script>
+    const form = document.getElementById('login-form');
+    const pw = document.getElementById('pw');
+    const err = document.getElementById('err');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.textContent = '';
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw.value })
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          window.location.href = '/';
+        } else {
+          err.textContent = data.error || 'Contraseña incorrecta';
+          pw.select();
+        }
+      } catch {
+        err.textContent = 'Error de conexión con el servidor';
+      }
+    });
+  </script>
+</body>
+</html>`;
+}
+
+app.post('/api/auth/login', (req, res) => {
+  const password = req.body?.password ?? '';
+  if (!safeEqualStr(password, PANEL_PASSWORD)) {
+    return res.status(401).json({ ok: false, error: 'Contraseña incorrecta' });
+  }
+  res.setHeader('Set-Cookie', `${AUTH_COOKIE_NAME}=${encodeURIComponent(AUTH_TOKEN)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800`);
+  return res.json({ ok: true });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  res.setHeader('Set-Cookie', `${AUTH_COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`);
+  return res.json({ ok: true });
+});
+
+app.use((req, res, next) => {
+  const reqPath = req.path || '/';
+  if (reqPath === '/' || reqPath === '/index.html') {
+    if (!isRequestAuthenticated(req)) {
+      return res.status(200).type('html').send(renderPanelLoginHtml());
+    }
+    return next();
+  }
+  if (reqPath.startsWith('/api/')) {
+    if (reqPath === '/api/auth/login' || reqPath === '/api/auth/logout') return next();
+    const isObsRead = reqPath.startsWith('/api/obs/');
+    const isWrite = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
+    if ((isWrite || isObsRead) && !isRequestAuthenticated(req)) {
+      return res.status(401).json({ ok: false, error: 'No autorizado' });
+    }
+  }
+  return next();
+});
 
 // Servir carpetas estáticas
 app.use(express.static(path.join(__dirname, 'public')));
@@ -622,6 +812,8 @@ app.post('/api/tournament', (req, res) => {
     const savePath = path.join(__dirname, cleanSaveName);
 
     fs.writeFileSync(savePath, JSON.stringify(data, null, 2), 'utf8');
+    tournamentDataFile = cleanSaveName;
+    saveLiveState(true);
     console.log(`[Torneo] Guardado en: ${savePath}`);
 
     // Notificar a todos los paneles
@@ -636,6 +828,8 @@ app.post('/api/tournament', (req, res) => {
 // Limpiar los datos del torneo actual
 app.post('/api/tournament/clear', (req, res) => {
   tournamentData = null;
+  tournamentDataFile = null;
+  saveLiveState(true);
   currentEvent = null;
   currentCompetitor = null;
   competitorVisible = false;
@@ -817,6 +1011,8 @@ app.post('/api/wca/fetch', async (req, res) => {
 
       const outPath = path.join(__dirname, `${competitionId}_data.json`);
       fs.writeFileSync(outPath, JSON.stringify(finalTournament, null, 2), 'utf8');
+      tournamentDataFile = `${competitionId}_data.json`;
+      saveLiveState(true);
 
       const totalAvatars = competitorsFull.filter(c => c.avatar_url).length;
       emitProgress(100, `¡Completado! ${competitorsFull.length} inscritos y ${totalAvatars} fotos guardadas localmente.`, 'ok');
@@ -1070,23 +1266,26 @@ app.get('/api/live/rounds/:roundId', async (req, res) => {
     const { roundId } = req.params;
     const top = parseInt(req.query.top || '16', 10);
     const cutoff = req.query.cutoff !== undefined ? (parseInt(req.query.cutoff, 10) || 0) : liveRankingCutoff;
+    const isReadonly = req.query.readonly === '1';
     const ranking = await fetchLiveRoundRanking(roundId, top, cutoff);
-    liveRankingRoundId = roundId;
-    liveRankingData = ranking;
-    saveLiveState();
-    broadcastToOverlays({
-      type: 'live_ranking_update',
-      visible: liveRankingVisible,
-      data: liveRankingData,
-      dynamicPaging: liveRankingDynamicPaging,
-      autoBalance: liveRankingAutoBalance,
-      pageSize: liveRankingPageSize,
-      pageDuration: liveRankingPageDuration,
-      cutoff: liveRankingCutoff,
-      viewMode: liveRankingViewMode,
-      fsConfig: liveRankingFsConfig,
-      widgetConfig: liveRankingWidgetConfig
-    });
+    if (!isReadonly) {
+      liveRankingRoundId = roundId;
+      liveRankingData = ranking;
+      saveLiveState();
+      broadcastToOverlays({
+        type: 'live_ranking_update',
+        visible: liveRankingVisible,
+        data: liveRankingData,
+        dynamicPaging: liveRankingDynamicPaging,
+        autoBalance: liveRankingAutoBalance,
+        pageSize: liveRankingPageSize,
+        pageDuration: liveRankingPageDuration,
+        cutoff: liveRankingCutoff,
+        viewMode: liveRankingViewMode,
+        fsConfig: liveRankingFsConfig,
+        widgetConfig: liveRankingWidgetConfig
+      });
+    }
     res.json({ ok: true, ranking });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -2415,11 +2614,14 @@ app.post('/api/obs/apply-layout', async (req, res) => {
     layout,
     bannerMode = 'none',
     bannerSourceId,
-    bannerPosition
+    bannerPosition,
+    pipEnabled = false,
+    pipCamId,
+    pipCorner = 'br'
   } = req.body;
 
   // Si OBS no está conectado o se están operando cámaras simuladas (IDs >= 101), aplicar sobre el simulador en bucle (PreEscena o Principal)
-  if (!obsConnected || Number(camAId) >= 101 || Number(camBId) >= 101 || req.body?.camCount !== undefined || req.body?.pipEnabled !== undefined || req.body?.slotIds !== undefined) {
+  if (!obsConnected || Number(camAId) >= 101 || Number(camBId) >= 101 || req.body?.camCount !== undefined || req.body?.slotIds !== undefined) {
     syncSimCamerasState();
     simCamerasState.enabled = true;
     const isPreviewTarget = (target === 'preview');
@@ -2506,7 +2708,15 @@ app.post('/api/obs/apply-layout', async (req, res) => {
 
     const { camATransform, camBTransform } = calculateCameraLayout({ layout, bannerMode });
     const promises = [];
-    if (camAId && camATransform) {
+    const activeCamIds = new Set();
+    const { sceneItems = [] } = await obs.call('GetSceneItemList', { sceneName: targetScene }).catch(() => ({ sceneItems: [] }));
+    const protectedBgIds = new Set(
+      sceneItems
+        .filter(it => /fondo|navegador|overlay|envivo|fullscreen|transicion/i.test(it.sourceName || ''))
+        .map(it => Number(it.sceneItemId))
+    );
+    if (camAId && camATransform && !protectedBgIds.has(Number(camAId))) {
+      activeCamIds.add(Number(camAId));
       promises.push(obs.call('SetSceneItemTransform', {
         sceneName: targetScene,
         sceneItemId: Number(camAId),
@@ -2518,7 +2728,8 @@ app.post('/api/obs/apply-layout', async (req, res) => {
         sceneItemEnabled: true
       }).catch(() => null));
     }
-    if (camBId && camBTransform) {
+    if (camBId && camBTransform && !protectedBgIds.has(Number(camBId))) {
+      activeCamIds.add(Number(camBId));
       promises.push(obs.call('SetSceneItemTransform', {
         sceneName: targetScene,
         sceneItemId: Number(camBId),
@@ -2529,6 +2740,74 @@ app.post('/api/obs/apply-layout', async (req, res) => {
         sceneItemId: Number(camBId),
         sceneItemEnabled: true
       }).catch(() => null));
+    }
+
+    if (pipEnabled && pipCamId && Number(pipCamId) < 101) {
+      const pipIdNum = Number(pipCamId);
+      const pipW = 496;
+      const pipH = 279;
+      const pipCoords = {
+        br: { x: 1920 - pipW, y: 725 },
+        bl: { x: 0, y: 725 },
+        tr: { x: 1920 - pipW, y: 0 },
+        tl: { x: 0, y: 0 }
+      };
+      const pos = pipCoords[pipCorner] || pipCoords.br;
+      activeCamIds.add(pipIdNum);
+      promises.push(obs.call('SetSceneItemTransform', {
+        sceneName: targetScene,
+        sceneItemId: pipIdNum,
+        sceneItemTransform: {
+          positionX: pos.x,
+          positionY: pos.y,
+          boundsType: 'OBS_BOUNDS_SCALE_INNER',
+          boundsAlignment: 0,
+          boundsWidth: pipW,
+          boundsHeight: pipH,
+          cropTop: 0,
+          cropBottom: 0,
+          cropLeft: 0,
+          cropRight: 0
+        }
+      }).catch(() => null));
+      promises.push(obs.call('SetSceneItemEnabled', {
+        sceneName: targetScene,
+        sceneItemId: pipIdNum,
+        sceneItemEnabled: true
+      }).catch(() => null));
+    }
+
+    // Ocultar las demás fuentes de cámara/video en la escena para que no tapen la cámara seleccionada
+    if (activeCamIds.size > 0) {
+      if (pipEnabled && pipCamId && Number(pipCamId) < 101) {
+        const pipIdNum = Number(pipCamId);
+        const pipItem = sceneItems.find(it => Number(it.sceneItemId) === pipIdNum);
+        const mainCamIndices = sceneItems
+          .filter(it => [Number(camAId), Number(camBId)].includes(Number(it.sceneItemId)))
+          .map(it => Number(it.sceneItemIndex));
+        const maxMainIdx = mainCamIndices.length > 0 ? Math.max(...mainCamIndices) : -1;
+        if (pipItem && maxMainIdx >= 0 && Number(pipItem.sceneItemIndex) < maxMainIdx) {
+          promises.push(obs.call('SetSceneItemIndex', {
+            sceneName: targetScene,
+            sceneItemId: pipIdNum,
+            sceneItemIndex: maxMainIdx
+          }).catch(() => null));
+        }
+      }
+      const cameraKinds = new Set(['dshow_input', 'browser_source', 'v4l2_input', 'av_capture_input', 'window_capture', 'display_capture']);
+      for (const item of sceneItems) {
+        const id = Number(item.sceneItemId);
+        if (activeCamIds.has(id) || (bannerSourceId && id === Number(bannerSourceId))) continue;
+        if (!item.sceneItemEnabled) continue;
+        if (!cameraKinds.has(item.inputKind)) continue;
+        // Mantener intacto el overlay principal (ej. "Navegador" / /envivo / /overlay) y el fondo animado
+        if (item.inputKind === 'browser_source' && /navegador|overlay|envivo|fullscreen|transicion|fondo/i.test(item.sourceName || '')) continue;
+        promises.push(obs.call('SetSceneItemEnabled', {
+          sceneName: targetScene,
+          sceneItemId: id,
+          sceneItemEnabled: false
+        }).catch(() => null));
+      }
     }
 
     await Promise.all(promises);
@@ -2674,6 +2953,7 @@ app.get('/api/obs/studio-screenshots', async (req, res) => {
 
   const programScene = req.query.programSource || obsStatus.currentProgramScene;
   const previewScene = req.query.previewSource || obsStatus.currentPreviewScene || obsStatus.currentProgramScene;
+  const previewPipSource = req.query.previewPipSource || '';
   const quality = req.query.quality || 'hd';
 
   let width = 960;
@@ -2740,7 +3020,18 @@ app.get('/api/obs/studio-screenshots', async (req, res) => {
       promises.push(Promise.resolve(null));
     }
 
-    const [prevRes, progRes] = await Promise.all(promises);
+    if (previewPipSource) {
+      promises.push(obs.call('GetSourceScreenshot', {
+        sourceName: previewPipSource,
+        imageFormat: 'png',
+        imageWidth: 320,
+        imageHeight: 180
+      }).catch(() => null));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    const [prevRes, progRes, prevPipRes] = await Promise.all(promises);
 
     res.json({
       ok: true,
@@ -2748,7 +3039,8 @@ app.get('/api/obs/studio-screenshots', async (req, res) => {
       previewScene,
       programScene,
       previewImage: prevRes ? prevRes.imageData : null,
-      programImage: progRes ? progRes.imageData : null
+      programImage: progRes ? progRes.imageData : null,
+      previewPipImage: prevPipRes ? prevPipRes.imageData : null
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2972,7 +3264,9 @@ function startLiveRankingPolling(intervalSecs) {
           autoBalance: liveRankingAutoBalance,
           pageSize: liveRankingPageSize,
           pageDuration: liveRankingPageDuration,
-          viewMode: liveRankingViewMode
+          viewMode: liveRankingViewMode,
+          fsConfig: liveRankingFsConfig,
+          widgetConfig: liveRankingWidgetConfig
         });
       }
       broadcastToPanels({
@@ -3006,6 +3300,10 @@ function handleSocketConnection(ws, req) {
   const explicitRole = urlParams.get('role');
 
   if (explicitRole === 'panel') {
+    if (!isRequestAuthenticated(req)) {
+      ws.close(4001, 'No autorizado');
+      return;
+    }
     isPanel = true;
     panelClients.add(ws);
     initPanel(ws);
@@ -3191,6 +3489,24 @@ function handleSocketConnection(ws, req) {
       type: 'sim_cameras_state',
       state: syncSimCamerasState()
     }));
+
+    // Enviar estado de habilitación del banner superior de Clasificatorio-WCA
+    socket.send(JSON.stringify({
+      type: 'clasif_banner_toggle',
+      enabled: clasifBannerEnabled
+    }));
+
+    // Enviar estado de inversión izquierda/derecha del banner superior
+    socket.send(JSON.stringify({
+      type: 'clasif_banner_swap',
+      swapped: clasifBannerSwapped
+    }));
+
+    // Enviar estado de visibilidad del Fixture completo de Clasificatorio-WCA
+    socket.send(JSON.stringify({
+      type: 'clasif_fixture_toggle',
+      visible: clasifFixtureVisible
+    }));
   }
 
   function initPanel(socket) {
@@ -3239,6 +3555,9 @@ function handleSocketConnection(ws, req) {
       liveRankingFsConfig,
       liveRankingWidgetConfig,
       versusBannerVisible,
+      clasifBannerEnabled,
+      clasifBannerSwapped,
+      clasifFixtureVisible,
       versusRoundId,
       versusCompId,
       versusPollInterval,
@@ -3931,6 +4250,45 @@ function handleSocketConnection(ws, req) {
         });
         break;
 
+      case 'clasif_banner_toggle':
+        clasifBannerEnabled = !!msg.enabled;
+        saveLiveState();
+        broadcastToOverlays({
+          type: 'clasif_banner_toggle',
+          enabled: clasifBannerEnabled
+        });
+        broadcastToPanels({
+          type: 'sync_clasif_banner',
+          enabled: clasifBannerEnabled
+        });
+        break;
+
+      case 'clasif_banner_swap':
+        clasifBannerSwapped = msg.swapped !== undefined ? !!msg.swapped : !clasifBannerSwapped;
+        saveLiveState();
+        broadcastToOverlays({
+          type: 'clasif_banner_swap',
+          swapped: clasifBannerSwapped
+        });
+        broadcastToPanels({
+          type: 'sync_clasif_banner_swap',
+          swapped: clasifBannerSwapped
+        });
+        break;
+
+      case 'clasif_fixture_toggle':
+        clasifFixtureVisible = !!msg.visible;
+        saveLiveState();
+        broadcastToOverlays({
+          type: 'clasif_fixture_toggle',
+          visible: clasifFixtureVisible
+        });
+        broadcastToPanels({
+          type: 'sync_clasif_fixture',
+          visible: clasifFixtureVisible
+        });
+        break;
+
       case 'set_versus_config':
         if (msg.roundId !== undefined) versusRoundId = msg.roundId;
         if (msg.compId !== undefined) versusCompId = msg.compId;
@@ -4180,11 +4538,18 @@ try {
 }
 
 // ── Iniciar servidor HTTP ──
-server.listen(PORT, async () => {
+server.listen(PORT, '0.0.0.0', async () => {
+  const lanIps = Object.values(os.networkInterfaces())
+    .flat()
+    .filter(iface => iface && iface.family === 'IPv4' && !iface.internal)
+    .map(iface => iface.address);
   console.log('====================================================');
   console.log('   DirectoOBS v2.0 - Node.js Broadcast Engine');
   console.log('====================================================');
-  console.log(`▸ Panel de Control:   http://localhost:${PORT}`);
+  console.log(`▸ Panel de Control:   http://localhost:${PORT} (con contraseña)`);
+  for (const ip of lanIps) {
+    console.log(`▸ Panel en Red Local: http://${ip}:${PORT}`);
+  }
   console.log(`▸ Señal En Vivo (OBS Master): http://localhost:${PORT}/envivo`);
   console.log(`▸ Overlay para OBS:   http://localhost:${PORT}/overlay`);
   console.log(`▸ WebSocket (HTTP):   ws://localhost:${PORT}/ws`);

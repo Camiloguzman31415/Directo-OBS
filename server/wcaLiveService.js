@@ -172,6 +172,22 @@ function formatWcaTime(centiseconds, eventId = '333') {
     return String(centiseconds);
   }
 
+  if (eventId === '333mbf') {
+    const value = parseInt(centiseconds, 10);
+    if (Number.isNaN(value) || value <= 0) return '—';
+    const missed = value % 100;
+    const timeSeconds = Math.floor(value / 100) % 100000;
+    const difference = 99 - (Math.floor(value / 10000000) % 100);
+    const solved = difference + missed;
+    const attempted = solved + missed;
+    if (timeSeconds === 99999) {
+      return `${solved}/${attempted}`;
+    }
+    const minutes = Math.floor(timeSeconds / 60);
+    const seconds = timeSeconds % 60;
+    return `${solved}/${attempted} ${minutes}:${String(seconds).padStart(2, '0')}`;
+  }
+
   const totalCs = parseInt(centiseconds, 10);
   const minutes = Math.floor(totalCs / 6000);
   const seconds = Math.floor((totalCs % 6000) / 100);
@@ -401,7 +417,10 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
   const compWcaId = round.competitionEvent?.competition?.wcaId || '';
   const totalRounds = round.competitionEvent?.rounds?.length || (round.number >= 3 ? round.number : 3);
   const roundName = formatCustomRoundName(round.number || round.name, totalRounds);
+  const formatId = String(round.format?.id || '').toLowerCase();
   let totalAttempts = round.format?.numberOfAttempts || 5;
+  const isBestRankedFormat = ['1', '2', '3'].includes(formatId) || ['333bf', '444bf', '555bf', '333mbf'].includes(eventId);
+  const isAverageRanked = !isBestRankedFormat;
   const advancingCutoff = cutoffLevel !== undefined && cutoffLevel !== null ? Math.max(0, parseInt(cutoffLevel, 10) || 0) : 0;
 
   // Formatear resultados (con fallback automático a WCIF de worldcubeassociation.org si WCA Live GraphQL está vacío)
@@ -427,8 +446,7 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
     const rankPos = r.ranking !== null && r.ranking !== undefined ? r.ranking : (idx + 1);
     const isAdvancing = advancingCutoff > 0 ? (rankPos <= advancingCutoff) : false;
 
-    // Determinar si el promedio o mejor tiempo aplica según el tipo de evento
-    const isAverageRanked = !['333bf', '444bf', '555bf', '333mbf'].includes(eventId);
+    // Determinar si el promedio o mejor tiempo aplica según el tipo de evento/formato
     const mainScoreCs = isAverageRanked ? (r.average > 0 ? r.average : r.best) : r.best;
     const mainScoreFormatted = formatWcaTime(mainScoreCs, eventId);
 
@@ -490,11 +508,16 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
 
       const projA = toMonotonic(a.projectedAverage);
       const projB = toMonotonic(b.projectedAverage);
-      if (projA !== projB) return projA - projB;
-
       const bestA = toMonotonic(a.best);
       const bestB = toMonotonic(b.best);
-      if (bestA !== bestB) return bestA - bestB;
+
+      if (isAverageRanked) {
+        if (projA !== projB) return projA - projB;
+        if (bestA !== bestB) return bestA - bestB;
+      } else {
+        if (bestA !== bestB) return bestA - bestB;
+        if (projA !== projB) return projA - projB;
+      }
 
       return (b.solvesCompleted || 0) - (a.solvesCompleted || 0);
     });
@@ -522,6 +545,9 @@ async function fetchLiveRoundRanking(roundId, topLimit = 16, cutoffLevel = 0) {
     roundName,
     eventId,
     eventName,
+    formatId,
+    rankingType: isAverageRanked ? (formatId === 'm' ? 'mean' : 'average') : 'best',
+    totalSolves: totalAttempts,
     competitionName: compName,
     isOpen: !!round.open,
     isFinished: isRoundFinished,

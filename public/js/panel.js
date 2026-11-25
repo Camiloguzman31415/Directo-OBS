@@ -86,11 +86,15 @@ let liveRankingWidgetConfig = {
   cutoff: 0,
   dynamicPaging: true,
   autoBalance: true,
-  pageDuration: 10
+  pageDuration: 10,
+  layoutMode: 'vertical'
 };
 
 // ── Estado del Banner de Finales Versus (WCA Live) ──
 let versusBannerVisible = false;
+let clasifBannerEnabled = true;
+let clasifBannerSwapped = false;
+let clasifFixtureVisible = false;
 let versusRoundId = null;
 let versusCompId = null;
 let versusComp1Target = null;
@@ -122,7 +126,7 @@ const EVENT_NAMES = {
   '333fm': 'Fewest Moves', '333oh': '3x3 OH', 'clock': 'Clock',
   'minx': 'Megaminx', 'pyram': 'Pyraminx', 'skewb': 'Skewb',
   'sq1': 'Square-1', '444bf': '4x4 BLD', '555bf': '5x5 BLD',
-  '333mbf': 'Multi-Blind'
+  '333mbf': 'Multi-Blind', 'copa_regiones': 'Copa de Regiones'
 };
 
 function getCleanEventName(eventId, fallbackName = '') {
@@ -370,6 +374,11 @@ function handleServerMessage(msg) {
 
       // Hidratar estado de Banner Versus
       if (msg.versusBannerVisible !== undefined) versusBannerVisible = !!msg.versusBannerVisible;
+      if (msg.clasifBannerEnabled !== undefined) clasifBannerEnabled = !!msg.clasifBannerEnabled;
+      if (msg.clasifBannerSwapped !== undefined) clasifBannerSwapped = !!msg.clasifBannerSwapped;
+      if (msg.clasifFixtureVisible !== undefined) clasifFixtureVisible = !!msg.clasifFixtureVisible;
+      updateClasifBannerUI();
+      updateClasifFixtureUI();
       if (msg.versusRoundId) versusRoundId = msg.versusRoundId;
       if (msg.versusCompId) versusCompId = msg.versusCompId;
       if (msg.versusPollInterval !== undefined) versusPollInterval = msg.versusPollInterval;
@@ -643,7 +652,84 @@ function handleServerMessage(msg) {
       }
       updateVersusUI();
       break;
+
+    case 'sync_clasif_banner':
+      clasifBannerEnabled = !!msg.enabled;
+      updateClasifBannerUI();
+      break;
+
+    case 'sync_clasif_banner_swap':
+      clasifBannerSwapped = !!msg.swapped;
+      updateClasifBannerUI();
+      break;
+
+    case 'sync_clasif_fixture':
+      clasifFixtureVisible = !!msg.visible;
+      updateClasifFixtureUI();
+      break;
   }
+}
+
+function setClasifBannerEnabled(enabled) {
+  clasifBannerEnabled = !!enabled;
+  updateClasifBannerUI();
+  sendWS({
+    type: 'clasif_banner_toggle',
+    enabled: clasifBannerEnabled
+  });
+  showToast(clasifBannerEnabled ? 'Banner superior Clasificatorio habilitado en OBS' : 'Banner superior Clasificatorio ocultado de OBS', clasifBannerEnabled ? 'success' : 'info');
+}
+
+function toggleClasifBannerSwap() {
+  clasifBannerSwapped = !clasifBannerSwapped;
+  updateClasifBannerUI();
+  sendWS({
+    type: 'clasif_banner_swap',
+    swapped: clasifBannerSwapped
+  });
+  showToast(clasifBannerSwapped ? 'Orden del banner invertido (Derecha ↔ Izquierda)' : 'Orden del banner restaurado (Normal)', 'info');
+}
+
+function updateClasifBannerUI() {
+  const badge = document.getElementById('clasif-banner-status-badge');
+  const btnEnable = document.getElementById('btn-enable-clasif-banner');
+  const btnDisable = document.getElementById('btn-disable-clasif-banner');
+  const btnSwap = document.getElementById('btn-swap-clasif-banner');
+
+  if (badge) {
+    badge.textContent = clasifBannerEnabled ? 'Habilitado' : 'Oculto';
+    badge.className = `live-status-pill ${clasifBannerEnabled ? 'online' : 'offline'}`;
+  }
+  if (btnEnable) btnEnable.classList.toggle('active', clasifBannerEnabled);
+  if (btnDisable) btnDisable.classList.toggle('active', !clasifBannerEnabled);
+  if (btnSwap) {
+    btnSwap.classList.toggle('active', clasifBannerSwapped);
+    const labelSpan = btnSwap.querySelector('span:last-child');
+    if (labelSpan) labelSpan.textContent = clasifBannerSwapped ? 'Invertido (Der ↔ Izq)' : 'Invertir Izq / Der';
+  }
+}
+
+function setClasifFixtureVisible(visible) {
+  clasifFixtureVisible = !!visible;
+  updateClasifFixtureUI();
+  sendWS({
+    type: 'clasif_fixture_toggle',
+    visible: clasifFixtureVisible
+  });
+  showToast(clasifFixtureVisible ? 'Fixture completo AL AIRE en OBS' : 'Fixture completo ocultado de OBS', clasifFixtureVisible ? 'success' : 'info');
+}
+
+function updateClasifFixtureUI() {
+  const badge = document.getElementById('clasif-fixture-status-badge');
+  const btnShow = document.getElementById('btn-show-clasif-fixture');
+  const btnHide = document.getElementById('btn-hide-clasif-fixture');
+
+  if (badge) {
+    badge.textContent = clasifFixtureVisible ? 'Al aire' : 'Oculto';
+    badge.className = `live-status-pill ${clasifFixtureVisible ? 'online' : 'offline'}`;
+  }
+  if (btnShow) btnShow.classList.toggle('active', clasifFixtureVisible);
+  if (btnHide) btnHide.classList.toggle('active', !clasifFixtureVisible);
 }
 
 // ── Control de OBS Studio y Simulador de Cámaras en Bucle ──
@@ -680,7 +766,10 @@ function syncBusToOBS(bus) {
   if (!bus || hasActiveSimCameras() || !obsStatus?.connected) return;
   const obsVisual = (obsStatus.currentSceneItems || []).filter(item => {
     const k = (item.inputKind || '').toLowerCase();
-    return !k.includes('wasapi') && !k.includes('audio');
+    const n = (item.sourceName || '').toLowerCase();
+    if (k.includes('wasapi') || k.includes('audio')) return false;
+    if (/fondo|navegador|overlay|envivo|fullscreen|transicion|multimedia/.test(n)) return false;
+    return true;
   });
   if (obsVisual.length === 0) return;
 
@@ -693,6 +782,9 @@ function syncBusToOBS(bus) {
   const slots = Array.isArray(bus.slotIds) ? bus.slotIds : [];
   const camAId = resolveSlot(slots[0], 0);
   const camBId = resolveSlot(slots[1], 1);
+  const pipEnabled = !!bus.pipEnabled;
+  const pipCamId = pipEnabled ? resolveSlot(bus.pipCamId, 3) : undefined;
+  const pipCorner = bus.pipCorner || 'br';
 
   if (count === 1 && camAId) {
     fetch('/api/obs/apply-layout', {
@@ -702,7 +794,10 @@ function syncBusToOBS(bus) {
         target: 'program',
         camAId,
         layout: 'full_a',
-        bannerMode: bus.bannerMode || 'none'
+        bannerMode: bus.bannerMode || 'none',
+        pipEnabled,
+        pipCamId,
+        pipCorner
       })
     }).catch(() => {});
   } else if (count === 2 && camAId && camBId) {
@@ -716,7 +811,10 @@ function syncBusToOBS(bus) {
         camAId,
         camBId,
         layout: obsLay,
-        bannerMode: bus.bannerMode || 'none'
+        bannerMode: bus.bannerMode || 'none',
+        pipEnabled,
+        pipCamId,
+        pipCorner
       })
     }).catch(() => {});
   }
@@ -1088,7 +1186,12 @@ function renderSimDirectorLiveMonitor(state) {
     const pipLbl = monitorWrap.querySelector(`#${prefix}-label-pip`);
     const pip = busState?.pip || {};
     const pipEnabled = !!(busState?.pipEnabled !== undefined ? busState.pipEnabled : pip.enabled);
-    const pipCam = pip.cam || cameras.find(c => Number(c.sceneItemId) === Number(busState?.pipCamId || pip.camId)) || null;
+    const targetPipId = Number(busState?.pipCamId || pip.camId);
+    const pipCam = pip.cam || cameras.find(c => Number(c.sceneItemId) === targetPipId) || null;
+    const obsPipItem = !pipCam && Array.isArray(obsStatus?.currentSceneItems)
+      ? obsStatus.currentSceneItems.find(c => Number(c.sceneItemId) === targetPipId)
+      : null;
+    const pipDisplayName = pipCam?.shortName || obsPipItem?.sourceName || '';
     if (pipSlot && pipVid) {
       if (!pipEnabled || !pipCam || !state.enabled) {
         pipSlot.style.opacity = '0';
@@ -1119,8 +1222,8 @@ function renderSimDirectorLiveMonitor(state) {
     }
     const pBadge = monitorWrap.querySelector(pipBadgeId);
     if (pBadge) {
-      pBadge.textContent = pipEnabled && pipCam ? `🎙️ PiP Casteo: ${pipCam.shortName}` : '🎙️ PiP Casteo: OFF';
-      pBadge.style.opacity = pipEnabled ? '1' : '0.5';
+      pBadge.textContent = pipEnabled && pipDisplayName ? `🎙️ PiP Casteo: ${pipDisplayName}` : '🎙️ PiP Casteo: OFF';
+      pBadge.style.opacity = (pipEnabled && pipDisplayName) ? '1' : '0.5';
     }
   };
 
@@ -1151,13 +1254,17 @@ async function refreshObsMultiviewScreenshots() {
   try {
     const progSel = document.querySelector('#camera-layout-director-box select[data-slot-select="0"]');
     const prevSel = document.querySelector('#preescena-layout-director-box select[data-slot-select="0"]');
+    const prevPipSel = document.querySelector('#preescena-layout-director-box select.bus-pip-cam-select');
     const progSourceName = progSel?.selectedOptions?.[0]?.textContent?.trim() || '';
     const prevSourceName = prevSel?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const prevPipEnabled = !!simCamerasState?.preview?.pipEnabled;
+    const prevPipSourceName = prevPipEnabled ? (prevPipSel?.selectedOptions?.[0]?.textContent?.trim() || '') : '';
     const qs = new URLSearchParams({ quality: 'sd' });
     const activeScene = simCamerasState?.activeScene || 'principal';
     const isPrincipalCovered = (activeScene === 'fullscreen' || activeScene === 'transicion');
     if (progSourceName && isPrincipalCovered) qs.set('programSource', progSourceName);
     if (prevSourceName) qs.set('previewSource', prevSourceName);
+    if (prevPipSourceName) qs.set('previewPipSource', prevPipSourceName);
 
     const res = await fetch(`/api/obs/studio-screenshots?${qs.toString()}`);
     const data = await res.json();
@@ -1170,6 +1277,26 @@ async function refreshObsMultiviewScreenshots() {
         prevImg.src = data.previewImage;
         prevImg.style.display = 'block';
         prevImg.style.opacity = (data.studioMode || prevSourceName) ? '1' : '0.78';
+      }
+      const prevPipBox = monitorWrap.querySelector('#obs-live-prev-pip-box');
+      const prevPipImg = monitorWrap.querySelector('#obs-live-prev-pip-img');
+      if (prevPipBox && prevPipImg) {
+        if (prevPipEnabled && prevPipSourceName) {
+          const corner = simCamerasState?.preview?.pipCorner || 'br';
+          prevPipBox.style.left = (corner === 'bl' || corner === 'tl') ? '2%' : 'auto';
+          prevPipBox.style.right = (corner === 'br' || corner === 'tr') ? '2%' : 'auto';
+          prevPipBox.style.top = (corner === 'tr' || corner === 'tl') ? '4%' : 'auto';
+          prevPipBox.style.bottom = (corner === 'br' || corner === 'bl') ? '8%' : 'auto';
+          prevPipBox.style.display = 'block';
+          if (data.previewPipImage && data.previewPipImage.length > 1000) {
+            prevPipImg.src = data.previewPipImage;
+            prevPipImg.style.display = 'block';
+          } else {
+            prevPipImg.style.display = 'none';
+          }
+        } else {
+          prevPipBox.style.display = 'none';
+        }
       }
       if (prevHint) {
         prevHint.style.display = (data.studioMode || prevSourceName) ? 'none' : 'inline-flex';
@@ -1200,6 +1327,20 @@ function syncObsMultiviewLivePreview(monitorWrap) {
     img.alt = 'Vista previa de OBS';
     img.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; z-index:2; pointer-events:none;';
     prevStage.appendChild(img);
+
+    const pipBox = document.createElement('div');
+    pipBox.id = 'obs-live-prev-pip-box';
+    pipBox.style.cssText = 'position:absolute; width:26%; aspect-ratio:16/9; display:none; z-index:4; pointer-events:none; border-radius:6px; overflow:hidden; border:1.5px solid rgba(56,189,248,0.85); background:rgba(15,23,42,0.88); box-shadow:0 4px 12px rgba(0,0,0,0.65);';
+    const pipImg = document.createElement('img');
+    pipImg.id = 'obs-live-prev-pip-img';
+    pipImg.alt = 'PiP Casteo PreEscena';
+    pipImg.style.cssText = 'width:100%; height:100%; object-fit:cover; display:none;';
+    const pipTag = document.createElement('span');
+    pipTag.textContent = '🎙️ PiP';
+    pipTag.style.cssText = 'position:absolute; left:4px; bottom:3px; padding:1px 4px; border-radius:3px; background:rgba(0,0,0,0.7); color:#38bdf8; font-size:8px; font-weight:800;';
+    pipBox.appendChild(pipImg);
+    pipBox.appendChild(pipTag);
+    prevStage.appendChild(pipBox);
 
     const hint = document.createElement('span');
     hint.id = 'obs-live-prev-hint';
@@ -4336,6 +4477,7 @@ function readRankingInputsIntoConfig(prefix, cfg) {
   const modeSel = document.getElementById(`live-${prefix}-paging-mode-select`);
   const balSel = document.getElementById(`live-${prefix}-balance-select`);
   const durSel = document.getElementById(`live-${prefix}-page-duration-select`);
+  const layoutSel = document.getElementById(`live-${prefix}-layout-mode-select`);
 
   if (topInput) cfg.top = Math.max(1, Math.min(60, parseInt(topInput.value, 10) || 16));
   if (cutInput) {
@@ -4345,6 +4487,7 @@ function readRankingInputsIntoConfig(prefix, cfg) {
   if (modeSel) cfg.dynamicPaging = modeSel.value === 'dynamic';
   if (balSel) cfg.autoBalance = balSel.value === 'balanced';
   if (durSel) cfg.pageDuration = parseInt(durSel.value, 10) || 10;
+  if (layoutSel) cfg.layoutMode = layoutSel.value === 'horizontal' ? 'horizontal' : 'vertical';
 }
 
 function onLiveParamsChanged(target) {
@@ -4669,6 +4812,9 @@ function updateLiveRankingUI() {
 
     const durSel = document.getElementById(`live-${prefix}-page-duration-select`);
     if (durSel && cfg.pageDuration) durSel.value = String(cfg.pageDuration);
+
+    const layoutSel = document.getElementById(`live-${prefix}-layout-mode-select`);
+    if (layoutSel) layoutSel.value = cfg.layoutMode === 'horizontal' ? 'horizontal' : 'vertical';
   };
 
   writeConfigToInputs('fs', liveRankingFsConfig);
@@ -6249,7 +6395,7 @@ function populateVersusRoundSelect(targetRoundId = null) {
 async function fetchVersusDataForRound(roundId) {
   if (!roundId) return;
   try {
-    const res = await fetch(`/api/live/rounds/${encodeURIComponent(roundId)}?top=0`);
+    const res = await fetch(`/api/live/rounds/${encodeURIComponent(roundId)}?top=0&readonly=1`);
     const data = await res.json();
     const results = data.ranking?.ranking || data.ranking?.results || [];
     if (data.ok && results.length > 0) {

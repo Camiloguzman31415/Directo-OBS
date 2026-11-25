@@ -730,6 +730,7 @@
                         <label class="admin-label" for="live-polling-select">Auto-refresco WCA Live</label>
                         <select class="select-filter" id="live-polling-select" onchange="onLivePollingChanged()">
                           <option value="0">Manual (desactivado)</option>
+                          <option value="5">Cada 5 segundos</option>
                           <option value="10">Cada 10 segundos</option>
                           <option value="15" selected>Cada 15s (recomendado)</option>
                           <option value="30">Cada 30 segundos</option>
@@ -903,16 +904,25 @@
                       </div>
                     </div>
 
-                    <div class="admin-field">
-                      <label class="admin-label" for="live-widget-page-duration-select">Tiempo por página</label>
-                      <select class="select-filter" id="live-widget-page-duration-select" onchange="onLiveParamsChanged('widget')">
-                        <option value="5">Cada 5 segundos</option>
-                        <option value="6">Cada 6 segundos</option>
-                        <option value="8">Cada 8 segundos</option>
-                        <option value="10" selected>Cada 10 segundos</option>
-                        <option value="15">Cada 15 segundos</option>
-                        <option value="20">Cada 20 segundos</option>
-                      </select>
+                    <div class="admin-field-row">
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-widget-page-duration-select">Tiempo por página</label>
+                        <select class="select-filter" id="live-widget-page-duration-select" onchange="onLiveParamsChanged('widget')">
+                          <option value="5">Cada 5 segundos</option>
+                          <option value="6">Cada 6 segundos</option>
+                          <option value="8">Cada 8 segundos</option>
+                          <option value="10" selected>Cada 10 segundos</option>
+                          <option value="15">Cada 15 segundos</option>
+                          <option value="20">Cada 20 segundos</option>
+                        </select>
+                      </div>
+                      <div class="admin-field">
+                        <label class="admin-label" for="live-widget-layout-mode-select">Diseño del Widget</label>
+                        <select class="select-filter" id="live-widget-layout-mode-select" onchange="onLiveParamsChanged('widget')">
+                          <option value="vertical" selected>Vertical (Esquina Izq.)</option>
+                          <option value="horizontal">Horizontal (Barra Superior)</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -976,6 +986,81 @@
             </div>
 
             <div class="admin-cards-grid">
+
+              <!-- OVERLAY CARD: BANNER SUPERIOR CLASIFICATORIO WCA (ws://localhost:3001) -->
+              <section class="admin-overlay-card" id="panel-clasif-banner" aria-labelledby="title-card-clasif-banner" style="grid-column: 1 / -1;">
+                <div class="admin-card-header">
+                  <div class="admin-card-header-main">
+                    <div class="admin-card-icon">
+                      <span data-icon="radio" data-icon-size="18"></span>
+                    </div>
+                    <div class="admin-card-titles">
+                      <div class="admin-card-title-row">
+                        <span class="admin-step-tag">Copa de Regiones · 3v3</span>
+                        <h2 class="admin-card-title" id="title-card-clasif-banner">Banner Superior Clasificatorio (localhost:3001)</h2>
+                      </div>
+                      <p class="admin-card-subtitle">Muestra arriba en OBS el duelo en foco (<code>focusMatchIds</code>) en tiempo real desde <code>ws://localhost:3001</code></p>
+                    </div>
+                  </div>
+                  <div class="admin-card-header-meta">
+                    <span class="live-status-pill online" id="clasif-banner-status-badge">Habilitado</span>
+                    <button type="button" class="admin-card-collapse-btn" data-card-collapse aria-expanded="true" aria-label="Contraer tarjeta">
+                      <span data-icon="chevron-down" data-icon-size="16"></span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="admin-card-body">
+                  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
+                    <!-- Control 1: Banner Superior -->
+                    <div style="padding:12px 14px; border-radius:10px; background:rgba(15,23,42,0.55); border:1px solid rgba(148,163,184,0.16); display:flex; flex-direction:column; gap:10px; justify-content:space-between;">
+                      <div>
+                        <div style="font-size:13px; font-weight:700; color:#f8fafc; margin-bottom:4px;">Banner Superior (Duelo en Juego)</div>
+                        <span style="font-size:12px; color:var(--admin-text-muted); display:block;">
+                          Cuando está <strong>Habilitado</strong>, aparece arriba en OBS si hay un duelo en foco. Si lo ocultas, desaparece de OBS sin desconectarse.
+                        </span>
+                      </div>
+                      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="admin-btn admin-btn--primary" id="btn-enable-clasif-banner" onclick="setClasifBannerEnabled(true)">
+                          <span data-icon="eye" data-icon-size="15"></span>
+                          <span>Habilitar Banner</span>
+                        </button>
+                        <button type="button" class="admin-btn admin-btn--secondary" id="btn-disable-clasif-banner" onclick="setClasifBannerEnabled(false)">
+                          <span data-icon="eye-off" data-icon-size="15"></span>
+                          <span>Ocultar Banner</span>
+                        </button>
+                        <button type="button" class="admin-btn admin-btn--secondary" id="btn-swap-clasif-banner" onclick="toggleClasifBannerSwap()" title="Intercambia el equipo izquierdo y el equipo derecho en el banner superior">
+                          <span data-icon="repeat" data-icon-size="15"></span>
+                          <span>Invertir Izq / Der</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Control 2: Banner Central Fixture Completo -->
+                    <div style="padding:12px 14px; border-radius:10px; background:rgba(15,23,42,0.55); border:1px solid rgba(148,163,184,0.16); display:flex; flex-direction:column; gap:10px; justify-content:space-between;">
+                      <div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
+                          <span style="font-size:13px; font-weight:700; color:#f8fafc;">Banner Central (Fixture Completo)</span>
+                          <span class="live-status-pill offline" id="clasif-fixture-status-badge">Oculto</span>
+                        </div>
+                        <span style="font-size:12px; color:var(--admin-text-muted); display:block;">
+                          Muestra en el centro de OBS el cuadro completo de llaves (Octavos, Cuartos, Semis y Final) en tiempo real, independiente del banner superior.
+                        </span>
+                      </div>
+                      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="admin-btn admin-btn--primary" id="btn-show-clasif-fixture" onclick="setClasifFixtureVisible(true)">
+                          <span data-icon="layout-grid" data-icon-size="15"></span>
+                          <span>Mostrar Fixture en OBS</span>
+                        </button>
+                        <button type="button" class="admin-btn admin-btn--secondary" id="btn-hide-clasif-fixture" onclick="setClasifFixtureVisible(false)">
+                          <span data-icon="eye-off" data-icon-size="15"></span>
+                          <span>Ocultar Fixture</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
 
               <!-- OVERLAY CARD 5: 1 · ENFRENTAMIENTO HEAD TO HEAD (PRE-DUELO HISTÓRICO) -->
               <section class="admin-overlay-card" id="panel-head-to-head" aria-labelledby="title-card-h2h">
